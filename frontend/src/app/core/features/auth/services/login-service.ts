@@ -5,4 +5,6 @@ import { Injectable } from '@angular/core';
 })
 export class LoginService {
   
+  //Formularios, validaciones de formularios
+  //Iniciar sesion llamando al servicio de AuthService
 }

@@ -63,7 +63,6 @@ model Proyectos {
 model Tarea {
   id              String       @id @default(uuid())
   titulo          String    @db.VarChar(255)
-  descripcion     String?   @db.Text
   fechaVencimiento DateTime? @db.Date
   // Posición de la tarea dentro de una columna/estado.
   posicion        Int       @default(0)

@@ -32,7 +32,7 @@ Contenido típico:
 
 📚 *.repository.js: Es la única capa que puede comunicarse con la base de datos, utilizando Prisma.
 
-🛂 *.dto.js: Define "contratos de datos" para validar la información que entra a la API, asegurando que sea correcta antes de ser procesada.
+🛂 *.dto.js (Opcional, para más tarde): Define "contratos de datos" para validar la información que entra a la API, asegurando que sea correcta antes de ser procesada.
 
 5. ➡️ Flujo de una Petición Típica (El Proceso en Acción)
 Responsabilidad: Usar un ejemplo práctico para mostrar cómo todas las capas descritas anteriormente colaboran para completar una tarea. Solidifica la comprensión teórica.

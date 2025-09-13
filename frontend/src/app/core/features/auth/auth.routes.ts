@@ -6,17 +6,10 @@ import { Recuperar } from './recuperar/recuperar';
 
 // Este archivo define las rutas para /board/*
 export const AUTH_ROUTES: Routes = [
-  { path: '',  component: Login },
-
+  { path: 'login',  component: Login },
+  { path : 'recuperar', component: Recuperar},
+  { path: 'registro',  component: Registro },
 
 
 ];
-
-export const r: Routes = [
-  { path: '',  component: Registro },
-
-];
-export const recuperar: Routes = [
-  { path : '', component: Recuperar}
-]
 

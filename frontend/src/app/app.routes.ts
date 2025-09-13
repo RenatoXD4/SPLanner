@@ -6,15 +6,15 @@ export const routes: Routes = [
     loadChildren: () => import("./core/features/kanban/kanban.routes").then((m) => m.KANBAN_ROUTES),
   },
    {
-  path: 'login',
+  path: '',
      loadChildren: () => import('./core/features/auth/auth.routes').then( m => m.AUTH_ROUTES),
   },
  {
-  path: 'registro',
-     loadChildren: () => import('./core/features/auth/auth.routes').then( m => m.r),
+  path: '',
+     loadChildren: () => import('./core/features/auth/auth.routes').then( m => m.AUTH_ROUTES),
   },
   {
-  path: 'recuperarContraseña',
-     loadChildren: () => import('./core/features/auth/auth.routes').then( m => m.recuperar),
+  path: '',
+     loadChildren: () => import('./core/features/auth/auth.routes').then( m => m.AUTH_ROUTES),
   },
 ];

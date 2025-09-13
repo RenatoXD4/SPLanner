@@ -16,7 +16,7 @@ datasource db {
 }
 
 model Usuario {
-  id        String @id @default(uuid())
+  id        String @id @default(uuid()) //ID Aleatorio, para mayor seguridad.
   nombre    String
   apellido  String
   email     String   @unique

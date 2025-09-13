@@ -3,6 +3,10 @@ Proyecto Kanban
 
 ## Comandos básicos de Git
 
+#       TRAER CAMBIOS NUEVOS    --> hacer cada vez que se acepte un commit o quieras ver la rama de alguien mas
+
+  --> git pull
+
 # Ver el status de tus archivos
 
   - git status
@@ -28,5 +32,8 @@ Proyecto Kanban
   - Usar comando de ejemplo:  "git checkout -b feature/funcionalidad"
   - git status (Para asegurarse de si estás en la rama que creaste)
 
+# Eliminar una rama
+  ej:
+  --> git branch -d feature/nombre
 
 

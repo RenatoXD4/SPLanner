@@ -1,39 +1,69 @@
+
 import { Component } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { FormButton } from '../../../shared/ui/buttons/form-button/form-button';
+import { RegistroService } from '../services/register-service';
+
+
 @Component({
   selector: 'app-registro',
-  imports: [RouterModule, ReactiveFormsModule],
+  imports: [RouterModule, ReactiveFormsModule, FormButton],
   templateUrl: './registro.html',
   styleUrl: './registro.css'
 })
 export class Registro {
-  userForm: FormGroup;
-  email: FormControl;
-  password: FormControl;
-  name: FormControl;
-  apellido: FormControl
 
-constructor() {
+  // Inyectar el servicio
+  constructor(public registroService: RegistroService) {}
 
-    this.email = new FormControl('', [Validators.required, Validators.email]);
-    this.password = new FormControl('', [Validators.required, Validators.minLength(6)]);
-    this.name = new FormControl('');
-    this.apellido = new FormControl(''),
-
-    this.userForm = new FormGroup({
-      email: this.email,
-      password: this.password,
-      name: this.name,
-      apellido: this.apellido
-    });
+  // Métodos que delegan al servicio
+  get userForm() {
+    return this.registroService.userForm;
   }
-    handleSubmit(): void {
-    if (this.userForm.valid) {
-      console.log('Formulario válido:', this.userForm.value);
 
-    } else {
-      console.log('Formulario inválido');
-    }
+  markFieldAsTouched(fieldName: string): void {
+    this.registroService.markFieldAsTouched(fieldName);
+  }
+
+  showEmailError(): boolean {
+    return this.registroService.showEmailError();
+  }
+
+  showPasswordError(): boolean {
+    return this.registroService.showPasswordError();
+  }
+
+  showNameError(): boolean {
+    return this.registroService.showNameError();
+  }
+
+  showApellidoError(): boolean {
+    return this.registroService.showApellidoError();
+  }
+
+  getEmailErrorMessage(): string {
+    return this.registroService.getEmailErrorMessage();
+  }
+
+  getPasswordErrorMessage(): string {
+    return this.registroService.getPasswordErrorMessage();
+  }
+
+  getNameErrorMessage(): string {
+    return this.registroService.getNameErrorMessage();
+  }
+
+  getApellidoErrorMessage(): string {
+    return this.registroService.getApellidoErrorMessage();
+  }
+
+  handleSubmit(): void {
+    this.registroService.handleSubmit();
+  }
+
+  onRegister(): void {
+    console.log("Click en registrarse");
+    this.handleSubmit();
   }
 }

@@ -8,7 +8,7 @@
 /////////////////////////////// CONFIG DATABASE
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
+  output   = "../../node_modules/.prisma/client"
 }
 
 datasource db {

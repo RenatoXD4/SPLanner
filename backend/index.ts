@@ -2,13 +2,12 @@ import express from "express";
 
 import routerProject from "./src/modules/projects/projects.routes.js";
 
-
 const app = express();
 const port = process.env.PORT ?? "9001";
 
 app.use(express.json())
 
-app.use("/projects", routerProject)
+app.use("api-v1/projects", routerProject)
 
 app.get("/", (req, res) => {
   res.send("Hello World!");

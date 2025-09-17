@@ -37,8 +37,14 @@ export class ProjectService {
     return project;
   }
 
-  async getProjects() {
-    return this.projectRepository.getAllProjects();
+  async getProjects(): Promise<Proyectos[]> {
+   
+    const proyectos = await this.projectRepository.getAllProjects();
+    
+    return proyectos.map(p => ({
+          ...p,
+          esOno: p.id == "Cancelado" ? true : false, // Esto es un ejemplo para manipular consultas y devolver propiedades personalizadas
+    }));
   }
 }
 

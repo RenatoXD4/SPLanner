@@ -22,4 +22,10 @@ export class ProjectRepository {
       },
     });
   }
+
+  public async insertProject(data: Proyectos): Promise<Proyectos> {
+    return await prisma.proyectos.create({
+      data
+    });
+  }
 }

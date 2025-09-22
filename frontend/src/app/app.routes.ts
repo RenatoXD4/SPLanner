@@ -17,4 +17,9 @@ export const routes: Routes = [
   path: '',
      loadChildren: () => import('./core/features/auth/auth.routes').then( m => m.AUTH_ROUTES),
   },
+    {
+  path: '',
+     loadChildren: () => import('./core/features/vistas/vistas.routes').then( m => m.vistas_routes),
+  },
+  
 ];

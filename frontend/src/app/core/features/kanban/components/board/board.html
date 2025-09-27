@@ -1,0 +1,312 @@
+<div class="flex min-h-screen">
+  
+  <app-sidebar></app-sidebar>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <main class="flex-1 p-4">
+    <!-- Filtro de vistas -->
+    <div class="flex flex-wrap justify-start gap-4 mb-6">
+      <!-- Botón de vista Kanban -->
+      <button
+        (click)="setViewMode('kanban')"
+        [ngClass]="{
+          'border-primary text-primary font-semibold ring-2 ring-primary/30': viewMode === 'kanban'
+        }"
+        class="btn btn-outline border-gray-300 text-gray-700 hover:bg-gray-100 focus:outline-none w-full sm:w-auto"
+      >
+        <span>Vista Kanban</span>
+      </button>
+
+      <!-- Botón de vista Lista -->
+      <button
+        (click)="setViewMode('list')"
+        [ngClass]="{
+          'border-primary text-primary font-semibold ring-2 ring-primary/30': viewMode === 'list'
+        }"
+        class="btn btn-outline border-gray-300 text-gray-700 hover:bg-gray-100 focus:outline-none w-full sm:w-auto"
+      >
+        <span>Vista Lista</span>
+      </button>
+
+      <!-- Botón de Tareas Asignadas -->
+      <button
+        (click)="setViewMode('assigned')"
+        [ngClass]="{
+          'border-primary text-primary font-semibold ring-2 ring-primary/30':
+            viewMode === 'assigned'
+        }"
+        class="btn btn-outline border-gray-300 text-gray-700 hover:bg-gray-100 focus:outline-none w-full sm:w-auto"
+      >
+        <span>Tareas Asignadas</span>
+      </button>
+    </div>
+
+
+    <!-- VISTA KANBAN -->
+    @if (viewMode === 'kanban') {
+    <div #kanbanContainer class="flex flex-col w-full gap-6 md:flex-row">
+      @for (item of CategoriasK; track item) {
+      <div
+        class="w-full md:w-[300px] flex-shrink-0 rounded-lg shadow-md p-4 space-y-4"
+        [ngClass]="getColumnColorClass(item.nombre)"
+      >
+        <!-- Título -->
+        <div class="flex items-center justify-between">
+          <h2 class="text-lg font-semibold" [ngClass]="getTextColorClass(item.nombre)">
+            {{ item.nombre }}
+          </h2>
+          <span class="badge badge-neutral animate-bounce animate-duration-1000">
+            {{ item.tasks.length }}
+          </span>
+        </div>
+
+        <!-- Lista de tareas -->
+        <div
+          cdkDropList
+          [id]="item.id"
+          [cdkDropListData]="item.tasks"
+          [cdkDropListConnectedTo]="categoriasIds"
+          (cdkDropListDropped)="drop($event)"
+          class="space-y-3 min-h-[50px] max-h-[450px] overflow-y-auto rounded-lg p-1"
+        >
+          @for (A of item.tasks; track A) {
+          <div
+            cdkDrag
+            (cdkDragStarted)="onDragStarted()"
+            (cdkDragEnded)="onDragEnded()"
+            (mouseenter)="onTaskHover(A.id.toString())"
+            (mouseleave)="onTaskHoverLeave(A.id.toString())"
+            class="rounded-lg p-3 flex flex-col gap-1 cursor-move border"
+            [ngClass]="[
+              getCardColorClass(item.nombre),
+              'hover:scale-[1.01] hover:shadow-md border-base-300',
+              hoveredTaskId === A.id.toString()
+                ? 'ring ring-primary ring-offset-2 scale-[1.01] bg-base-100 shadow-md'
+                : ''
+            ]"
+          >
+            <span class="font-medium text-sm text-base-content">
+              {{ A.title }}
+            </span>
+            <span>{{ A.assignee.join(' - ') }}</span>
+            <span>{{ A.description }}</span>
+
+            <span class="ml-auto badge w-fit" [ngClass]="getPriorityBadgeClass(A.priority)">
+              {{ A.priority }}
+            </span>
+          </div>
+          }
+        </div>
+
+        <!-- Botón Nueva Tarea -->
+        <button
+          class="btn btn-sm w-full font-medium transition hover:scale-105"
+          [ngClass]="getButtonColorClass(item.nombre)"
+        >
+          + Nueva Tarea
+        </button>
+      </div>
+      }
+    </div>
+    }
+
+    <!-- VISTA LISTA -->
+    <!-- FILTROS (solo aplican en vista LISTA) -->
+    @if (viewMode === 'list') {
+    <div
+      #listContainer
+      class="flex flex-col w-full gap-6 animate-fadeIn transition-opacity duration-500 ease-in-out"
+    >
+      <!-- Encabezado y botón de filtros -->
+      <div class="mb-4 flex justify-between items-center">
+        <h2 class="text-lg font-semibold">Vista Lista</h2>
+        <div class="relative">
+          <button
+            class="btn btn-sm btn-outline flex items-center gap-2"
+            (click)="mostrarPanelFiltros = !mostrarPanelFiltros"
+          >
+            <span class="icon-[tabler--filter] text-lg"></span>
+            <span>Filtros</span>
+          </button>
+
+          @if (mostrarPanelFiltros) {
+          <div
+            class="absolute right-0 mt-2 w-64 bg-base-100 shadow-lg border border-base-300 rounded-lg z-50 p-3"
+          >
+            <input
+              type="text"
+              placeholder="Filtrar por..."
+              class="input input-sm input-bordered w-full mb-3"
+              [(ngModel)]="textoFiltro"
+            />
+
+            <!-- Filtro Responsable -->
+            <div class="mb-3">
+              <label class="label text-xs font-semibold">Responsable</label>
+              <select
+                [(ngModel)]="filtroResponsable"
+                class="select select-sm select-bordered w-full"
+              >
+                <option value="">Todos</option>
+                @for (responsable of responsablesUnicos; track responsable) {
+                <option [value]="responsable">{{ responsable }}</option>
+                }
+              </select>
+            </div>
+
+            <!-- Filtro Prioridad -->
+            <div class="mb-3">
+              <label class="label text-xs font-semibold">Prioridad</label>
+              <select [(ngModel)]="filtroPrioridad" class="select select-sm select-bordered w-full">
+                <option value="">Todas</option>
+                @for (prioridad of prioridadesUnicas; track prioridad) {
+                <option [value]="prioridad">{{ prioridad }}</option>
+                }
+              </select>
+            </div>
+
+            <!-- Botón limpiar -->
+            <button (click)="limpiarFiltros()" class="btn btn-outline btn-sm w-full">
+              Limpiar filtros
+            </button>
+          </div>
+          }
+        </div>
+      </div>
+
+      <!-- Tabla de tareas -->
+      <div class="w-full overflow-x-auto rounded-xl shadow border border-base-300">
+        <table
+          class="table table-zebra bg-base-200 rounded-xl text-sm transition-opacity duration-500 ease-in-out animate-fadeIn"
+        >
+          <thead class="bg-primary text-primary-content text-xs uppercase">
+            <tr>
+              <th class="px-4 py-3 text-left whitespace-nowrap">Título</th>
+              <th class="px-4 py-3 text-left whitespace-nowrap">Descripción</th>
+              <th class="px-4 py-3 text-left whitespace-nowrap">Responsables</th>
+              <th class="px-4 py-3 text-left whitespace-nowrap">Prioridad</th>
+              <th class="px-4 py-3 text-left whitespace-nowrap">Fecha</th>
+              <th class="px-4 py-3 text-left whitespace-nowrap">Categoría</th>
+            </tr>
+          </thead>
+
+          <tbody class="divide-y divide-base-300 text-sm">
+            @for (item of tareasFiltradas; track item.tarea.id) {
+            <tr class="hover:bg-base-300/30 transition duration-150 ease-in-out">
+              <td class="px-4 py-3 font-medium max-w-[220px] truncate">{{ item.tarea.title }}</td>
+              <td class="px-4 py-3 max-w-[320px] line-clamp-2">{{ item.tarea.description }}</td>
+              <td class="px-4 py-3">{{ item.tarea.assignee.join(', ') }}</td>
+              <td class="px-4 py-3">
+                <span
+                  class="badge text-xs font-semibold px-2 py-1"
+                  [ngClass]="{
+                    'badge-error': item.tarea.priority === 'Alta',
+                    'badge-warning': item.tarea.priority === 'Media',
+                    'badge-success': item.tarea.priority === 'Baja'
+                  }"
+                >
+                  {{ item.tarea.priority }}
+                </span>
+              </td>
+              <td class="px-4 py-3 whitespace-nowrap">{{ item.tarea.dueDate }}</td>
+              <td class="px-4 py-3 whitespace-nowrap">{{ item.categoria }}</td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+    }
+
+    <!-- VISTA TAREAS ASIGNADAS -->
+    @if (viewMode === 'assigned') {
+    <div #assignedContainer class="w-full">
+      <div class="mb-4 flex justify-between items-center">
+        <h2 class="text-lg font-semibold">Mis Tareas Asignadas</h2>
+
+        <button
+          class="btn btn-sm btn-outline flex items-center gap-2"
+          (click)="mostrarPanelFiltroTituloAsignadas = !mostrarPanelFiltroTituloAsignadas"
+        >
+          <span class="icon-[tabler--filter] text-lg"></span>
+          <span>Filtrar por título</span>
+        </button>
+      </div>
+
+      <!-- Tabla estilo lista -->
+      <div class="w-full overflow-x-auto rounded-xl shadow border border-base-300">
+        <table class="table table-zebra bg-base-200 rounded-xl text-sm">
+          <thead class="bg-primary text-primary-content text-xs uppercase">
+            <tr>
+              <th
+                class="px-4 py-3 text-left whitespace-nowrap relative cursor-pointer select-none"
+                (click)="toggleFiltroTitulo()"
+                #thTitulo
+              >
+                Título
+                <!-- Panel filtro superpuesto -->
+                @if (mostrarPanelFiltroTitulo) {
+                <div
+                  class="absolute top-full left-0 mt-1 ml-2 w-64 bg-base-100 border border-base-300 shadow-lg rounded-lg z-50 p-3"
+                  (click)="$event.stopPropagation()"
+                >
+                  <input
+                    type="text"
+                    placeholder="Buscar título..."
+                    class="input input-sm input-bordered w-full mb-2"
+                    [(ngModel)]="filtroTitulo"
+                    (input)="aplicarFiltroTitulo()"
+                  />
+                  <button (click)="limpiarFiltroTitulo()" class="btn btn-outline btn-xs w-full">
+                    Limpiar filtro
+                  </button>
+                </div>
+                }
+              </th>
+              <th class="px-4 py-3 text-left whitespace-nowrap">Descripción</th>
+              <th class="px-4 py-3 text-left whitespace-nowrap">Responsables</th>
+              <th class="px-4 py-3 text-left whitespace-nowrap">Prioridad</th>
+              <th class="px-4 py-3 text-left whitespace-nowrap">Fecha</th>
+              <th class="px-4 py-3 text-left whitespace-nowrap">Categoría</th>
+            </tr>
+          </thead>
+
+          <tbody class="divide-y divide-base-300 text-sm">
+            @for (item of tareasAsignadasFiltradas; track item.tarea.id) {
+            <tr class="hover:bg-base-300/30 transition duration-150 ease-in-out">
+              <td class="px-4 py-3 font-medium max-w-[220px] truncate">
+                {{ item.tarea.title }}
+              </td>
+              <td class="px-4 py-3 max-w-[320px] line-clamp-2">
+                {{ item.tarea.description }}
+              </td>
+              <td class="px-4 py-3">
+                {{ item.tarea.assignee.join(', ') }}
+              </td>
+              <td class="px-4 py-3">
+                <span
+                  class="badge text-xs font-semibold px-2 py-1"
+                  [ngClass]="{
+                    'badge-error': item.tarea.priority === 'Alta',
+                    'badge-warning': item.tarea.priority === 'Media',
+                    'badge-success': item.tarea.priority === 'Baja'
+                  }"
+                >
+                  {{ item.tarea.priority }}
+                </span>
+              </td>
+              <td class="px-4 py-3 whitespace-nowrap">
+                {{ item.tarea.dueDate }}
+              </td>
+              <td class="px-4 py-3 whitespace-nowrap">
+                {{ item.categoria.nombre }}
+              </td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+    }
+  </main>
+</div>

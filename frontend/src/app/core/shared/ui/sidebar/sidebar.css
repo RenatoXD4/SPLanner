@@ -1,0 +1,32 @@
+.group:hover .tooltip { opacity: 1; }
+
+.sidebar-mobile {
+  opacity: 0;
+  transition: opacity 300ms ease;
+  will-change: opacity;
+  /* Opcional: un poco de movimiento vertical para suavizar */
+  transform: translateY(10px);
+  transition: opacity 300ms ease, transform 300ms ease;
+}
+
+.sidebar-mobile.open {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+
+/* Solo si no usas Tailwind completamente */
+.sidebar-enter {
+  opacity: 0;
+}
+.sidebar-enter-active {
+  opacity: 1;
+  transition: opacity 0.3s ease-in-out;
+}
+.sidebar-leave {
+  opacity: 1;
+}
+.sidebar-leave-active {
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}

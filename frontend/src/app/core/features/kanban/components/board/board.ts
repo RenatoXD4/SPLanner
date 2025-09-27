@@ -11,7 +11,7 @@ import { CommonModule } from '@angular/common';
 import { ElementRef, ViewChild, ChangeDetectorRef, HostListener } from '@angular/core';
 import { FormsModule } from '@angular/forms';  // <-- Importa FormsModule
 
-
+import { Sidebar } from '../../../../shared/ui/sidebar/sidebar';
 
 interface Task {
   id: number;
@@ -32,7 +32,7 @@ interface Categoria {
 
 @Component({
   selector: 'app-board',
-  imports: [CdkDropList, CdkDrag, CommonModule, FormsModule  // <-- Agrégalo aquí
+  imports: [CdkDropList, CdkDrag, CommonModule, FormsModule, Sidebar  // <-- Agrégalo aquí
   ],
   templateUrl: './board.html',
   styleUrl: './board.css',

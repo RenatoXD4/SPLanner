@@ -1,45 +1,76 @@
-Explicación del Documento de Arquitectura
+Usar este archivo para explicar el la parte de la base de datos
+NOTA: EL ARCHIVO .env solo se subirá 1 vez. ASEGURAR QUE LUEGO SEA AGREGADO AL GITIGNORE
 
-1. 🚀 Guía de Arquitectura del Backend (Sección de Introducción)
-Responsabilidad: Funcionar como la página de bienvenida y el punto de partida para cualquier desarrollador. Establece el propósito del documento, que es ser la guía oficial sobre cómo funciona y se estructura el backend.
+Esta estructura de carpetas utiliza prácticas comunes en proyectos medianos/grandes. Estas son: 
+  -Separación de responsabilidades
+  -Arquitectura en capas
+  -Dont Repeat Yourself
+  -Seguridad y validación
+  -Escalabilidad
+  -Configuración centralizada (Carpeta config)
+  -Testing
 
-Contenido típico: Un saludo al equipo, la declaración de la misión del README y un resumen de los conceptos que se cubrirán (flujo de datos, responsabilidades de las capas, y cómo contribuir al código).
+1. 📁 /controllers
+   - Responsabilidad: Manejar la lógica de las rutas HTTP (req/res).
+   - Contenido típico:
+     * Funciones que procesan peticiones (GET, POST, etc.).
+     * Llama a servicios pero NO contiene lógica de negocio.
+   - Ejemplo: userController.js, productController.js
 
-2. ⭐ Filosofía Central (Principios Fundamentales)
-Responsabilidad: Establecer las reglas de diseño y los principios inquebrantables del proyecto. Su objetivo es asegurar que todo el equipo construya el software de una manera unificada y consistente.
+2. 📁 /services
+   - Responsabilidad: Contener la lógica de negocio principal.
+   - Contenido típico:
+     * Funciones complejas (cálculos, procesamiento de datos).
+     * Interacción con modelos/base de datos.
+   - Ejemplo: userService.js (con métodos como createUser, updateUser)
 
-Contenido típico:
+3. 📁 /models o carpeta /prisma
+   - Responsabilidad: Definir la estructura de datos y conexión con BD.
+   - Contenido típico:
+     * Schemas (Mongoose) o modelos (Sequelize).
+     * Definiciones de tablas/colecciones.
+   - Ejemplo: User.js (con campos: name, email, password)
 
-Separación de Responsabilidades (SoC): La regla de que cada archivo o módulo tiene un solo trabajo. Explica por qué los controladores no deben contener lógica de negocio y los servicios no deben manejar peticiones HTTP.
+4. 📁 /routes
+   - Responsabilidad: Definir los endpoints de la API.
+   - Contenido típico:
+     * Mapeo URL → Controlador.
+     * Uso de middlewares específicos.
+   - Ejemplo: userRoutes.js (con rutas como /users, /users/:id)
 
-Organización por Módulos: La decisión de agrupar archivos por funcionalidad (ej. todo lo de users en /modules/users) en vez de agruparlos por tipo (ej. una carpeta con todos los controladores del proyecto).
+5. 📁 /middlewares
+   - Responsabilidad: Procesamiento intermedio de peticiones.
+   - Contenido típico:
+     * Autenticación (JWT).
+     * Validaciones preliminares.
+     * Logging.
+   - Ejemplo: authMiddleware.js, loggerMiddleware.js
 
-3. 📁 Estructura de Carpetas (El Mapa del Proyecto)
-Responsabilidad: Ofrecer una visión panorámica y rápida de la organización del proyecto. Es el "índice" visual que ayuda a localizar las diferentes partes de la aplicación.
+6. 📁 /validations
+   - Responsabilidad: Validar datos de entrada.
+   - Contenido típico:
+     * Esquemas (usando Joi, Zod, etc.).
+     * Reglas para request bodies/params.
+   - Ejemplo: userValidations.js (valida email, password)
 
-Contenido típico: Un diagrama de árbol del directorio principal (/src) que muestra las carpetas más importantes y una breve descripción de su contenido (/config, /modules, /middlewares, app.js, etc.).
+7. 📁 /helpers
+   - Responsabilidad: Funciones utilitarias reutilizables.
+   - Contenido típico:
+     * Formateo de respuestas API.
+     * Funciones de apoyo (hasheo, generación de tokens).
+     * Funciones de errores.
+   - Ejemplo: apiResponse.js, cryptoHelper.js
 
-4. 🛠️ Descripción de las Capas (Los Componentes y sus Roles)
-Responsabilidad: Detallar la función específica y las reglas de cada tipo de archivo dentro de un módulo. Esta es la sección más crítica para que un desarrollador sepa qué código va en qué lugar.
+8. 📁 /config o carpeta /prisma
+   - Responsabilidad: Configuración global de la aplicación.
+   - Contenido típico:
+     * Variables de entorno (DB conexión, API keys).
+     * Constantes reutilizables.
+   - Ejemplo: database.js, envConfig.js
 
-Contenido típico:
-
-🗺️ *.routes.js: Define las URLs de la API y las conecta a los controladores. No tiene lógica.
-
-👮 *.controller.js: Actúa como intermediario entre las peticiones HTTP y la lógica interna. Recibe peticiones, llama a los servicios y envía respuestas.
-
-🧠 *.service.js: Es el cerebro donde vive toda la lógica de negocio. Orquesta las operaciones y toma decisiones.
-
-📚 *.repository.js: Es la única capa que puede comunicarse con la base de datos, utilizando Prisma.
-
-🛂 *.dto.js (Opcional, para más tarde): Define "contratos de datos" para validar la información que entra a la API, asegurando que sea correcta antes de ser procesada.
-
-5. ➡️ Flujo de una Petición Típica (El Proceso en Acción)
-Responsabilidad: Usar un ejemplo práctico para mostrar cómo todas las capas descritas anteriormente colaboran para completar una tarea. Solidifica la comprensión teórica.
-
-Contenido típico: Una lista numerada que sigue el viaje de una petición específica (ej. POST /users) a través de cada capa del sistema, desde el cliente hasta la base de datos y de vuelta.
-
-6. 🚀 Cómo Empezar (Guía de Instalación)
-Responsabilidad: Proveer a los desarrolladores una lista de pasos claros y concisos para configurar y ejecutar el proyecto en su entorno local.
-
-Contenido típico: Una serie de comandos de terminal y pasos a seguir en orden: clonar el repositorio, configurar el archivo .env, instalar dependencias, ejecutar las migraciones de la base de datos e iniciar el servidor.
+9. 📁 /tests (opcional pero recomendado)
+   - Responsabilidad: Pruebas automatizadas.
+   - Contenido típico:
+     * Pruebas unitarias (services/helpers).
+     * Pruebas de integración (rutas).
+   - Ejemplo: userService.test.js, authMiddleware.test.js

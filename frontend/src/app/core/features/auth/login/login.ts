@@ -1,39 +1,48 @@
 import { Component } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { Router } from '@angular/router';
-
+import { FormButton } from '../../../shared/ui/buttons/form-button/form-button';
+import { LoginService } from '../services/login-service';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, RouterModule],
+  imports: [ReactiveFormsModule, RouterModule, FormButton],
   templateUrl: './login.html',
   styleUrl: './login.css'
-
 })
 export class Login {
-  userForm: FormGroup;
-  email: FormControl;
-  password: FormControl;
 
-constructor() {
+  // Inyectar el servicio
+  constructor(public loginService: LoginService) {}
 
-    this.email = new FormControl('', [Validators.required, Validators.email]);
-    this.password = new FormControl('', [Validators.required, Validators.minLength(6)]);
+  // Método para manejar el login
+  onLogin(): void {
+    console.log("Click en login");
+    this.loginService.handleSubmit();
+  }
 
-    this.userForm = new FormGroup({
-      email: this.email,
-      password: this.password
-    });
+  // Métodos de conveniencia para acceder a los métodos del servicio
+  get userForm() {
+    return this.loginService.userForm;
+  }
+
+  markFieldAsTouched(fieldName: string): void {
+    this.loginService.markFieldAsTouched(fieldName);
+  }
+
+  showEmailError(): boolean {
+    return this.loginService.showEmailError();
+  }
+
+  showPasswordError(): boolean {
+    return this.loginService.showPasswordError();
+  }
+
+  getEmailErrorMessage(): string {
+    return this.loginService.getEmailErrorMessage();
   }
 
   handleSubmit(): void {
-    if (this.userForm.valid) {
-      console.log('Formulario válido:', this.userForm.value);
-
-    } else {
-      console.log('Formulario inválido');
-    }
+    this.loginService.handleSubmit();
   }
-    
 }

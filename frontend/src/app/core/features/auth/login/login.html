@@ -1,47 +1,75 @@
-<div class="w-full h-full flex flex-col justify-center items-center min-h-screen pb-5  bg-black"> <!--bg-zinc-950-->
-
-  <div class="w-full max-w-md mx-auto px-5 py-8 lg:py-0 lg:h-200 lg:flex lg:items-center shadow-xl/100  ">
-    <!--modificar para mejorar el formulario-->
-
-
+<div class="w-full h-full flex flex-col justify-center items-center min-h-screen pb-5 bg-gradient-to-b  from-purple-00">
+  <div class="w-full max-w-md mx-auto px-5 py-8 lg:py-0 lg:h-200 lg:flex lg:items-center shadow-xl/100 bg-black">
     <div class="w-full max-w-[350px] mx-auto lg:mt-32">
+
 
 
       <h1 class="text-3xl font-bold text-white mb-2 text-center">Iniciar Sesion</h1>
       <div class="relative my-6">
         <div class="absolute inset-0 flex items-center">
-          <div class="w-full border-t border-zinc-800"></div>
+          <div class="w-full border-t border-white-800"></div>
         </div>
       </div>
 
-      <p class="text-zinc-400 mb-8 text-center">Ingresa tu correo y contraseña para iniciar</p>
-
+      <p class="text-white-500 mb-8 text-center">Ingresa tu correo y contraseña para iniciar</p>
 
       <!-- Formulario de email/contraseña -->
-      <form class="space-y-4" [formGroup]="userForm" (submit)="handleSubmit()">
-        <!--Se vincula con la variable del ts y tamnbien reviso si los datos se envian-->
-        <div>
-          <label for="email" class="block text-sm font-medium text-white mb-1">Correo</label>
+      <form class="space-y-6" [formGroup]="userForm" (submit)="handleSubmit()">
+        <!-- Campo Email -->
+        <div class="relative transition-all duration-300 ease-in-out" [class.mb-8]="showEmailError()">
+          <label for="email" class="block text-sm font-medium text-white mb-2">Correo</label>
           <input id="email" type="email" placeholder="correo@gmail.com"
-            class="w-full px-4 py-3 bg-zinc-950 border border-zinc-800 rounded-lg text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-white/50"
-            autocomplete="email" formControlName="email"><!--Se vincula con la variable del ts-->
+            class="w-full px-4 py-3 bg-zinc-950 border border-zinc-800 rounded-lg text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all duration-300"
+            autocomplete="email" formControlName="email" (blur)="markFieldAsTouched('email')">
+
+          <!-- Alerta animada para email -->
+          @if (showEmailError()) {
+          <div class="absolute top-full left-0 right-0 mt-1 animate-fade-in-down">
+            <div class="bg-red-500/90 text-white p-3 rounded-lg shadow-lg border border-red-400">
+              <div class="flex items-center gap-2">
+                <svg class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                    clip-rule="evenodd" />
+                </svg>
+                <span class="text-sm">{{ getEmailErrorMessage() }}</span>
+              </div>
+            </div>
+          </div>
+          }
         </div>
 
-        <div>
-          <label for="password" class="block text-sm font-medium text-white mb-1">Password</label>
-          <input id="password" type="Contraseña" placeholder="********"
-            class="w-full px-4 py-3 bg-zinc-950 border border-zinc-800 rounded-lg text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-white/50"
-            formControlName="password"><!--Se vincula con la variable del ts-->
+        <!-- Campo Password -->
+        <div class="relative transition-all duration-300 ease-in-out" [class.mb-8]="showPasswordError()">
+          <label for="password" class="block text-sm font-medium text-white mb-2">Password</label>
+          <input id="password" type="password" placeholder="********"
+            class="w-full px-4 py-3 bg-zinc-950 border border-zinc-800 rounded-lg text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all duration-300"
+            formControlName="password" (blur)="markFieldAsTouched('password')">
+
+          <!-- Alerta animada para password -->
+          @if (showPasswordError()) {
+          <div class="absolute top-full left-0 right-0 mt-1 animate-fade-in-down">
+            <div class="bg-red-500/90 text-white p-3 rounded-lg shadow-lg border border-red-400">
+              <div class="flex items-center gap-2">
+                <svg class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                    clip-rule="evenodd" />
+                </svg>
+                <span class="text-sm">Por favor ingresa tu contraseña</span>
+              </div>
+            </div>
+          </div>
+          }
         </div>
 
-        <!--eL DISABLE es para desactivar el boton en caso de que no se cumplan los requerimientos pero por el diseño del boton no se percibe xD-->
-        <button [disabled]="userForm.invalid" type="submit"
-          class="w-full bg-white text-zinc-950 py-3 px-4 rounded-lg font-medium hover:bg-white/90 transition-colors">
-          Iniciar sesion
-        </button>
+        <div class="pt-2">
+          <app-form-button [text]="'Iniciar sesion'" [disabled]="!userForm.valid" (buttonClick)="onLogin()">
+          </app-form-button>
+        </div>
 
-        <button
-          class="w-full flex items-center justify-center gap-2 border border-zinc-800 text-white py-3 px-4 rounded-md hover:bg-zinc-900 transition-colors mb-4">
+        <button type="button"
+          class="w-full flex items-center justify-center gap-2 border bg-black border-black-800 text-white py-3 px-4 rounded-md hover:bg-zinc-900 transition-colors mb-4">
           <svg class="w-5 h-5" viewBox="0 0 48 48">
             <path fill="#FFC107"
               d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z" />
@@ -54,16 +82,15 @@
           </svg>
           Iniciar con Google
         </button>
-
       </form>
-      <div class="mt-6 space-y-2 text-sm">
-        <a href="recuperar" class="block text-white hover:text-zinc-300 transition-colors text-center">Olvidaste tu
-          contraseña?</a>
 
+      <div class="mt-6 space-y-2 text-sm">
+        <a href="recuperar" class="block text-white hover:text-zinc-300 transition-colors text-center">
+          Olvidaste tu contraseña?
+        </a>
         <a href="registro" class="block text-white hover:text-zinc-300 transition-colors text-center">
           ¿No tienes cuenta? Regístrate ahora
         </a>
-
       </div>
     </div>
   </div>

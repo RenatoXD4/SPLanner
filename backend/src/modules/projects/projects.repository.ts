@@ -11,7 +11,8 @@ export class ProjectRepository {
     });
   }
 
-  public async getAllProjects(): Promise<Proyectos[]> {
+  // Esta se debe modificar, por temas de reglas de negocio.Debería devolver todos los proyectos en los que esté el usuario. 
+  public async getAllProjects(): Promise<Proyectos[]> { 
     return await prisma.proyectos.findMany();
   }
 

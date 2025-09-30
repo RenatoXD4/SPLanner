@@ -3,7 +3,6 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { FormButton } from '../../../shared/ui/buttons/form-button/form-button';
 import { LoginService } from '../services/login-service';
-import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-login',
@@ -13,21 +12,12 @@ import { Router } from '@angular/router';
 })
 export class Login {
 
-  showSuccessPopup: boolean = false;
-  isRedirecting: boolean = false;
-  countdown: number = 5; // 3 segundos antes de redirección
-
   // Inyectar el servicio
-  constructor(public loginService: LoginService, private router: Router) {
-    // Suscribirse al éxito del login
-    this.loginService.setOnLoginSuccess(() => {
-      this.showSuccess();
-    });
-  }
+  constructor(public loginService: LoginService) {}
 
   // Método para manejar el login
   onLogin(): void {
-
+    console.log("Click en login");
     this.loginService.handleSubmit();
   }
 
@@ -54,43 +44,5 @@ export class Login {
 
   handleSubmit(): void {
     this.loginService.handleSubmit();
-  }
-
-  // Nuevos métodos para el estado de carga y errores
-  isLoading(): boolean {
-    return this.loginService.isLoading();
-  }
-
-  getErrorMessage(): string {
-    return this.loginService.errorMessage();
-  }
-
-  // Métodos para el popup de éxito
-  showSuccess(): void {
-    this.showSuccessPopup = true;
-    this.startCountdown();
-  }
-
-  startCountdown(): void {
-    this.isRedirecting = true;
-    this.countdown = 3;
-
-    const countdownInterval = setInterval(() => {
-      this.countdown--;
-
-      if (this.countdown <= 0) {
-        clearInterval(countdownInterval);
-        this.redirectToDashboard();
-      }
-    }, 1000);
-  }
-
-  redirectToDashboard(): void {
-    this.router.navigate(['/board']);
-  }
-
-  // Método para redirigir manualmente (si el usuario hace clic)
-  redirectNow(): void {
-    this.redirectToDashboard();
   }
 }

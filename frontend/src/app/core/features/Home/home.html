@@ -1,0 +1,175 @@
+<section class="w-full min-h-screen bg-gradient-to-b ">
+  <!-- Header unificado -->
+  <header class="flex justify-between items-center w-full max-w-[1300px] mx-auto py-4 px-4 md:px-8">
+
+    <!-- Logo SPlanner -->
+    <div class="flex-shrink-0">
+      <svg width="280" height="70" viewBox="0 0 280 70" class="logo">
+        <defs>
+          <linearGradient id="mainGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#8b5cf6" />
+            <stop offset="100%" stop-color="#a855f7" />
+          </linearGradient>
+        </defs>
+
+        <!-- Icono Kanban simplificado -->
+        <rect x="5" y="10" width="45" height="45" rx="6" fill="url(#mainGradient)" />
+
+        <!-- Columnas -->
+        <rect x="12" y="20" width="6" height="25" fill="#fbbf24" rx="1.5" />
+        <rect x="22" y="16" width="6" height="29" fill="#10b981" rx="1.5" />
+        <rect x="32" y="22" width="6" height="23" fill="#ef4444" rx="1.5" />
+
+        <!-- Texto -->
+        <text x="55" y="38" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="url(#mainGradient)">
+          SPlanner
+        </text>
+      </svg>
+    </div>
+
+    <!-- Botones -->
+    <div class="hidden sm:flex gap-4 md:gap-6 items-center">
+      <!--<button class="btn-secondary">Contacto</button>-->
+      <!-- En el header -->
+      <button class="btn-primary" (click)="redirectToLogin()" [disabled]="isRedirecting">
+        @if (isRedirecting) {
+        <div class="flex items-center justify-center gap-2">
+          <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+            </path>
+          </svg>
+          <span>Iniciar Sesión</span>
+        </div>
+        } @else {
+        Iniciar Sesión
+        }
+      </button>
+    </div>
+
+    <!-- Menú móvil -->
+    <button class="sm:hidden mobile-menu-btn-github">
+      <svg width="30" height="24" viewBox="0 0 30 24" fill="none">
+        <rect width="30" height="3" rx="1.5" fill="#8b5cf6" />
+        <rect y="10.5" width="30" height="3" rx="1.5" fill="#8b5cf6" />
+        <rect y="21" width="30" height="3" rx="1.5" fill="#8b5cf6" />
+      </svg>
+    </button>
+  </header>
+
+  <!-- Contenido principal unificado -->
+  <div class="relative overflow-hidden py-12 md:py-20">
+    <!-- Patrón de puntos sutiles -->
+    <div class="absolute inset-0 opacity-[0.02]"
+      style="background-image: radial-gradient(circle at 1px 1px, #8b5cf6 1px, transparent 0); background-size: 20px 20px;">
+    </div>
+
+    <div class="relative max-w-[1300px] mx-auto px-4 md:px-8">
+      <div class="grid lg:grid-cols-2 gap-8 items-center">
+
+        <!-- Contenido de texto -->
+        <div class="text-center lg:text-left">
+          <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6">
+            <span class="text-[#8b5cf6]">Organiza</span> Tus Proyectos<br>
+            Con <span class="text-[#824cff]">SPlanner</span>
+          </h1>
+
+          <p class="text-lg text-gray-300 mb-8 leading-relaxed">
+            La plataforma definitiva para la gestión de proyectos estilo Kanban.
+            Colabora con tu equipo, sigue el progreso y alcanza tus metas eficientemente.
+          </p>
+
+          <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start ">
+            <!-- En la sección principal -->
+            <button class="btn-primary-lg" (click)="redirectToLogin()" [disabled]="isRedirecting">
+              @if (isRedirecting) {
+              <div class="flex items-center justify-center gap-2">
+                <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                  </path>
+                </svg>
+                <span> Comenzar Ahora</span>
+              </div>
+              } @else {
+              Comenzar Ahora
+              }
+            </button>
+
+          </div>
+        </div>
+
+        <!-- Carrusel de imágenes -->
+        <div class="relative">
+          <div class="carousel-container">
+
+            <!-- Imágenes del carrusel -->
+            <div class="carousel-slides relative h-80 md:h-96 rounded-2xl overflow-hidden">
+
+              <!-- Slide 1 -->
+              <div class="carousel-slide absolute inset-0 opacity-0 transition-opacity duration-500 ease-in-out"
+                [class.opacity-100]="currentSlide === 0">
+                <img src="https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=800&h=500&fit=crop"
+                  alt="Dashboard SPlanner" class="w-full h-full object-cover">
+                <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
+                  <h3 class="text-white font-bold text-lg">Dashboard Intuitivo</h3>
+                  <p class="text-gray-300 text-sm">Control total de tus proyectos</p>
+                </div>
+              </div>
+
+              <!-- Slide 2 -->
+              <div class="carousel-slide absolute inset-0 opacity-0 transition-opacity duration-500 ease-in-out"
+                [class.opacity-100]="currentSlide === 1">
+                <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=500&fit=crop"
+                  alt="Colaboración en equipo" class="w-full h-full object-cover">
+                <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
+                  <h3 class="text-white font-bold text-lg">Colaboración en Equipo</h3>
+                  <p class="text-gray-300 text-sm">Trabaja junto a tu equipo en tiempo real</p>
+                </div>
+              </div>
+
+              <!-- Slide 3 -->
+              <div class="carousel-slide absolute inset-0 opacity-0 transition-opacity duration-500 ease-in-out"
+                [class.opacity-100]="currentSlide === 2">
+                <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=500&fit=crop"
+                  alt="Analíticas avanzadas" class="w-full h-full object-cover">
+                <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
+                  <h3 class="text-white font-bold text-lg">Analíticas Avanzadas</h3>
+                  <p class="text-gray-300 text-sm">Toma decisiones basadas en datos</p>
+                </div>
+              </div>
+
+              <!-- Slide 4 -->
+              <div class="carousel-slide absolute inset-0 opacity-0 transition-opacity duration-500 ease-in-out"
+                [class.opacity-100]="currentSlide === 3">
+                <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&h=500&fit=crop"
+                  alt="Gestión de tareas" class="w-full h-full object-cover">
+                <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
+                  <h3 class="text-white font-bold text-lg">Gestión de Tareas</h3>
+                  <p class="text-gray-300 text-sm">Organiza y prioriza tu trabajo</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Botones de navegación -->
+            <button (click)="previousSlide()"
+              class="absolute left-4 top-1/2 transform -translate-y-1/2 bg-[#0d1117] border border-[#30363d] text-white p-3 rounded-full hover:bg-[#161b22] transition-colors z-10">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+
+            <button (click)="nextSlide()"
+              class="absolute right-4 top-1/2 transform -translate-y-1/2 bg-[#0d1117] border border-[#30363d] text-white p-3 rounded-full hover:bg-[#161b22] transition-colors z-10">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

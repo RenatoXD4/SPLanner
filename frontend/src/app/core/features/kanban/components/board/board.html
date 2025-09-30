@@ -1,5 +1,4 @@
 <div class="flex min-h-screen">
-  
   <app-sidebar></app-sidebar>
 
   <!-- CONTENIDO PRINCIPAL -->
@@ -40,7 +39,6 @@
         <span>Tareas Asignadas</span>
       </button>
     </div>
-
 
     <!-- VISTA KANBAN -->
     @if (viewMode === 'kanban') {
@@ -99,9 +97,11 @@
         </div>
 
         <!-- Botón Nueva Tarea -->
+        <!-- Botón Nueva Tarea -->
         <button
           class="btn btn-sm w-full font-medium transition hover:scale-105"
           [ngClass]="getButtonColorClass(item.nombre)"
+          (click)="abrirModal(item.id)"
         >
           + Nueva Tarea
         </button>
@@ -309,4 +309,79 @@
     </div>
     }
   </main>
+
+  <dialog id="modalNuevaTarea" class="modal modal-bottom sm:modal-middle">
+    <div class="modal-box">
+      <h3 class="font-bold text-lg mb-4">Crear Nueva Tarea</h3>
+
+      <form class="space-y-4" (ngSubmit)="crearTarea()">
+        <!-- Título -->
+        <div class="form-control">
+          <label class="label">Título</label>
+          <input
+            type="text"
+            class="input input-bordered w-full"
+            [(ngModel)]="newTask.title"
+            name="title"
+            required
+            placeholder="Título de la tarea"
+          />
+        </div>
+
+        <!-- Descripción -->
+        <div class="form-control">
+          <label class="label">Descripción</label>
+          <textarea
+            class="textarea textarea-bordered w-full"
+            [(ngModel)]="newTask.description"
+            name="description"
+            placeholder="Describe la tarea..."
+          ></textarea>
+        </div>
+
+        <!-- Prioridad -->
+        <div class="form-control">
+          <label class="label">Prioridad</label>
+          <select
+            class="select select-bordered w-full"
+            [(ngModel)]="newTask.priority"
+            name="priority"
+          >
+            <option value="Alta">Alta</option>
+            <option value="Media">Media</option>
+            <option value="Baja">Baja</option>
+          </select>
+        </div>
+
+        <!-- Responsable -->
+        <div class="form-control">
+          <label class="label">Responsable</label>
+          <input
+            type="text"
+            class="input input-bordered w-full"
+            [(ngModel)]="newTask.assignee"
+            name="assignee"
+            placeholder="Ej: Ana, Luis"
+          />
+        </div>
+
+        <!-- Fecha -->
+        <div class="form-control">
+          <label class="label">Fecha de entrega</label>
+          <input
+            type="date"
+            class="input input-bordered w-full"
+            [(ngModel)]="newTask.dueDate"
+            name="dueDate"
+          />
+        </div>
+
+        <!-- Acciones -->
+        <div class="modal-action">
+          <button type="button" class="btn btn-outline" (click)="cerrarModal()">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Crear</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
 </div>

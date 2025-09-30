@@ -138,15 +138,7 @@ export class Board {
       console.log(`✔️ Status de tarea ${taskId} actualizado a:`, newStatus);
     }
   }
-  // función dentro de la funcion DROP() FINAL
-  /*
-    viewMode: 'kanban' | 'list' = 'kanban';
-  
-    toggleView(): void {
-      this.viewMode = this.viewMode === 'kanban' ? 'list' : 'kanban';
-    }
-  
-    */
+
   currentUser: string = 'Juan';  // Cambia esto por el identificador de tu usuario
 
   // CAMBIO DE VISTA, esto es necesario ya que esto es lo que activa que la animación se vea al hacer click en cada Botón
@@ -184,16 +176,6 @@ export class Board {
     });
   }
 
-
-
-
-  /*
-  // Puedes dejar esto comentado por ahora:
-  // metodo para verificar si la vista actual es assigned
-  get isAssignedView() {
-    return this.viewMode === 'assigned';
-  }
-  */
 
 
   getPriorityBadgeClass(priority: string): string {
@@ -329,35 +311,7 @@ export class Board {
         return 'text-gray-300';
     }
   }
-  /*
-  hoveredListId: string | null = null;
-  timeoutId: any = null;
 
-  onMouseEnterList(listId: string) {
-    this.hoveredListId = listId;
-
-    if (this.timeoutId) {
-      clearTimeout(this.timeoutId);
-    }
-
-    this.timeoutId = setTimeout(() => {
-      if (this.hoveredListId === listId) {
-        this.hoveredListId = null;
-      }
-    }, 3000);
-  }
-
-  onMouseLeaveList(listId: string) {
-    if (this.hoveredListId === listId) {
-      this.hoveredListId = null;
-    }
-
-    if (this.timeoutId) {
-      clearTimeout(this.timeoutId);
-      this.timeoutId = null;
-    }
-  }
-  */
   hoveredTaskId: string | null = null;
   timeoutId: any;
 
@@ -523,6 +477,53 @@ export class Board {
     // Mostrar un modal o panel lateral para crear tarea
     console.log('Abrir modal de nueva tarea');
   }
+
+
+  // FORMULARIO DE LA TAREA TEMPORAL
+
+  selectedCategoryId: string | null = null;
+
+  newTask = {
+    title: '',
+    description: '',
+    priority: 'Media',
+    assignee: '',
+    dueDate: ''
+  };
+
+
+  abrirModal(categoriaId: string) {
+    this.selectedCategoryId = categoriaId;
+    (document.getElementById('modalNuevaTarea') as HTMLDialogElement)?.showModal();
+  }
+
+  cerrarModal() {
+    (document.getElementById('modalNuevaTarea') as HTMLDialogElement)?.close();
+    this.selectedCategoryId = null;
+  }
+
+  crearTarea() {
+    if (!this.selectedCategoryId) return;
+
+    const tarea = {
+      ...this.newTask,
+      categoryId: this.selectedCategoryId
+    };
+
+    // TODO: Aquí haces el POST al backend con `tarea`
+    console.log('Enviando tarea al backend:', tarea);
+
+    // Limpiar y cerrar
+    this.newTask = {
+      title: '',
+      description: '',
+      priority: 'Media',
+      assignee: '',
+      dueDate: ''
+    };
+    this.cerrarModal();
+  }
+
 
 
 }

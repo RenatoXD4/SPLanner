@@ -54,3 +54,14 @@
 .mb-8 {
   margin-bottom: 4.5rem;
 }
+
+/* Animación del spinner */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 6s linear infinite;
+}

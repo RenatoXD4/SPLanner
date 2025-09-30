@@ -1,6 +1,6 @@
 <!--eL DISABLE es para desactivar el boton en caso de que no se cumplan los requerimientos pero por el diseño del boton no se percibe xD-->
 <button type="submit"
-  class="w-full bg-white text-zinc-950 py-3 px-4 rounded-lg font-medium hover:bg-white/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-  (click)="onClick()" [disabled]="disabled">
+  class="w-full flex items-center justify-center gap-2 border bg-black border-black-800 text-white py-3 px-4 rounded-md hover:bg-zinc-900 transition-colors mb-4"
+  (click)="onClick()">
   {{ text || '' }} <!-- Muestra el texto personalizado o un valor por defecto -->
 </button>

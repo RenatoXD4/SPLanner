@@ -82,3 +82,30 @@
 .mb-8 {
   margin-bottom: 3.5rem;
 }
+
+/* Animaciones para el popup */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.fixed {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Animación del spinner */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 6s linear infinite;
+}

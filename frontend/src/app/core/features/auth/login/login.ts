@@ -12,10 +12,10 @@ import { Router } from '@angular/router';
   styleUrl: './login.css'
 })
 export class Login {
-
+  showPassword: boolean = false;
   showSuccessPopup: boolean = false;
   isRedirecting: boolean = false;
-  countdown: number = 5; // 3 segundos antes de redirección
+  countdown: number = 5;
 
   // Inyectar el servicio
   constructor(public loginService: LoginService, private router: Router) {
@@ -30,7 +30,9 @@ export class Login {
 
     this.loginService.handleSubmit();
   }
-
+  togglePasswordVisibility() {
+    this.showPassword = !this.showPassword;
+  }
   // Métodos de conveniencia para acceder a los métodos del servicio
   get userForm() {
     return this.loginService.userForm;

@@ -1,9 +1,10 @@
+
 import { Component } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { FormButton } from '../../../shared/ui/buttons/form-button/form-button';
 import { RegistroService } from '../services/register-service';
-import { Router } from '@angular/router';
+
 
 @Component({
   selector: 'app-registro',
@@ -13,14 +14,10 @@ import { Router } from '@angular/router';
 })
 export class Registro {
 
-  showPassword: boolean = false;
-  showSuccessPopup: boolean = false;
-  isRedirecting: boolean = false;
-  countdown: number = 3; // 3 segundos antes de redirección
-
   // Inyectar el servicio
-  constructor(public registroService: RegistroService, private router: Router) {}
+  constructor(public registroService: RegistroService) {}
 
+  // Métodos que delegan al servicio
   get userForm() {
     return this.registroService.userForm;
   }
@@ -66,55 +63,7 @@ export class Registro {
   }
 
   onRegister(): void {
-    this.registroService.registerUser().subscribe({
-      next: (response) => {
-        console.log('Registro exitoso:', response);
-        // Mostrar popup de éxito
-        this.showSuccessPopup = true;
-
-        // Iniciar cuenta regresiva para redirección
-        this.startCountdown();
-      },
-      error: (error) => {
-        console.error('Error en el registro:', error);
-      }
-    });
-  }
-
-  startCountdown(): void {
-    this.isRedirecting = true;
-    this.countdown = 5;
-
-    const countdownInterval = setInterval(() => {
-      this.countdown--;
-
-      if (this.countdown <= 0) {
-        clearInterval(countdownInterval);
-        this.redirectToBoard();
-      }
-    }, 1000);
-  }
-
-  redirectToBoard(): void {
-    this.router.navigate(['/board']);
-  }
-
-  // Método para redirigir manualmente (si el usuario hace clic)
-  redirectNow(): void {
-    this.redirectToBoard();
-  }
-
-  togglePasswordVisibility() {
-    this.showPassword = !this.showPassword;
-  }
-
-  // Método para verificar si está cargando
-  get isLoading() {
-    return this.registroService.isLoading();
-  }
-
-  // Método para verificar si hay error general
-  get errorMessage() {
-    return this.registroService.errorMessage();
+    console.log("Click en registrarse");
+    this.handleSubmit();
   }
 }

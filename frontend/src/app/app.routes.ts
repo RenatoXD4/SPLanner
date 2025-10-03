@@ -1,10 +1,7 @@
-import { HOME_ROUTES } from './core/features/Home/home.routes';
+
 import { Routes } from '@angular/router';
 import { Home } from './core/features/Home/home';
-import { Recuperar } from './core/features/auth/recuperar/recuperar';
-import { Board } from './core/features/kanban/components/board/board';
-import { Registro } from './core/features/auth/registro/registro';
-import { Login } from './core/features/auth/login/login';
+import { GoogleCallbackComponent } from './core/services/Api/google-callback.component';
 
 export const routes: Routes = [
 
@@ -26,6 +23,8 @@ export const routes: Routes = [
   path: '',
      loadChildren: () => import('./core/features/auth/auth.routes').then( m => m.AUTH_ROUTES),
   },
+  { path: 'auth/google/callback', component: GoogleCallbackComponent },
+
 
 ];
 

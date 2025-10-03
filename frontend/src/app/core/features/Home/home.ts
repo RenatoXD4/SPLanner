@@ -12,16 +12,11 @@ export class Home {
 
   constructor(private router: Router) {}
 
-  // Función para redireccionar al login con ícono de carga
+  // Función para redireccionar al login
   redirectToLogin(): void {
-    if (this.isRedirecting) return;
 
-    this.isRedirecting = true;
-
-    setTimeout(() => {
-      this.router.navigate(['/login']);
-      this.isRedirecting = false;
-    }, 3000); // 3 segundos
+  this.router.navigate(['/login']);
+    ;
   }
 
   // Métodos del carrusel

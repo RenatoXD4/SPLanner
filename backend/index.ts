@@ -24,12 +24,15 @@ app.use((req, res, next) => {
 app.use(express.json());
 
 app.use((req, res, next) => {
-  console.log(`🔍 ${req.method} ${req.originalUrl}`);
+  console.log(`${req.method} ${req.originalUrl}`);
   next();
 });
 
 app.use(`${api}/projects`, routerProject);
+
+//Ruta de login y google auth 
 app.use(`/${api}/usuarios`, routerUser);
+app.use(`/${api}`, routerUser);
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);

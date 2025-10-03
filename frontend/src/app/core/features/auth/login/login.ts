@@ -4,6 +4,7 @@ import { RouterModule } from '@angular/router';
 import { FormButton } from '../../../shared/ui/buttons/form-button/form-button';
 import { LoginService } from '../services/login-service';
 import { Router } from '@angular/router';
+import { AuthService } from '../../../services/auth-service';
 
 @Component({
   selector: 'app-login',
@@ -15,25 +16,29 @@ export class Login {
   showPassword: boolean = false;
   showSuccessPopup: boolean = false;
   isRedirecting: boolean = false;
-  countdown: number = 5;
+  countdown: number = 3;
 
-  // Inyectar el servicio
-  constructor(public loginService: LoginService, private router: Router) {
-    // Suscribirse al éxito del login
+  constructor(
+    public loginService: LoginService,
+    private router: Router,
+    private authService: AuthService
+  ) {
     this.loginService.setOnLoginSuccess(() => {
       this.showSuccess();
     });
   }
 
-  // Método para manejar el login
-  onLogin(): void {
+  // Método para login con Google
+  loginWithGoogle(): void {
+    this.authService.loginWithGoogle();
+  }
 
+  // ... el resto de tus métodos existentes se mantienen igual
+  onLogin(): void {
+    console.log("Click en login");
     this.loginService.handleSubmit();
   }
-  togglePasswordVisibility() {
-    this.showPassword = !this.showPassword;
-  }
-  // Métodos de conveniencia para acceder a los métodos del servicio
+
   get userForm() {
     return this.loginService.userForm;
   }
@@ -58,7 +63,6 @@ export class Login {
     this.loginService.handleSubmit();
   }
 
-  // Nuevos métodos para el estado de carga y errores
   isLoading(): boolean {
     return this.loginService.isLoading();
   }
@@ -67,7 +71,6 @@ export class Login {
     return this.loginService.errorMessage();
   }
 
-  // Métodos para el popup de éxito
   showSuccess(): void {
     this.showSuccessPopup = true;
     this.startCountdown();
@@ -91,8 +94,11 @@ export class Login {
     this.router.navigate(['/board']);
   }
 
-  // Método para redirigir manualmente (si el usuario hace clic)
   redirectNow(): void {
     this.redirectToDashboard();
+  }
+
+  togglePasswordVisibility() {
+    this.showPassword = !this.showPassword;
   }
 }

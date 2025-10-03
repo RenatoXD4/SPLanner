@@ -2,6 +2,14 @@ import { Usuario } from "@prisma/client";
 
 import { UserRepository } from "./user.repository.js";
 
+interface GoogleUserInput {
+  email: string;
+  firstName: string;
+  googleId: string;
+  lastName: string;
+  picture?: string;
+}
+
 export class UserService {
   private userRepository: UserRepository;
 
@@ -9,7 +17,32 @@ export class UserService {
     this.userRepository = new UserRepository();
   }
 
-  //Login
+  // Buscar o crear usuario desde Google
+  async findOrCreateUserFromGoogle(googleData: GoogleUserInput): Promise<Usuario> {
+    try {
+      // Buscar usuario por email
+      const existingUser = await this.userRepository.findUserByEmail(googleData.email);
+      
+      if (existingUser) {
+        return existingUser;
+      }
+
+      // Si no existe, crear nuevo usuario
+      const newUser = await this.userRepository.createUser({
+        apellido: googleData.lastName,
+        email: googleData.email,
+        nombre: googleData.firstName,
+        password: this.generateRandomPassword()
+      });
+
+      return newUser;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+      throw new Error(`Error al crear usuario desde Google: ${errorMessage}`);
+    }
+  }
+
+  // Login
   async loginUser(credentials: {
     email: string;
     password: string;
@@ -29,7 +62,7 @@ export class UserService {
     return user;
   }
 
-
+  // Registro normal
   async registerUser(userData: {
     apellido: string;
     email: string;
@@ -47,5 +80,7 @@ export class UserService {
     return user;
   }
 
-  
+  private generateRandomPassword(): string {
+    return Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
+  }
 }

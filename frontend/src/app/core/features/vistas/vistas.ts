@@ -2,149 +2,170 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule, HttpClient } from '@angular/common/http';
-import { RouterModule } from '@angular/router';
+
+interface Usuario {
+  id: string;
+  nombre: string;
+}
 
 interface Proyecto {
   id?: string;
   nombre: string;
   descripcion?: string;
   creadoPorId: string;
+  createdAt?: string;
+}
+
+interface ProyectoConUsuario extends Proyecto {
+  creadoPor?: Usuario;
 }
 
 @Component({
   selector: 'app-vistas',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule, RouterModule],
+  imports: [CommonModule, FormsModule, HttpClientModule],
   templateUrl: './vistas.html',
   styleUrls: ['./vistas.css']
 })
 export class Vistas implements OnInit {
 
+  // UI
   mostrarSidebar = true;
   mostrarModal = false;
-  mostrarFiltro = false;
   mostrarAjustes = false;
   modalEditar = false;
+  mostrarConfirmEliminar = false;
 
   filtroTexto = '';
+  mensajesExito: string[] = [];
 
-  nuevoProyectoData: Proyecto = this.resetProyecto();
-  proyectos: Proyecto[] = [];
+  // Datos
+  proyectos: ProyectoConUsuario[] = [];
+  proyectoAEliminar: ProyectoConUsuario | null = null;
+  nuevoProyectoData: Proyecto = this.crearProyectoVacio();
 
   private apiUrl = 'http://localhost:9001/api-v1/projects';
 
   constructor(private http: HttpClient) {}
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.cargarProyectos();
   }
 
-  // ===================== BACKEND =====================
-  private cargarProyectos() {
-    this.http.get<Proyecto[]>(this.apiUrl).subscribe({
-      next: (res) => this.proyectos = res,
-      error: (err) => {
-        console.error('Error al cargar proyectos:', err);
-        alert('Error al cargar los proyectos. Verifica que el servidor esté corriendo.');
-      }
+  // ------------------- BACKEND -------------------
+  private cargarProyectos(): void {
+    this.http.get<ProyectoConUsuario[]>(this.apiUrl).subscribe({
+      next: res => {
+        this.proyectos = res.map(p => this.normalizarProyecto(p));
+      },
+      error: () => this.mostrarMensaje('Error al cargar proyectos', false)
     });
   }
 
-  guardarProyecto() {
-    if (!this.nuevoProyectoData.nombre.trim()) {
-      alert('El nombre del proyecto es obligatorio');
-      return;
-    }
+  guardarProyecto(): void {
+    if (!this.nuevoProyectoData.nombre.trim()) return;
 
-    // Envía datos al backend según tu esquema de Prisma
-    const datosParaEnviar = {
+    const datos: Partial<Proyecto> = {
       nombre: this.nuevoProyectoData.nombre.trim(),
-      descripcion: this.nuevoProyectoData.descripcion || '',
-      creadoPorId: this.nuevoProyectoData.creadoPorId // DEBE EXISTIR EN LA TABLA Usuario
+      descripcion: this.nuevoProyectoData.descripcion?.trim() || '',
+      creadoPorId: this.nuevoProyectoData.creadoPorId
     };
 
-    if (this.modalEditar && this.nuevoProyectoData.id) {
-      // EDITAR proyecto
-      this.http.patch<Proyecto>(`${this.apiUrl}/${this.nuevoProyectoData.id}`, datosParaEnviar).subscribe({
-        next: (res) => {
-          this.proyectos = this.proyectos.map(p => p.id === res.id ? res : p);
-          this.cerrarModal();
-          alert('Proyecto actualizado correctamente');
-        },
-        error: (err) => {
-          console.error('Error al editar proyecto:', err);
-          alert('Error al editar el proyecto. Revisa la consola.');
+    const peticion$ = this.modalEditar && this.nuevoProyectoData.id
+      ? this.http.patch<ProyectoConUsuario>(`${this.apiUrl}/${this.nuevoProyectoData.id}`, datos)
+      : this.http.post<ProyectoConUsuario>(this.apiUrl, datos);
+
+    peticion$.subscribe({
+      next: res => {
+        const proyecto = this.normalizarProyecto(res);
+        if (this.modalEditar) {
+          this.proyectos = this.proyectos.map(p => p.id === proyecto.id ? proyecto : p);
+          this.mostrarMensaje('Proyecto editado exitosamente');
+        } else {
+          this.proyectos = [...this.proyectos, proyecto];
+          this.mostrarMensaje('Proyecto creado exitosamente');
         }
-      });
-    } else {
-      // CREAR proyecto
-      this.http.post<Proyecto>(this.apiUrl, datosParaEnviar).subscribe({
-        next: (res) => {
-          this.proyectos = [...this.proyectos, res];
-          this.cerrarModal();
-          alert('Proyecto creado correctamente');
-        },
-        error: (err) => {
-          console.error('Error al crear proyecto:', err);
-          alert('Error al crear el proyecto. Verifica que "creadoPorId" exista en Usuarios.');
-        }
-      });
-    }
-  }
-
-  editarProyecto(proyecto: Proyecto) {
-    this.modalEditar = true;
-    this.mostrarModal = true;
-    this.nuevoProyectoData = { ...proyecto };
-  }
-
-  eliminarProyecto(proyecto: Proyecto) {
-    if (!proyecto.id) return;
-    if (!confirm(`¿Seguro que quieres eliminar "${proyecto.nombre}"?`)) return;
-
-    this.http.delete(`${this.apiUrl}/${proyecto.id}`).subscribe({
-      next: () => this.proyectos = this.proyectos.filter(p => p.id !== proyecto.id),
-      error: (err) => {
-        console.error('Error al eliminar proyecto:', err);
-        alert('Error al eliminar el proyecto.');
-      }
+        this.cerrarModal();
+      },
+      error: () => this.mostrarMensaje(this.modalEditar ? 'Error al editar proyecto' : 'Error al crear proyecto', false)
     });
   }
 
-  // ===================== UI =====================
-  toggleSidebar() { 
-    this.mostrarSidebar = !this.mostrarSidebar; 
-    if (!this.mostrarSidebar) this.mostrarAjustes = false; 
-  }
-  
-  toggleFiltro() { this.mostrarFiltro = !this.mostrarFiltro; }
-  
-  toggleAjustes() { this.mostrarAjustes = !this.mostrarAjustes; }
-
-  abrirModal() {
-    this.modalEditar = false;
-    this.nuevoProyectoData = this.resetProyecto();
+  editarProyecto(proyecto: ProyectoConUsuario): void {
+    this.modalEditar = true;
+    this.nuevoProyectoData = { ...proyecto };
     this.mostrarModal = true;
   }
 
-  cerrarModal() {
-    this.mostrarModal = false;
-    this.nuevoProyectoData = this.resetProyecto();
-    this.modalEditar = false;
+  // ------------------- ELIMINAR -------------------
+  confirmarEliminar(proyecto: ProyectoConUsuario): void {
+    this.proyectoAEliminar = proyecto;
+    this.mostrarConfirmEliminar = true;
   }
 
-  private resetProyecto(): Proyecto {
+  eliminarProyecto(): void {
+    if (!this.proyectoAEliminar?.id) return;
+
+    this.http.delete(`${this.apiUrl}/${this.proyectoAEliminar.id}`).subscribe({
+      next: () => {
+        this.proyectos = this.proyectos.filter(p => p.id !== this.proyectoAEliminar?.id);
+        this.cancelarEliminar();
+        this.mostrarMensaje('Proyecto eliminado exitosamente');
+      },
+      error: () => this.mostrarMensaje('Error al eliminar proyecto', false)
+    });
+  }
+
+  cancelarEliminar(): void {
+    this.mostrarConfirmEliminar = false;
+    this.proyectoAEliminar = null;
+  }
+
+  cerrarModal(): void {
+    this.mostrarModal = false;
+    this.modalEditar = false;
+    this.nuevoProyectoData = this.crearProyectoVacio();
+  }
+
+  private crearProyectoVacio(): Proyecto {
+    return { nombre: '', descripcion: '', creadoPorId: 'id-usuario-existente' };
+  }
+
+  private normalizarProyecto(p: ProyectoConUsuario): ProyectoConUsuario {
     return {
-      nombre: '',
-      descripcion: '',
-      creadoPorId: 'id-usuario-existente' // <--- reemplaza por un usuario real de la tabla Usuario
+      ...p,
+      creadoPor: p.creadoPor || { id: p.creadoPorId, nombre: 'Desconocido' },
+      createdAt: p.createdAt || new Date().toISOString()
     };
   }
 
-  // ===================== FILTROS =====================
-  get proyectosFiltrados(): Proyecto[] {
-    return this.proyectos.filter(p =>
-      (!this.filtroTexto || p.nombre.toLowerCase().includes(this.filtroTexto.toLowerCase()))
-    );
+  // ------------------- FILTROS -------------------
+  get proyectosFiltrados(): ProyectoConUsuario[] {
+    const texto = this.filtroTexto.trim().toLowerCase();
+    return this.proyectos.filter(p => !texto || p.nombre.toLowerCase().includes(texto));
+  }
+
+  // ------------------- UI -------------------
+  toggleSidebar(): void {
+    this.mostrarSidebar = !this.mostrarSidebar;
+    if (!this.mostrarSidebar) this.mostrarAjustes = false;
+  }
+
+  toggleAjustes(): void {
+    this.mostrarAjustes = !this.mostrarAjustes;
+  }
+
+  abrirModal(): void {
+    this.modalEditar = false;
+    this.nuevoProyectoData = this.crearProyectoVacio();
+    this.mostrarModal = true;
+  }
+
+  // ------------------- MENSAJES -------------------
+  mostrarMensaje(mensaje: string, exito: boolean = true): void {
+    this.mensajesExito.push(mensaje);
+    setTimeout(() => {
+      this.mensajesExito.shift();
+    }, 3000);
   }
 }

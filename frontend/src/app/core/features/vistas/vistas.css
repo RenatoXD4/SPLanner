@@ -1,21 +1,96 @@
-/* Fade-in animation para tarjetas y tabla */
-.fade-in {
-  animation: fadeIn 0.5s ease;
+/* ================= MODALES BURBUJA ================= */
+.modal-burbuja {
+  transform: scale(0.5);
+  opacity: 0;
+  animation: burbujaIn 0.4s cubic-bezier(0.25, 1.5, 0.5, 1) forwards;
+  background: linear-gradient(135deg, #1f2937, #111827);
+  border-radius: 1.5rem;
+  padding: 1.5rem;
+  width: 28rem;
+  max-width: 90%;
+  z-index: 50;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+  color: #f9fafb;
+  font-family: 'Inter', sans-serif;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+/* Fondo del modal */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(5px);
+  z-index: 40;
+  transition: opacity 0.3s ease;
 }
 
-/* Scroll personalizado */
-main::-webkit-scrollbar {
-  width: 8px;
+/* Contenedor central */
+.modal-wrapper {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 50;
+  pointer-events: none;
 }
-main::-webkit-scrollbar-thumb {
-  background-color: rgba(255, 255, 255, 0.2);
-  border-radius: 4px;
+
+.modal-wrapper .modal-burbuja {
+  pointer-events: all;
 }
-main::-webkit-scrollbar-track {
-  background: transparent;
+
+/* Animación de entrada de modal */
+@keyframes burbujaIn {
+  0% {
+    transform: scale(0.5) translateY(30px);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ================= MENSAJES FLOTANTES ================= */
+.mensajes-flotantes {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  z-index: 60;
+  pointer-events: none;
+}
+
+.mensaje-burbuja {
+  background: linear-gradient(to right, #10b981, #3b82f6);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 9999px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  min-width: 8rem;
+  max-width: 20rem;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+  animation: flotar 0.5s ease forwards, desaparecer 3s ease forwards;
+  pointer-events: auto;
+}
+
+/* Animación de aparición flotante */
+@keyframes flotar {
+  0% {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Animación de desaparición */
+@keyframes desaparecer {
+  0%, 70% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-20px); }
 }

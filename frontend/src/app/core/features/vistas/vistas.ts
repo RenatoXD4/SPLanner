@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule, HttpClient } from '@angular/common/http';
-
+import { Sidebar } from '../../shared/ui/sidebar/sidebar';
 interface Usuario {
   id: string;
   nombre: string;
@@ -23,7 +23,7 @@ interface ProyectoConUsuario extends Proyecto {
 @Component({
   selector: 'app-vistas',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule],
+  imports: [CommonModule, FormsModule, HttpClientModule,Sidebar],
   templateUrl: './vistas.html',
   styleUrls: ['./vistas.css']
 })

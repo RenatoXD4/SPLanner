@@ -1,29 +1,32 @@
-import { PrismaClient, Proyectos, Prisma } from "@prisma/client";
+import { Proyectos } from "@prisma/client";
 
-const prisma = new PrismaClient();
+import { prisma } from "../../lib/prisma.js";
 
 export class ProjectRepository {
-  public async insertProject(data: Prisma.ProyectosCreateInput): Promise<Proyectos> {
-    return await prisma.proyectos.create({ data });
-  }
-
-  public async deleteProject(id: string): Promise<Proyectos> {
-    return await prisma.proyectos.delete({ where: { id } });
-  }
-
-  public async getAllProjects(): Promise<Proyectos[]> {
-    return await prisma.proyectos.findMany();
-  }
-
-  public async updateProject(id: string, data: Prisma.ProyectosUpdateInput): Promise<Proyectos> {
-    return await prisma.proyectos.update({
-      where: { id },
-      data,
+  public async deleteProject(id: string): Promise<null | Proyectos> {
+    return await prisma.proyectos.delete({
+      where: {
+        id: id,
+      },
     });
   }
 
-  public async userExists(id: string): Promise<boolean> {
-    const user = await prisma.usuario.findUnique({ where: { id } });
-    return !!user;
+  // Esta se debe modificar, por temas de reglas de negocio.Debería devolver todos los proyectos en los que esté el usuario. 
+  public async getAllProjects(): Promise<Proyectos[]> { 
+    return await prisma.proyectos.findMany();
+  }
+
+  public async getProject(id: string): Promise<null | Proyectos> {
+    return await prisma.proyectos.findUnique({
+      where: {
+        id: id,
+      },
+    });
+  }
+
+  public async insertProject(data: Proyectos): Promise<Proyectos> {
+    return await prisma.proyectos.create({
+      data
+    });
   }
 }

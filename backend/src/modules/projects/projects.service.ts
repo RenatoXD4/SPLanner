@@ -1,5 +1,6 @@
+import { Proyectos } from "@prisma/client";
+
 import { ProjectRepository } from "./projects.repository.js";
-import { Proyectos, Prisma } from "@prisma/client";
 
 export class ProjectService {
   private projectRepository: ProjectRepository;
@@ -8,23 +9,46 @@ export class ProjectService {
     this.projectRepository = new ProjectRepository();
   }
 
-  async createProject(data: Prisma.ProyectosCreateInput): Promise<Proyectos> {
-    return this.projectRepository.insertProject(data);
+  async deleteOneProject(
+    id: string,
+    currentUserId: string
+  ): Promise<Proyectos> {
+    const project = await this.projectRepository.deleteProject(id);
+
+    if (!project) {
+      throw new Error(`El proyecto con ID ${id} no fue encontrado.`);
+    }
+
+    if (project.creadoPorId !== currentUserId) {
+      throw new Error(
+        "Permiso denegado. No tienes autorización para borrar este proyecto."
+      );
+    }
+    return project;
   }
 
-  async removeProject(id: string): Promise<Proyectos> {
-    return this.projectRepository.deleteProject(id);
+  async getOneProject(id: string): Promise<Proyectos> {
+    const project = await this.projectRepository.getProject(id);
+
+    if (!project) {
+      throw new Error("El proyecto no fue encontrado");
+    }
+
+    return project;
   }
 
-  async listProjects(): Promise<Proyectos[]> {
-    return this.projectRepository.getAllProjects();
-  }
-
-  async modifyProject(id: string, data: Prisma.ProyectosUpdateInput): Promise<Proyectos> {
-    return this.projectRepository.updateProject(id, data);
-  }
-
-  async checkUserExists(userId: string): Promise<boolean> {
-    return this.projectRepository.userExists(userId);
+  async getProjects(): Promise<Proyectos[]> {
+   
+    const proyectos = await this.projectRepository.getAllProjects();
+    
+    return proyectos.map(p => ({
+          ...p,
+          esOno: p.id == "Cancelado" ? true : false, // Esto es un ejemplo para manipular consultas y devolver propiedades personalizadas
+    }));
   }
 }
+
+const projectService = new ProjectService();
+
+
+export { projectService };

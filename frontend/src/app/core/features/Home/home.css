@@ -1,0 +1,139 @@
+.carousel-container {
+  position: relative;
+}
+
+.carousel-slides {
+  position: relative;
+}
+
+.carousel-slide {
+  transition: opacity 0.5s ease-in-out;
+}
+
+.carousel-slide.active {
+  opacity: 1;
+}
+
+/* Estilos para los botones de navegación */
+.carousel-nav-btn {
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(192, 183, 232, 0.3);
+}
+
+.carousel-nav-btn:hover {
+  background: rgba(192, 183, 232, 0.2);
+  border-color: #C0B7E8;
+}
+
+/* Indicadores del carrusel */
+.carousel-indicators {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.carousel-indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin: 0 6px;
+  background: #4A5568;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.carousel-indicator.active {
+  background: #C0B7E8;
+  transform: scale(1.2);
+}
+
+.carousel-slide {
+  transition: opacity 0.5s ease-in-out;
+}
+
+/* Animación suave para la transición de slides */
+.carousel-slides {
+  position: relative;
+}
+
+/* Efecto hover para los botones de navegación */
+button:hover {
+  transform: scale(1.05);
+  transition: transform 0.2s ease;
+}
+
+/* Estilos para los botones personalizados */
+.btn-primary {
+  background: #8b5cf6;
+  color: white;
+  padding: 0.5rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  background: #7c3aed;
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: #8b5cf6;
+  padding: 0.5rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  border: 1px solid #8b5cf6;
+  transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+  background: #8b5cf6;
+  color: white;
+}
+
+.btn-primary-lg {
+  background: #8b5cf6;
+  color: white;
+  padding: 0.75rem 2rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  background: #7c3aed;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(139, 92, 246, 0.3);
+}
+
+.btn-outline {
+  background: transparent;
+  color: #8b5cf6;
+  padding: 0.75rem 2rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  font-size: 1.1rem;
+  border: 2px solid #8b5cf6;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+}
+
+.btn-outline:hover {
+  background: #8b5cf6;
+  color: white;
+  transform: translateY(-2px);
+}
+
+.mobile-menu-btn {
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  transition: all 0.3s ease;
+}
+
+.mobile-menu-btn:hover {
+  background: rgba(139, 92, 246, 0.1);
+}

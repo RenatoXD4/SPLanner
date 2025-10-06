@@ -1,77 +1,9 @@
-/* Animaciones personalizadas */
-@keyframes fadeInDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
 
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-5px); }
-  75% { transform: translateX(5px); }
-}
-.password-input-container {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.password-input-container .form-control {
-  padding-right: 45px;
-  width: 100%;
-}
-
-.password-toggle-btn {
-  position: absolute;
-  right: 10px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 5px;
-  font-size: 16px;
-  color: #666;
-  transition: color 0.3s ease;
-}
-
-.password-toggle-btn:hover {
-  color: #333;
-}
-
-.password-toggle-btn:focus {
-  outline: none;
-  color: #007bff;
-}
-
-.animate-fade-in-down {
-  animation: fadeInDown 0.3s ease-out;
-}
-
-.animate-shake {
-  animation: shake 0.5s ease-in-out;
-}
-
-/* Transiciones suaves para el desplazamiento */
-.transition-all {
-  transition-property: all;
-}
-
-.duration-300 {
-  transition-duration: 300ms;
-}
-
-.ease-in-out {
-  transition-timing-function: ease-in-out;
-}
 
 /* Asegurar que las alertas se muestren por encima de otros elementos */
 .relative {
   position: relative;
-  z-index: 5;
+  z-index: 10;
 }
 
 .absolute {
@@ -80,32 +12,80 @@
 
 /* Margen adicional cuando hay errores */
 .mb-8 {
-  margin-bottom: 3.5rem;
+  margin-bottom: 4rem;
 }
 
-/* Animaciones para el popup */
-@keyframes fadeIn {
+@keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: scale(0.9);
+    transform: translateY(30px);
   }
   to {
     opacity: 1;
-    transform: scale(1);
+    transform: translateY(0);
   }
 }
 
-.fixed {
-  animation: fadeIn 0.3s ease-out;
+@keyframes formAppear {
+  0% {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
-/* Animación del spinner */
-@keyframes spin {
+@keyframes smoothFadeIn {
+  from {
+    opacity: 0;
+  }
   to {
-    transform: rotate(360deg);
+    opacity: 1;
   }
 }
 
-.animate-spin {
-  animation: spin 6s linear infinite;
+/* Clases de animación */
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+.animate-form-appear {
+  animation: formAppear 0.8s ease-out forwards;
+}
+
+.animate-smooth-fade-in {
+  animation: smoothFadeIn 0.5s ease-in-out forwards;
+}
+
+/* Efectos de hover mejorados */
+.form-input-transition {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Loading state para el botón */
+.button-loading {
+  position: relative;
+  overflow: hidden;
+}
+
+.button-loading::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  animation: loading-shimmer 1.5s infinite;
+}
+
+@keyframes loading-shimmer {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
 }

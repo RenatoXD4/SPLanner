@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
 
 @Component({
@@ -9,22 +9,33 @@ import { Router } from '@angular/router';
 export class Home {
   currentSlide = 0;
   isRedirecting = false;
+  isImageVisible = false;
 
   constructor(private router: Router) {}
 
-  // Función para redireccionar al login
   redirectToLogin(): void {
-
-  this.router.navigate(['/login']);
-    ;
+    this.isRedirecting = true;
+    this.router.navigate(['/login']);
   }
 
-  // Métodos del carrusel
-  nextSlide(): void {
-    this.currentSlide = (this.currentSlide + 1) % 4;
+  ngOnInit() {
+    this.checkScroll();
   }
 
-  previousSlide(): void {
-    this.currentSlide = (this.currentSlide - 1 + 4) % 4;
+  @HostListener('window:scroll', [])
+  onWindowScroll() {
+    this.checkScroll();
+  }
+
+  private checkScroll() {
+    if (typeof document === 'undefined') return;
+
+    const revealElement = document.querySelector('.reveal-image-container');
+    if (revealElement) {
+      const elementTop = revealElement.getBoundingClientRect().top;
+      const elementVisible = 150;
+
+      this.isImageVisible = elementTop < window.innerHeight - elementVisible;
+    }
   }
 }

@@ -16,7 +16,7 @@ export class Login {
   showPassword: boolean = false;
   showSuccessPopup: boolean = false;
   isRedirecting: boolean = false;
-  countdown: number = 3;
+
 
   constructor(
     public loginService: LoginService,
@@ -24,7 +24,7 @@ export class Login {
     private authService: AuthService
   ) {
     this.loginService.setOnLoginSuccess(() => {
-      this.showSuccess();
+        this.router.navigate(['/board']);
     });
   }
 
@@ -69,33 +69,6 @@ export class Login {
 
   getErrorMessage(): string {
     return this.loginService.errorMessage();
-  }
-
-  showSuccess(): void {
-    this.showSuccessPopup = true;
-    this.startCountdown();
-  }
-
-  startCountdown(): void {
-    this.isRedirecting = true;
-    this.countdown = 3;
-
-    const countdownInterval = setInterval(() => {
-      this.countdown--;
-
-      if (this.countdown <= 0) {
-        clearInterval(countdownInterval);
-        this.redirectToDashboard();
-      }
-    }, 1000);
-  }
-
-  redirectToDashboard(): void {
-    this.router.navigate(['/board']);
-  }
-
-  redirectNow(): void {
-    this.redirectToDashboard();
   }
 
   togglePasswordVisibility() {

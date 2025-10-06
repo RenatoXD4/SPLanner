@@ -1,66 +1,12 @@
-.carousel-container {
-  position: relative;
+.reveal-image-container {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-.carousel-slides {
-  position: relative;
-}
-
-.carousel-slide {
-  transition: opacity 0.5s ease-in-out;
-}
-
-.carousel-slide.active {
+.reveal-image-container.reveal-active {
   opacity: 1;
-}
-
-/* Estilos para los botones de navegación */
-.carousel-nav-btn {
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(10px);
-  border: 2px solid rgba(192, 183, 232, 0.3);
-}
-
-.carousel-nav-btn:hover {
-  background: rgba(192, 183, 232, 0.2);
-  border-color: #C0B7E8;
-}
-
-/* Indicadores del carrusel */
-.carousel-indicators {
-  display: flex;
-  justify-content: center;
-  margin-top: 1rem;
-}
-
-.carousel-indicator {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  margin: 0 6px;
-  background: #4A5568;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.carousel-indicator.active {
-  background: #C0B7E8;
-  transform: scale(1.2);
-}
-
-.carousel-slide {
-  transition: opacity 0.5s ease-in-out;
-}
-
-/* Animación suave para la transición de slides */
-.carousel-slides {
-  position: relative;
-}
-
-/* Efecto hover para los botones de navegación */
-button:hover {
-  transform: scale(1.05);
-  transition: transform 0.2s ease;
+  transform: translateY(0);
 }
 
 /* Estilos para los botones personalizados */
@@ -136,4 +82,119 @@ button:hover {
 
 .mobile-menu-btn:hover {
   background: rgba(139, 92, 246, 0.1);
+}
+/* Animaciones personalizadas */
+@keyframes logoAppear {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes textSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes imageSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes staggerAppear {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Clases de animación */
+.animate-logo-appear {
+  animation: logoAppear 0.8s ease-out forwards;
+}
+
+.animate-text-slide-in {
+  animation: textSlideIn 0.8s ease-out forwards;
+}
+
+.animate-image-slide-in {
+  animation: imageSlideIn 0.8s ease-out 0.3s forwards;
+  opacity: 0;
+}
+
+.animate-delay-200 {
+  animation-delay: 0.2s;
+  opacity: 0;
+  animation: textSlideIn 0.8s ease-out 0.2s forwards;
+}
+
+.animate-delay-400 {
+  animation-delay: 0.4s;
+  opacity: 0;
+  animation: textSlideIn 0.8s ease-out 0.4s forwards;
+}
+
+.animate-delay-600 {
+  animation-delay: 0.6s;
+  opacity: 0;
+  animation: textSlideIn 0.8s ease-out 0.6s forwards;
+}
+
+/* Animaciones escalonadas para las características */
+.animate-stagger-1 {
+  animation: staggerAppear 0.6s ease-out 0.7s forwards;
+  opacity: 0;
+}
+
+.animate-stagger-2 {
+  animation: staggerAppear 0.6s ease-out 0.8s forwards;
+  opacity: 0;
+}
+
+.animate-stagger-3 {
+  animation: staggerAppear 0.6s ease-out 0.9s forwards;
+  opacity: 0;
+}
+
+.animate-stagger-4 {
+  animation: staggerAppear 0.6s ease-out 1s forwards;
+  opacity: 0;
+}
+
+/* Efectos hover mejorados */
+button:hover {
+  transform: scale(1.05);
+  transition: transform 0.2s ease;
+}
+
+/* Scroll reveal existente */
+.reveal-image-container {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.reveal-image-container.reveal-active {
+  opacity: 1;
+  transform: translateY(0);
 }

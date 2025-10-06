@@ -16,7 +16,6 @@ export class Registro {
   showPassword: boolean = false;
   showSuccessPopup: boolean = false;
   isRedirecting: boolean = false;
-  countdown: number = 3; // 3 segundos antes de redirección
 
   // Inyectar el servicio
   constructor(public registroService: RegistroService, private router: Router) {}
@@ -69,39 +68,12 @@ export class Registro {
     this.registroService.registerUser().subscribe({
       next: (response) => {
         console.log('Registro exitoso:', response);
-        // Mostrar popup de éxito
-        this.showSuccessPopup = true;
-
-        // Iniciar cuenta regresiva para redirección
-        this.startCountdown();
+         this.router.navigate(['/board']);
       },
       error: (error) => {
         console.error('Error en el registro:', error);
       }
     });
-  }
-
-  startCountdown(): void {
-    this.isRedirecting = true;
-    this.countdown = 5;
-
-    const countdownInterval = setInterval(() => {
-      this.countdown--;
-
-      if (this.countdown <= 0) {
-        clearInterval(countdownInterval);
-        this.redirectToBoard();
-      }
-    }, 1000);
-  }
-
-  redirectToBoard(): void {
-    this.router.navigate(['/board']);
-  }
-
-  // Método para redirigir manualmente (si el usuario hace clic)
-  redirectNow(): void {
-    this.redirectToBoard();
   }
 
   togglePasswordVisibility() {

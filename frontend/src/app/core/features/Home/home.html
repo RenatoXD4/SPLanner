@@ -1,14 +1,26 @@
-<section class="w-full min-h-screen bg-gradient-to-b ">
-  <!-- Header unificado -->
-  <header class="flex justify-between items-center w-full max-w-[1300px] mx-auto py-4 px-4 md:px-8">
+<!-- Contenido principal -->
+<div class="relative isolate px-4 sm:px-6 lg:px-8 min-h-screen flex items-center">
+  <!-- Patrón de fondo con efecto blur -->
+  <div aria-hidden="true" class="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80">
+    <div
+      style="clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)"
+      class="relative left-[calc(50%-11rem)] aspect-1155/678 w-144.5 -translate-x-1/2 rotate-30 bg-linear-to-tr from-[#0a7a10] to-[#0a7a10] opacity-20 sm:left-[calc(50%-30rem)] sm:w-288.75">
+    </div>
+  </div>
 
-    <!-- Logo SPlanner -->
-    <div class="flex-shrink-0">
-      <svg width="280" height="70" viewBox="0 0 280 70" class="logo">
+  <!-- Patrón de puntos sutiles -->
+  <div class="absolute inset-0 opacity-[0.02] -z-10"
+    style="background-image: radial-gradient(circle at 1px 1px, #1edf28 1px, transparent 0); background-size: 20px 20px;">
+  </div>
+
+  <div class="mx-auto max-w-7xl py-12 sm:py-20 lg:py-32 xl:py-40 w-full">
+    <!-- Logo centrado con animación -->
+    <div class="flex justify-center mb-8 sm:mb-12 lg:mb-16">
+      <svg width="280" height="70" viewBox="0 0 180 80" class="h-20 sm:h-25 w-auto animate-logo-appear">
         <defs>
           <linearGradient id="mainGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stop-color="#8b5cf6" />
-            <stop offset="100%" stop-color="#a855f7" />
+            <stop offset="0%" stop-color="#1edf28" />
+            <stop offset="100%" stop-color="#1edf28" />
           </linearGradient>
         </defs>
 
@@ -27,149 +39,127 @@
       </svg>
     </div>
 
-    <!-- Botones -->
-    <div class="hidden sm:flex gap-4 md:gap-6 items-center">
-      <!--<button class="btn-secondary">Contacto</button>-->
-      <!-- En el header -->
-      <button class="btn-primary" (click)="redirectToLogin()" [disabled]="isRedirecting">
-        @if (isRedirecting) {
-        <div class="flex items-center justify-center gap-2">
-          <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-            </path>
-          </svg>
-          <span>Iniciar Sesión</span>
+    <!-- Layout de dos columnas -->
+    <div class="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
+      <!-- Columna izquierda - Texto con animación desde izquierda -->
+      <div class="text-center lg:text-left animate-text-slide-in">
+        <h1 class="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-semibold tracking-tight text-balance text-white">
+          <span class="text-[#1edf28]">Organiza</span> Tus Proyectos<br class="hidden lg:block">
+          Con <span class="text-[#1edf28]">SPlanner</span>
+        </h1>
+
+        <p
+          class="mt-4 sm:mt-6 text-sm sm:text-base lg:text-lg font-medium text-pretty text-gray-400 leading-relaxed animate-delay-200">
+          La plataforma definitiva para la gestión de proyectos estilo Kanban.
+          Colabora con tu equipo, sigue el progreso y alcanza tus metas eficientemente.
+        </p>
+
+        <div
+          class="mt-6 sm:mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start animate-delay-400">
+          <button
+            class="rounded-md bg-green-500 px-5 sm:px-6 py-2.5 sm:py-3 text-sm font-semibold text-white shadow-xs hover:bg-green-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-500 transition-all duration-300 hover:scale-105"
+            (click)="redirectToLogin()" [disabled]="isRedirecting">
+            @if (isRedirecting) {
+            <div class="flex items-center justify-center gap-2">
+              <svg class="w-4 h-4 sm:w-5 sm:h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                </path>
+              </svg>
+              <span class="text-xs sm:text-sm">Comenzar Ahora</span>
+            </div>
+            } @else {
+            <span class="text-xs sm:text-sm">Comenzar Ahora</span>
+            }
+          </button>
+
+          <a href="#"
+            class="rounded-md px-5 sm:px-6 py-2.5 sm:py-3 text-sm font-semibold text-white hover:text-gray-300 transition-all duration-300 border border-gray-600 hover:border-gray-500 text-center hover:scale-105">
+            <span class="text-xs sm:text-sm">Saber más</span> <span aria-hidden="true" class="hidden sm:inline">→</span>
+          </a>
         </div>
-        } @else {
-        Iniciar Sesión
-        }
-      </button>
-    </div>
 
-    <!-- Menú móvil -->
-    <button class="sm:hidden mobile-menu-btn-github">
-      <svg width="30" height="24" viewBox="0 0 30 24" fill="none">
-        <rect width="30" height="3" rx="1.5" fill="#8b5cf6" />
-        <rect y="10.5" width="30" height="3" rx="1.5" fill="#8b5cf6" />
-        <rect y="21" width="30" height="3" rx="1.5" fill="#8b5cf6" />
-      </svg>
-    </button>
-  </header>
-
-  <!-- Contenido principal unificado -->
-  <div class="relative overflow-hidden py-12 md:py-20">
-    <!-- Patrón de puntos sutiles -->
-    <div class="absolute inset-0 opacity-[0.02]"
-      style="background-image: radial-gradient(circle at 1px 1px, #8b5cf6 1px, transparent 0); background-size: 20px 20px;">
-    </div>
-
-    <div class="relative max-w-[1300px] mx-auto px-4 md:px-8">
-      <div class="grid lg:grid-cols-2 gap-8 items-center">
-
-        <!-- Contenido de texto -->
-        <div class="text-center lg:text-left">
-          <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6">
-            <span class="text-[#8b5cf6]">Organiza</span> Tus Proyectos<br>
-            Con <span class="text-[#824cff]">SPlanner</span>
-          </h1>
-
-          <p class="text-lg text-gray-300 mb-8 leading-relaxed">
-            La plataforma definitiva para la gestión de proyectos estilo Kanban.
-            Colabora con tu equipo, sigue el progreso y alcanza tus metas eficientemente.
-          </p>
-
-          <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start ">
-            <!-- En la sección principal -->
-            <button class="btn-primary-lg" (click)="redirectToLogin()" [disabled]="isRedirecting">
-              @if (isRedirecting) {
-              <div class="flex items-center justify-center gap-2">
-                <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                  </path>
-                </svg>
-                <span> Comenzar Ahora</span>
-              </div>
-              } @else {
-              Comenzar Ahora
-              }
-            </button>
-
+        <!-- Características rápidas -->
+        <div class="mt-8 sm:mt-10 lg:mt-12 grid grid-cols-2 gap-3 sm:gap-4 text-left animate-delay-600">
+          <div class="flex items-center gap-2 sm:gap-3 animate-stagger-1">
+            <div class="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
+            <span class="text-gray-300 text-xs sm:text-sm">Gestión visual</span>
+          </div>
+          <div class="flex items-center gap-2 sm:gap-3 animate-stagger-2">
+            <div class="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
+            <span class="text-gray-300 text-xs sm:text-sm">Colaboración en equipo</span>
+          </div>
+          <div class="flex items-center gap-2 sm:gap-3 animate-stagger-3">
+            <div class="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
+            <span class="text-gray-300 text-xs sm:text-sm">Tiempo real</span>
+          </div>
+          <div class="flex items-center gap-2 sm:gap-3 animate-stagger-4">
+            <div class="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
+            <span class="text-gray-300 text-xs sm:text-sm">Analíticas avanzadas</span>
           </div>
         </div>
+      </div>
 
-        <!-- Carrusel de imágenes -->
-        <div class="relative">
-          <div class="carousel-container">
-
-            <!-- Imágenes del carrusel -->
-            <div class="carousel-slides relative h-80 md:h-96 rounded-2xl overflow-hidden">
-
-              <!-- Slide 1 -->
-              <div class="carousel-slide absolute inset-0 opacity-0 transition-opacity duration-500 ease-in-out"
-                [class.opacity-100]="currentSlide === 0">
-                <img src="https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=800&h=500&fit=crop"
-                  alt="Dashboard SPlanner" class="w-full h-full object-cover">
-                <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
-                  <h3 class="text-white font-bold text-lg">Dashboard Intuitivo</h3>
-                  <p class="text-gray-300 text-sm">Control total de tus proyectos</p>
-                </div>
+      <!-- Columna derecha - Imagen Kanban con animación desde derecha -->
+      <div class="relative mt-8 lg:mt-0">
+        <div class="animate-image-slide-in" [class.reveal-active]="isImageVisible">
+          <!-- Marco de la aplicación -->
+          <div
+            class="relative rounded-xl lg:rounded-2xl overflow-hidden shadow-xl lg:shadow-2xl border border-gray-700/50 bg-gray-800/20 backdrop-blur-sm transform hover:scale-[1.02] transition-transform duration-300">
+            <!-- Barra superior simulada -->
+            <div
+              class="absolute top-0 left-0 right-0 h-8 bg-gray-900/90 border-b border-gray-700/50 z-10 flex items-center px-3 sm:px-4">
+              <div class="flex space-x-2">
+                <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                <div class="w-3 h-3 rounded-full bg-green-500"></div>
               </div>
-
-              <!-- Slide 2 -->
-              <div class="carousel-slide absolute inset-0 opacity-0 transition-opacity duration-500 ease-in-out"
-                [class.opacity-100]="currentSlide === 1">
-                <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=500&fit=crop"
-                  alt="Colaboración en equipo" class="w-full h-full object-cover">
-                <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
-                  <h3 class="text-white font-bold text-lg">Colaboración en Equipo</h3>
-                  <p class="text-gray-300 text-sm">Trabaja junto a tu equipo en tiempo real</p>
-                </div>
-              </div>
-
-              <!-- Slide 3 -->
-              <div class="carousel-slide absolute inset-0 opacity-0 transition-opacity duration-500 ease-in-out"
-                [class.opacity-100]="currentSlide === 2">
-                <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=500&fit=crop"
-                  alt="Analíticas avanzadas" class="w-full h-full object-cover">
-                <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
-                  <h3 class="text-white font-bold text-lg">Analíticas Avanzadas</h3>
-                  <p class="text-gray-300 text-sm">Toma decisiones basadas en datos</p>
-                </div>
-              </div>
-
-              <!-- Slide 4 -->
-              <div class="carousel-slide absolute inset-0 opacity-0 transition-opacity duration-500 ease-in-out"
-                [class.opacity-100]="currentSlide === 3">
-                <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&h=500&fit=crop"
-                  alt="Gestión de tareas" class="w-full h-full object-cover">
-                <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
-                  <h3 class="text-white font-bold text-lg">Gestión de Tareas</h3>
-                  <p class="text-gray-300 text-sm">Organiza y prioriza tu trabajo</p>
-                </div>
+              <div class="flex-1 text-center">
+                <span class="text-gray-300 text-sm font-medium">SPlanner - Tablero Kanban</span>
               </div>
             </div>
 
-            <!-- Botones de navegación -->
-            <button (click)="previousSlide()"
-              class="absolute left-4 top-1/2 transform -translate-y-1/2 bg-[#0d1117] border border-[#30363d] text-white p-3 rounded-full hover:bg-[#161b22] transition-colors z-10">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
+            <!-- Imagen principal - Tablero Kanban -->
+            <img
+              src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80"
+              alt="Tablero Kanban SPlanner - Gestión de tareas y proyectos" class="w-full h-auto mt-8 rounded-lg" />
 
-            <button (click)="nextSlide()"
-              class="absolute right-4 top-1/2 transform -translate-y-1/2 bg-[#0d1117] border border-[#30363d] text-white p-3 rounded-full hover:bg-[#161b22] transition-colors z-10">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
+            <!-- Overlay informativo -->
+            <div
+              class="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4 bg-black/80 backdrop-blur-sm rounded-lg p-3 sm:p-4 border border-gray-600/50">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h3 class="text-white font-semibold text-sm">Tablero Kanban</h3>
+                  <p class="text-gray-300 text-xs">Gestión visual de proyectos en tiempo real</p>
+                </div>
+                <div class="flex items-center space-x-2">
+                  <!-- Indicadores de columnas -->
+                  <div class="flex space-x-1">
+                    <div class="w-2 h-4 bg-blue-500 rounded"></div>
+                    <div class="w-2 h-6 bg-yellow-500 rounded"></div>
+                    <div class="w-2 h-8 bg-green-500 rounded"></div>
+                  </div>
+                  <span class="text-green-400 text-xs font-medium">Activo</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Efectos decorativos -->
+          <div
+            class="absolute -inset-3 lg:-inset-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-2xl lg:rounded-3xl blur-xl -z-10">
+          </div>
+
+          <!-- Elementos flotantes decorativos -->
+          <div
+            class="absolute -top-3 lg:-top-4 -right-3 lg:-right-4 w-6 lg:w-8 h-6 lg:h-8 bg-green-500/20 rounded-full blur-sm">
+          </div>
+          <div
+            class="absolute -bottom-3 lg:-bottom-4 -left-3 lg:-left-4 w-5 lg:w-6 h-5 lg:h-6 bg-green-500/30 rounded-full blur-sm">
           </div>
         </div>
       </div>
     </div>
   </div>
-</section>
+</div>

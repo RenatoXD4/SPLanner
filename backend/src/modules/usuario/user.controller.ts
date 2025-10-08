@@ -1,3 +1,4 @@
+// src/modules/usuario/user.controller.ts
 import { NextFunction, Request, Response } from "express";
 
 import { UserService } from "./user.service.js";
@@ -63,7 +64,43 @@ export class UserController {
     });
   }
 
-  // Iniciar autenticación con Google - CORREGIDO
+  //Obtener estadísticas del dashboard
+public async getDashboardStats(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const { userId } = req.params;
+
+    if (!userId) {
+      res.status(400).json({ 
+        message: "ID de usuario es requerido",
+        success: false 
+      });
+      return;
+    }
+
+    const dashboardData = await this.userService.getUserDashboardStats(userId);
+
+    res.status(200).json({
+      data: dashboardData,
+      message: "Estadísticas del dashboard obtenidas correctamente",
+      success: true
+    });
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('Usuario no encontrado')) {
+      res.status(404).json({ 
+        message: error.message,
+        success: false 
+      });
+      return;
+    }
+    console.error('Error en getDashboardStats:', error);
+    next(error);
+  }
+}
+  // Iniciar autenticación con Google
   public googleAuth(
     req: Request,
     res: Response
@@ -87,15 +124,13 @@ export class UserController {
     res.redirect(authUrl);
   }
 
-  // Callback de Google OAuth - CORREGIDO
+  // Callback de Google OAuth - 
   public async googleCallback(
     req: Request,
     res: Response
   ): Promise<void> {
     try {
       const { code } = req.query;
-
- 
 
       if (!code) {
         console.error('No se recibió código de autorización');
@@ -111,7 +146,7 @@ export class UserController {
       const tokenParams = new URLSearchParams({
         client_id: clientId,
         client_secret: clientSecret,
-        code: code as string, // ← CORRECCIÓN: asegurar que es string
+        code: code as string,
         grant_type: 'authorization_code',
         redirect_uri: redirectUri,
       });

@@ -1,34 +1,115 @@
-// src/modules/usuario/user.repository.ts
-import { config } from 'dotenv';
-config();
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Usuario } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
 export class UserRepository {
-  public async createUser(data: {
+  
+  // Crear nuevo usuario
+  async createUser(userData: {
     apellido: string;
     email: string;
     nombre: string;
     password: string;
-  }) {
+  }): Promise<Usuario> {
     return await prisma.usuario.create({
-      data: {
-        ...data,
-      },
+      data: userData,
+      select: {
+        apellido: true,
+        createdAt: true,
+        email: true,
+        id: true,
+        nombre: true
+      }
     });
   }
 
-  public async findUserByEmail(email: string) {
+  // Eliminar usuario
+  async deleteUser(id: string): Promise<Usuario> {
+    return await prisma.usuario.delete({
+      select: {
+        apellido: true,
+        email: true,
+        id: true,
+        nombre: true
+      },
+      where: { id }
+    });
+  }
+
+  // Obtener todos los usuarios
+  async getAllUsers(): Promise<Usuario[]> {
+    return await prisma.usuario.findMany({
+      select: {
+        apellido: true,
+        createdAt: true,
+        email: true,
+        id: true,
+        nombre: true,
+        proyectosCreados: true
+      }
+    });
+  }
+
+  // Obtener usuario por email
+  async getUserByEmail(email: string): Promise<null | Usuario> {
     return await prisma.usuario.findUnique({
-      where: {
-        email: email,
-      },
+      where: { email }
     });
   }
 
- // src/modules/usuario/user.repository.ts
-public async getUserDashboardStats(userId: string) {
+  // Obtener usuario por ID
+  async getUserById(id: string): Promise<null | Usuario> {
+    return await prisma.usuario.findUnique({
+      select: {
+        apellido: true,
+        createdAt: true,
+        email: true,
+        id: true,
+        miembroDe: {
+          include: {
+            proyecto: {
+              include: {
+                estados: true,
+                tareas: {
+                  include: {
+                    estado: true
+                  }
+                }
+              }
+            },
+            rol: true
+          }
+        },
+        nombre: true,
+        proyectosCreados: {
+          include: {
+            estados: true,
+            tareas: {
+              include: {
+                estado: true,
+                responsables: {
+                  include: {
+                    usuario: {
+                      select: {
+                        apellido: true,
+                        email: true,
+                        id: true,
+                        nombre: true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      where: { id }
+    });
+  }
+
+  // Obtener estadísticas del dashboard para un usuario
+  async getUserDashboardStats(userId: string) {
     const user = await prisma.usuario.findUnique({
       include: {
         miembroDe: {
@@ -68,7 +149,7 @@ public async getUserDashboardStats(userId: string) {
     });
 
     if (!user) {
-      throw new Error('Usuario no encontrado'); // Lanzamos error en lugar de retornar null
+      return null;
     }
 
     // Combinar proyectos creados y proyectos donde es miembro
@@ -144,12 +225,23 @@ public async getUserDashboardStats(userId: string) {
     };
   }
 
-  public async verifyCredentials(email: string, password: string) {
-    return await prisma.usuario.findFirst({
-      where: {
-        email: email,
-        password: password,
+  // Actualizar usuario
+  async updateUser(id: string, userData: {
+    apellido?: string;
+    email?: string;
+    nombre?: string;
+    password?: string;
+  }): Promise<Usuario> {
+    return await prisma.usuario.update({
+      data: userData,
+      select: {
+        apellido: true,
+        createdAt: true,
+        email: true,
+        id: true,
+        nombre: true
       },
+      where: { id }
     });
   }
 }

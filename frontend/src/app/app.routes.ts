@@ -8,6 +8,11 @@ export const routes: Routes = [
 
   { path: '', component: Home },
   {
+    path: '',
+     loadChildren: () => import('./core/features/menu-principal/Menu.routes').then( m => m.MENU_ROUTES),
+  },
+
+  {
     path: 'board',
     loadChildren: () => import("./core/features/kanban/kanban.routes").then((m) => m.KANBAN_ROUTES),
   },
@@ -23,6 +28,10 @@ export const routes: Routes = [
   path: '',
      loadChildren: () => import('./core/features/auth/auth.routes').then( m => m.AUTH_ROUTES),
   },
+
+
+
+
   { path: 'auth/google/callback', component: GoogleCallbackComponent },
 
 

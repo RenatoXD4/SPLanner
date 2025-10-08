@@ -68,7 +68,7 @@ export class Registro {
     this.registroService.registerUser().subscribe({
       next: (response) => {
         console.log('Registro exitoso:', response);
-         this.router.navigate(['/board']);
+         this.router.navigate(['/Menu']);
       },
       error: (error) => {
         console.error('Error en el registro:', error);

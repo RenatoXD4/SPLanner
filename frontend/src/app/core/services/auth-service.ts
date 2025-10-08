@@ -29,6 +29,7 @@ export interface RegisterData {
 @Injectable({
   providedIn: 'root'
 })
+
 export class AuthService {
 
   private readonly API_URL = environment.apiUrl;
@@ -43,7 +44,7 @@ export class AuthService {
     return this.http.post<LoginResponse>(`${this.API_URL}/usuarios/register`, userData);
   }
 
-  // CORRECCIÓN: Usar la ruta correcta
+  //Usar la ruta correcta
   loginWithGoogle(): void {
     window.location.href = `${this.API_URL}/usuarios/auth/google`;
   }
@@ -52,7 +53,7 @@ export class AuthService {
   handleGoogleCallback(token: string): void {
     if (token) {
       this.setToken(token);
-      window.location.href = '/board';
+      window.location.href = '/Menu';
     }
   }
 

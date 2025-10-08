@@ -1,53 +1,83 @@
-
-// 4to archivo a modificar
-
-
 /**
  * Rutas para gestión de tareas (Kanban).
- * 
+ *
  * Flujo de actualización de una tarea:
- * 
- * 1. El cliente envía una petición PUT a /tasks/:id con los campos a actualizar en el body.
- * 2. El router direcciona la petición al controlador `requestUpdateTaskv2`.
- * 3. El controlador extrae el `id` de la URL y los datos del body.
- * 4. El controlador llama al servicio `updateTaskv2`, delegando validaciones.
- * 5. El servicio valida el `id` y los datos, luego llama al repositorio.
- * 6. El repositorio ejecuta la consulta Prisma para actualizar la tarea en la base de datos.
- * 7. La tarea actualizada es retornada y finalmente enviada como respuesta al cliente.
- * 8. En caso de error, se manejan adecuadamente los códigos HTTP y mensajes.
+ *
+ * 1. Cliente envía PUT a /tasks/:id con los campos a actualizar.
+ * 2. Router dirige al controlador `requestUpdateTaskv2`.
+ * 3. Controlador extrae `id` y body.
+ * 4. Controlador llama al servicio `updateTaskv2`.
+ * 5. Servicio valida `id` y body, y llama al repositorio.
+ * 6. Repositorio usa Prisma para actualizar.
+ * 7. La tarea actualizada es enviada como respuesta.
+ * 8. Errores se manejan con middleware.
  */
-
 
 import { Router } from 'express';
 
 import { KanbanController } from './kanban.controller.js';
-import { kanbanSer } from './kanban.service.js';                // esto lo importas del kanban service en las lineas finales
-
-
-
+import { kanbanSer } from './kanban.service.js';
 
 const routerKanbantask = Router();
-
 const controladorDeF = new KanbanController(kanbanSer);
 
-// update v1 con json completo como paremetro
-routerKanbantask.put('/:id', controladorDeF.requestUpdateTask.bind(KanbanController));
+// Crear nueva tarea
+routerKanbantask.post('/tasks', controladorDeF.requestCreateTask.bind(controladorDeF));
 
-// Update solo lo necesario
-routerKanbantask.put('/tasks/:id', controladorDeF.requestUpdateTaskv2.bind(controladorDeF));    // /tasks/:id --> task hace referencia al modulo y id es lo que recibe y lo unico necesario para identificar una tarea y realizar el proceso del update
+// Obtener todas las tareas de un proyecto (RESTful mejor así)
+routerKanbantask.get('/projects/:proyectoId/tasks', controladorDeF.requestgetAllTask.bind(controladorDeF));
 
-// CREAR NUEVA TAREA    --> no necesita un ID para crear una tarea
-routerKanbantask.post('/', controladorDeF.requestCreateTask.bind(controladorDeF));
+// Obtener tarea por ID
+routerKanbantask.get('/tasks/:id', controladorDeF.requestGetTaskById.bind(controladorDeF));
 
-// Eliminar una tarea específica por su ID
-routerKanbantask.delete('/task/:id', controladorDeF.requestDeleteTask.bind(KanbanController));
+// Eliminar tarea por ID
+routerKanbantask.delete('/tasks/:id', controladorDeF.requestDeleteTask.bind(controladorDeF));
 
-// Ruta para obtener todas las tareas de un proyecto específico
-routerKanbantask.get('/project/:proyectoId', controladorDeF.requestgetAllTask.bind(controladorDeF));
+// Actualizar tarea (requiere objeto completo)
+routerKanbantask.put('/tasks/full/:id', controladorDeF.requestUpdateTask.bind(controladorDeF));
 
-//                                                  LEER
-// En caso de que las peticiones no funcionen, 
-//routerKanbantask.get('/project/:proyectoId', controladorDeF.requestgetAllTask.bind(controladorDeF));      v1
-//routerKanbantask.get('/project/:proyectoId', controladorDeF.requestgetAllTask.bind(KanbanController));    v2  caso de error usar este para todos
+// Actualización parcial (solo campos modificados) — usar PATCH semánticamente
+routerKanbantask.patch('/tasks/:id', controladorDeF.requestUpdateTaskv2.bind(controladorDeF));
+
+// Obtener estados por proyectoId
+routerKanbantask.get('/estados/:proyectoId', controladorDeF.obtenerEstados.bind(controladorDeF));
+
+// Obtener miembros del proyecto por proyectoId (responsables de tareas)
+routerKanbantask.get('/proyectos/:proyectoId/miembros', controladorDeF.requestGetMiembrosDelProyecto.bind(controladorDeF));
+
+// Obtener equipo completo del proyecto (todos los miembros)
+routerKanbantask.get('/proyectos/:proyectoId/equipo', controladorDeF.requestGetEquipoProyecto.bind(controladorDeF));
+
+
+
+// para usar postman>> http://localhost:9001/api-v1/kanban/tasks/2c1a2523-c447-4b65-a595-17324cad1532       --> debe de ser un Id de proyecto valido   http://localhost:9001/api-v1/kanban/tasks/idproyectoaqui
+
+// Si hay problemas probar con lo siguiente --> en vez de controladorDef usar KanbanController
+// routerKanbantask.get('/project/:proyectoId', controladorDeF.requestgetAllTask.bind(KanbanController));
 
 export default routerKanbantask;
+
+
+
+/// POSTMAN INTRUCCIONES
+
+// POST
+// http://localhost:9001/api-v1/kanban/tasks
+//JSON
+//{
+//  "titulo": "Nueva tarea de prueba",
+//  "proyectoId": "1fc2cb1f-7580-47dd-b28e-49f139dbfb44",
+//  "estadoId": 1
+//}
+
+// GET
+// http://localhost:9001/api-v1/kanban/tasks/project/1fc2cb1f-7580-47dd-b28e-49f139dbfb44                  // RECUERDA TENER UN PROYECTO YA CREADO EN BD DE POSTGRESQL
+
+// PUT
+//http://localhost:9001/api-v1/kanban/tasks/abc123                      // DEBE DE SER UN ID DE TAREA VALIDO, SACA EL TUYO DE LA BD, RECUERDA QUE DEBE DE TENER UN ID DE PROYECTO ASOCIADO
+//{
+//  "titulo": "Tarea actualizada desde Postman",
+//  "posicion": 2
+//}
+
+// DELETE // 

@@ -1,77 +1,313 @@
-
-// 1mer archivo a modificar en caso de crear una nueva función
-
-import { Tarea } from "@prisma/client";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { Etiqueta, BloqueContenido as PrismaBloqueContenido, Tarea, Usuario } from "@prisma/client";
 
 import { prisma } from "../../lib/prisma.js";
 
+
+export interface ResponsableConUsuario {
+    id: number;
+    tareaId?: string;
+    usuario: {
+        apellido: string;
+        email: string;
+        id: string;
+        nombre: string;
+    };
+    usuarioId: string;
+}
+
+// Extender Tarea para incluir relaciones con el mismo tipo que Prisma devuelve con include
+export interface TareaConRelaciones extends Tarea {
+    BloqueContenido: BloqueContenido[];
+    etiquetas: TareaEtiqueta[];
+    responsables: TareaResponsable[];
+}
+
+interface BloqueContenido {
+    contenido: string;
+    posicion: number;
+    tipo: TipoDeBloque;
+}
+
+// Para las etiquetas con el join y datos de etiqueta
+interface TareaEtiqueta {
+    etiqueta: Etiqueta;
+}
+
+// Para los responsables con datos de usuario
+interface TareaResponsable {
+    usuario: Usuario;
+}
+
+
+// Definición correcta del tipo TipoDeBloque (usa solo comillas simples o dobles sin mezclar)
+type TipoDeBloque = 'CHECKLIST' | 'CODE' | 'HEADING_1' | 'HEADING_2' | 'IMAGE' | 'PARAGRAPH';
+
 export class KanbanRepository {
 
-    // Función para borrar una tarea
+    // Elimina tarea por id
     public async deleteTask(id: string): Promise<Tarea> {
-
-        return await prisma.tarea.delete({
-            where: { id },
-        });
-
+        return prisma.tarea.delete({ where: { id } });
     }
 
-    // Función para obtener las tareas
+    // Obtiene todas las tareas de un proyecto, con relaciones
+    public async getAllTask(proyectoId: string): Promise<TareaConRelaciones[]> {
+        if (!proyectoId.trim()) throw new Error("Se requiere un ID de proyecto válido.");
 
-    public async getAllTask(idP: string): Promise<Tarea[]> {
-        // Validar que el ID del proyecto sea válido (no vacío ni solo espacios)
-        if (!idP || idP.trim() === '') {
-            throw new Error("Se requiere un ID de proyecto válido.");
-        }
+        return prisma.tarea.findMany({
+            include: {
+                BloqueContenido: true,
+                etiquetas: { include: { etiqueta: true } },
+                responsables: { include: { usuario: true } },
+            },
+            orderBy: { posicion: 'asc' },
+            where: { proyectoId }
+        });
+    }
 
-        // Buscar tareas donde proyectoId coincida con idP
-        const tareas = await prisma.tarea.findMany({
+
+    // Obtener estados del proyecto con tareas
+    public async getEstadosByProyectoId(proyectoId: string) {
+        return prisma.estado.findMany({
+            include: {
+                tareas: {
+                    include: {
+                        BloqueContenido: true,
+                        etiquetas: { include: { etiqueta: true } },
+                        responsables: { include: { usuario: true } },
+                    },
+                    orderBy: { posicion: 'asc' }
+                }
+            },
+            orderBy: { posicion: 'asc' },
+            where: { proyectoId }
+        });
+    }
+
+    // Miembros asignados a 1 proyecto
+    public async getMiembrosProyecto(proyectoId: string): Promise<ResponsableConUsuario[]> {
+        const miembrosRaw = await prisma.miembro.findMany({
+            include: {
+                usuario: {
+                    select: {
+                        apellido: true,
+                        email: true,
+                        id: true,
+                        nombre: true,
+                    }
+                }
+            },
+            where: { proyectoId }
+        });
+
+        return miembrosRaw.map(m => ({
+            id: m.id, // id del miembro en la tabla Miembro
+            tareaId: '', // aquí no hay tareaId, puedes dejar vacio o cambiar interfaz
+            usuario: m.usuario,
+            usuarioId: m.usuario.id
+        }));
+    }
+
+
+    // Obtener miembros del proyecto asignados a 1 tarea
+    public async getResponsablesDelProyecto(proyectoId: string): Promise<ResponsableConUsuario[]> {
+        const responsablesRaw = await prisma.responsable.findMany({
+            select: {
+                id: true,
+                tareaId: true,
+                usuario: {
+                    select: {
+                        apellido: true,
+                        email: true,
+                        id: true,
+                        nombre: true,
+                    },
+                },
+                usuarioId: true,
+            },
             where: {
-                proyectoId: idP,
+                tarea: { proyectoId },
             },
         });
 
-        return tareas;
+        // Mapeo para asegurar que cumple con ResponsableConUsuario
+        const responsables: ResponsableConUsuario[] = responsablesRaw.map(r => ({
+            id: r.id,
+            tareaId: r.tareaId,
+            usuario: r.usuario,
+            usuarioId: r.usuarioId,
+        }));
+
+        return responsables;
     }
 
-
-    public async insertNuevaTarea(data: Tarea): Promise<Tarea> {
-        // Validación de ejemplo, título es obligatorio
-        //if (!data.titulo || data.titulo.trim() === '') {
-        //    throw new Error("El título de la tarea es obligatorio.");
-        //}
-
-        // Crear la tarea en la base de datos
-        return await prisma.tarea.create({
-            data
+    // Obtener tarea específica con relaciones
+    public async getTaskById(id: string): Promise<null | TareaConRelaciones> {
+        return prisma.tarea.findUnique({
+            include: {
+                BloqueContenido: true,
+                etiquetas: { include: { etiqueta: true } },
+                responsables: { include: { usuario: true } },
+            },
+            where: { id },
         });
     }
 
 
-    // Función para Actualizar una Tarea
+    // Crear tarea, con posibilidad de asignar responsables, etiquetas y bloques
+    public async insertNuevaTarea(data: {
+        bloquesContenido?: { contenido: string; posicion: number; tipo: TipoDeBloque; }[];
+        estadoId: number;
+        etiquetaIds?: number[];
+        fechaLimite?: Date;
+        posicion?: number;
+        proyectoId: string;
+        responsablesIds?: string[];
+        titulo: string;
+    }): Promise<TareaConRelaciones> {
+        return prisma.tarea.create({
+            data: {
+                BloqueContenido: data.bloquesContenido && data.bloquesContenido.length > 0
+                    ? {
+                        create: data.bloquesContenido.map(bloque => ({
+                            contenido: bloque.contenido,
+                            posicion: bloque.posicion,
+                            tipo: bloque.tipo,
+                        })),
+                    }
+                    : undefined,
+                estadoId: data.estadoId,
+                etiquetas: data.etiquetaIds && data.etiquetaIds.length > 0
+                    ? {
+                        create: data.etiquetaIds.map(etiquetaId => ({
+                            etiquetaId: etiquetaId,
+                        })),
+                    }
+                    : undefined,
+                fechaLimite: data.fechaLimite,
+                posicion: data.posicion ?? 0,
+                proyectoId: data.proyectoId,
+                responsables: data.responsablesIds && data.responsablesIds.length > 0
+                    ? {
+                        create: data.responsablesIds.map(usuarioId => ({
+                            usuarioId: usuarioId,
+                        })),
+                    }
+                    : undefined,
+                titulo: data.titulo,
+            },
+            include: {
+                BloqueContenido: true,
+                etiquetas: { include: { etiqueta: true } },
+                responsables: { include: { usuario: true } },
+            },
+        });
+    }
 
-    public async UpdateTask(data: Tarea): Promise<Tarea> {           // VERIFICAR SI ES NULL O VOID
+    // En tu KanbanRepository (ej: kanbanRepository.ts)
 
-        return await prisma.tarea.update({
+    public async updateTaskPartial(params: {
+        data?: Partial<Tarea>;
+        estadoId?: number;
+        etiquetasToAdd?: number[];
+        etiquetasToRemove?: number[];
+        id: string;
+        proyectoId?: string;
+        responsablesToAdd?: string[];
+        responsablesToRemove?: string[];
+    }): Promise<TareaConRelaciones> {
+        const {
+            data = {},
+            estadoId,
+            etiquetasToAdd,
+            etiquetasToRemove,
+            id,
+            proyectoId,
+            responsablesToAdd,
+            responsablesToRemove,
+        } = params;
 
-            // Recibe un Json con los datos actuales y cambiados del frontend
-            data: data,
+        // Construimos el objeto con los campos a actualizar directamente en la tarea
+        const updateData: Partial<Tarea> = { ...data };
 
-            // Id de la tarea
-            where: {
-                id: data.id,
+        if (estadoId !== undefined) updateData.estadoId = estadoId;
+        if (proyectoId !== undefined) updateData.proyectoId = proyectoId;
+
+        return prisma.$transaction(async (tx) => {
+            // Actualizar los campos simples de la tarea
+            await tx.tarea.update({
+                data: updateData,
+                where: { id },
+            });
+
+            // Remover responsables si hay
+            if (responsablesToRemove && responsablesToRemove.length > 0) {
+                await tx.responsable.deleteMany({
+                    where: {
+                        tareaId: id,
+                        usuarioId: { in: responsablesToRemove },
+                    },
+                });
             }
+
+            // Agregar responsables si hay
+            if (responsablesToAdd && responsablesToAdd.length > 0) {
+                const nuevosResponsables = responsablesToAdd.map(usuarioId => ({
+                    tareaId: id,
+                    usuarioId,
+                }));
+
+                await tx.responsable.createMany({
+                    data: nuevosResponsables,
+                    skipDuplicates: true,
+                });
+            }
+
+            // Remover etiquetas si hay
+            if (etiquetasToRemove && etiquetasToRemove.length > 0) {
+                await tx.tareasEtiquetas.deleteMany({
+                    where: {
+                        etiquetaId: { in: etiquetasToRemove },
+                        tareaId: id,
+                    },
+                });
+            }
+
+            // Agregar etiquetas si hay
+            if (etiquetasToAdd && etiquetasToAdd.length > 0) {
+                const nuevasEtiquetas = etiquetasToAdd.map(etiquetaId => ({
+                    etiquetaId,
+                    tareaId: id,
+                }));
+
+                await tx.tareasEtiquetas.createMany({
+                    data: nuevasEtiquetas,
+                    skipDuplicates: true,
+                });
+            }
+
+            // Finalmente, retornamos la tarea actualizada con relaciones completas
+            return tx.tarea.findUnique({
+                include: {
+                    BloqueContenido: true,
+                    etiquetas: { include: { etiqueta: true } },
+                    responsables: { include: { usuario: true } },
+                },
+                where: { id },
+            }) as Promise<TareaConRelaciones>;
         });
     }
 
-    public async UpdateTaskv2(params: { data: Partial<Tarea>; where: { id: string }, }): Promise<Tarea> {
-        return await prisma.tarea.update({
-            data: params.data,      // campos a actualizar
-            where: params.where,    // qué registro actualizar
+
+    // Actualización parcial solo en campos simples (sin relaciones)
+    public async UpdateTaskv2(params: {
+        data: Partial<Tarea>;
+        where: { id: string };
+    }): Promise<Tarea> {
+        return prisma.tarea.update({
+            data: params.data,
+            where: params.where,
         });
     }
-
-
-
 
 }

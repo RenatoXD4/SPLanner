@@ -1,6 +1,11 @@
-import express from "express";
+import cors from "cors";
+import { config } from "dotenv";
+import express, { NextFunction, Request, Response } from "express";
 
-import { prisma } from "./src/lib/prisma.js"; // ajusta la ruta según tu proyecto
+// Carga las variables definidas en .env
+config();
+
+import { prisma } from "./src/lib/prisma.js";
 import routerKanbantask from "./src/modules/kanban/kanban.routes.js";
 import routerProject from "./src/modules/projects/projects.routes.js";
 
@@ -8,45 +13,73 @@ const app = express();
 const port = process.env.PORT ?? "9001";
 const api = "api-v1";
 
-app.use(express.json());
+// Lista de orígenes permitidos, puedes agregar más
+const allowedOrigins = ["http://localhost:4200" /*, otros orígenes si necesitas */];
 
-// Montaje de routers
-app.use(`/${api}/kanban`, routerKanbantask);
-app.use(`/${api}/projects`, routerProject);
-app.use(`/${api}/usuarios`, routerProject);
+// Configuración dinámica de CORS para múltiples orígenes
 
-// Logs para confirmar rutas
-console.log(`API base path: /${api}`);
-console.log("Kanban routes mounted at:", `/${api}/kanban`);
-console.log("Projects routes mounted at:", `/${api}/projects`);
+app.use(cors({
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  origin: function (origin, callback) {
 
-// Ruta raíz
-app.get("/", (req, res) => {
-  res.send("Hello World!");
-  console.log("Response sent");
-});
+    if (!origin) { callback(null, true); return; }
 
+    if (allowedOrigins.includes(origin)) {
 
-                      //// ELIMINAR DE SER NECESARIO
-// Ruta para testear conexión a la BD
-app.get("/test-db", async (req, res) => {
+      callback(null, true);
+    } else {
+
+      console.warn(`CORS - Origen no permitido: ${origin}`);
+
+      callback(null, false);
+    }
+  },
+}));
+
+// Obtener todas las tareas
+app.get('/api-v1/kanban', async (req, res) => {
   try {
-    // Simple consulta para validar conexión
-    const usuarios = await prisma.usuario.findMany({ take: 1 });
-    res.status(200).json({
-      message: "Conexión a la base de datos exitosa.",
-      usuarios,
-    });
+    const tareas = await prisma.tarea.findMany();
+    res.status(200).json(tareas);
   } catch (error) {
-    console.error("Error conectando a la base de datos:", error);
-    res.status(500).json({
-
-      error: error,
-      message: "Error conectando a la base de datos.",
-    });
+    console.error('Error al obtener tareas:', error);
+    res.status(500).json({ error: 'Error interno al obtener tareas' });
   }
 });
 
+app.use(express.json());
+
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.originalUrl}`);
+  next();
+});
+
+app.use(`/${api}/kanban`, routerKanbantask);
+app.use(`/${api}/projects`, routerProject);
+
+app.get("/", (req: Request, res: Response) => {
+  res.send("Hello World!");
+});
+
+// Middleware global de manejo de errores (agrega next para manejo correcto)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
+  console.error("Error:", err);
+  const errorMessage =
+    err instanceof Error ? err.message :
+    typeof err === "string" ? err :
+    "Error desconocido";
+
+  res.status(500).json({
+    error: errorMessage,
+    message: "Error interno del servidor."
+  });
+  // No necesitas llamar a next() si aquí terminas la respuesta
+});
+
+
+
 app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
+  console.log(`Servidor escuchando en http://localhost:${port}/${api}`);
 });

@@ -1,397 +1,372 @@
-import { Component } from '@angular/core';
+import { Component, ElementRef, ViewChild, ChangeDetectorRef, HostListener, OnInit } from '@angular/core';
 import {
   CdkDragDrop,
-  moveItemInArray,    // Filtro de columnas
-  transferArrayItem,  // Filtro de columnas
+  moveItemInArray,
+  transferArrayItem,
   CdkDrag,
-  CdkDropList,
+  CdkDropList
 } from '@angular/cdk/drag-drop';
 import { CommonModule } from '@angular/common';
-
-import { ElementRef, ViewChild, ChangeDetectorRef, HostListener } from '@angular/core';
-import { FormsModule } from '@angular/forms';  // <-- Importa FormsModule
+import { FormsModule } from '@angular/forms';
 
 import { Sidebar } from '../../../../shared/ui/sidebar/sidebar';
+import { BoardService } from '../../services/kanban-service';
+import { ActivatedRoute } from '@angular/router';
 
-interface Task {
-  id: number;
-  title: string;
-  status: string;
-  assignee: string[];
-  dueDate: string;
-  priority: string;
-  description: string;
-}
-
-interface Categoria {
+export interface User {
   id: string;
   nombre: string;
-  tasks: Task[]; // ✅ Esto es lo que necesitas
+  apellido: string;
+  email: string;
+  avatarUrl?: string;
+}
+
+export interface MiembroProyecto {
+  usuario: User;
+  rol: any;
+}
+
+export interface ResponsableTarea {
+  usuario: User;
+  tareaId: string;
+  id: number;
+  usuarioId: string;
+}
+
+
+export interface Categoria {
+  id: string;
+  nombre: string;
+  posicion?: number;
+  tasks: Task[];
+}
+
+interface Task {
+  id: string;
+  titulo?: string;
+  fechaLimite?: string;
+  posicion: number;
+  createdAt: string;
+  estadoId: number | string;
+  proyectoId: string;
+
+  // Campos backend opcionales que pueden venir
+  assignee?: User[]; // lista de usuarios asignados
+  etiquetas?: any[];
+  bloquesContenido?: any[];
+  priority?: string;
+  description?: string;
+
+  // Campos frontend (para UI)
+  title?: string;
+  dueDate?: string;
+}
+
+// Agrega esto cerca del inicio, junto a tus otras interfaces
+
+interface RawTask {
+  id: string;
+  titulo?: string;
+  fechaLimite?: string;
+  posicion: number;
+  createdAt: string;
+  estadoId: number | string;
+  proyectoId: string;
+
+  responsables?: { usuario: User }[]; // ← NUEVO
+  etiquetas?: any[];
+  bloquesContenido?: any[];
+  priority?: string;
+  description?: string;
 }
 
 
 @Component({
   selector: 'app-board',
-  imports: [CdkDropList, CdkDrag, CommonModule, FormsModule, Sidebar  // <-- Agrégalo aquí
-  ],
+  imports: [CdkDropList, CdkDrag, CommonModule, FormsModule, Sidebar],
   templateUrl: './board.html',
   styleUrl: './board.css',
-
 })
-export class Board {
-
-  sidebarOpen = false;
-
-  CategoriasK: Categoria[] = [
-    {
-      id: 'xd',
-      nombre: 'Sin empezar',
-      tasks: [
-        { id: 1, title: 'Tarea 1', status: 'todo', assignee: ['Ana', 'Luis'], dueDate: '2025-09-15', priority: 'Alta', description: '...asdasdasd' },
-        { id: 2, title: 'Tarea 2', status: 'todo', assignee: ['Juan'], dueDate: '2025-09-17', priority: 'Media', description: '...dededded' },
-        { id: 3, title: 'Tarea 2', status: 'todo', assignee: ['Luis'], dueDate: '2025-09-17', priority: 'Media', description: '...dededded' },
-        { id: 4, title: 'Tarea 2', status: 'todo', assignee: ['Juan'], dueDate: '2025-09-17', priority: 'Media', description: '...dededded' },
-        { id: 5, title: 'Tarea 2', status: 'todo', assignee: ['Luis'], dueDate: '2025-09-17', priority: 'Media', description: '...dededded' },
-        { id: 6, title: 'Tarea 2', status: 'todo', assignee: ['Juan'], dueDate: '2025-09-17', priority: 'Media', description: '...dededded' },
-        { id: 7, title: 'Tarea 2', status: 'todo', assignee: ['Juan'], dueDate: '2025-09-17', priority: 'Media', description: '...dededded' },
-        { id: 8, title: 'Tarea 2', status: 'todo', assignee: ['Luis'], dueDate: '2025-09-17', priority: 'Media', description: '...dededded' },
-        { id: 9, title: 'Tarea 2', status: 'todo', assignee: ['Juan'], dueDate: '2025-09-17', priority: 'Media', description: '...dededded' },
-
-      ],
-    },
-    {
-      id: 'todo',
-      nombre: 'Por hacer',
-      tasks: [],
-    },
-    {
-      id: 'done',
-      nombre: 'Hecho',
-      tasks: [],
-    }
-  ];
-
-
-  drop(event: CdkDragDrop<Task[]>) {
-    console.log('➡️ Drop event:', event);
-
-    if (event.previousContainer === event.container) {
-      console.log('🔄 Mismo contenedor - Reordenando tarea');
-      moveItemInArray(
-        event.container.data,
-        event.previousIndex,
-        event.currentIndex
-      );
-    } else {
-      console.log('📦 Contenedor anterior ID:', event.previousContainer.id);
-      console.log('📥 Nuevo contenedor ID:', event.container.id);
-
-      const task: Task = event.previousContainer.data[event.previousIndex];
-      console.log('🧱 Tarea movida:', task);
-
-      // Simulamos que el status depende del id del contenedor
-      const newStatus = this.getStatusFromContainerId(event.container.id);
-      console.log(`🆕 Nuevo status para la tarea ${task.id}:`, newStatus);
-
-      // Actualizamos el status antes de moverla visualmente
-      this.updateTaskStatus(task.id, newStatus);
-
-      transferArrayItem(
-        event.previousContainer.data,
-        event.container.data,
-        event.previousIndex,
-        event.currentIndex
-      );
-
-      console.log('✅ Tarea transferida');
-
-    }
-  }
-  isDragging = false;
-
-  onDragStarted() {
-    this.isDragging = true;
-
-    setTimeout(() => {
-      this.isDragging = false;
-    }, 0);  // 2 segundos para desactivar el borde
-  }
-
-  onDragEnded() {
-    this.isDragging = false;
-  }
-
-  // función dentro de la funcion DROP()
-  get categoriasIds(): string[] {
-    return this.CategoriasK.map(cat => cat.id);
-  }
-  getStatusFromContainerId(containerId: string): string {
-    return containerId; // Asumiendo que el id del contenedor es igual al status deseado
-  }
-  updateTaskStatus(taskId: number, newStatus: string) {
-    const task = this.CategoriasK
-      .flatMap(cat => cat.tasks)
-      .find(t => t.id === taskId);
-
-    if (task) {
-      task.status = newStatus;
-      console.log(`✔️ Status de tarea ${taskId} actualizado a:`, newStatus);
-    }
-  }
-
-  currentUser: string = 'Juan';  // Cambia esto por el identificador de tu usuario
-
-  // CAMBIO DE VISTA, esto es necesario ya que esto es lo que activa que la animación se vea al hacer click en cada Botón
-  // La animación esta en el CSS
+export class Board implements OnInit {
   @ViewChild('kanbanContainer') kanbanContainer?: ElementRef;
   @ViewChild('listContainer') listContainer?: ElementRef;
   @ViewChild('assignedContainer') assignedContainer?: ElementRef;
-  private applyAnimation(ref?: ElementRef) {
-    if (!ref) return;
+  @ViewChild('thTitulo') thTitulo!: ElementRef;
 
-    const el = ref.nativeElement as HTMLElement;
+  currentUser: string = 'Juan'; // idealmente tu id o nombre real
+  sidebarOpen = false;
 
-    el.classList.remove('fade-slide-in'); // Reinicia si ya estaba
-    void el.offsetWidth; // Trigger reflow para reiniciar animación
+  CategoriasK: Categoria[] = [];
+  miembrosDelProyecto: ResponsableTarea[] = []; // para el selector del formulario
+  equipoDelProyecto: ResponsableTarea[] = [];   // para uso interno si querés filtrar tareas, etc.
 
-    el.classList.add('fade-slide-in');
+
+
+  viewMode: 'kanban' | 'list' | 'assigned' = 'kanban';
+
+  hoveredTaskId: string | null = null;
+  timeoutId: any;
+
+  textoFiltro = '';
+  filtroResponsable = '';
+  filtroPrioridad = '';
+  prioridadesUnicas: string[] = [];
+  responsablesUnicos: string[] = [];
+
+  mostrarPanelFiltros = false;
+  mostrarPanelFiltroTitulo = false;
+  filtroTitulo = '';
+
+  // Modal / nueva tarea
+  categoriaSeleccionadaForModal: Categoria | null = null;
+
+  newTask = {
+    title: '',
+    description: '',
+    priority: 'Media',
+    assigneeIds: [] as string[], // ← Ahora es un array de IDs
+    dueDate: ''
+  };
+  /*
+    const tareas = await kanbanRepository.getAllTask("id-proyecto");
+  
+  tareas.forEach(tarea => {
+    console.log(tarea.titulo); // string | null
+    console.log(tarea.BloqueContenido[0]?.contenido); // string
+    console.log(tarea.etiquetas[0]?.etiqueta.nombre); // nombre etiqueta
+    console.log(tarea.responsables[0]?.usuario.email); // email usuario
+  });*/
+
+
+  constructor(private cdr: ChangeDetectorRef, private boardService: BoardService, private route: ActivatedRoute) { }
+
+  ngOnInit() {
+    const proyectoId = this.route.snapshot.paramMap.get('id') || '1fc2cb1f-7580-47dd-b28e-49f139dbfb44';
+
+    // Obtener estados del proyecto (categorías)
+    this.boardService.getEstadosDelProyecto(proyectoId).subscribe({
+      next: (estados) => {
+        this.CategoriasK = estados.map(est => ({
+          id: est.id.toString(),
+          nombre: est.nombre,
+          posicion: (est as any).posicion ?? 0,
+          tasks: []
+        }));
+
+        // Obtener tareas
+        this.boardService.getTareasPorProyecto(proyectoId).subscribe({
+          next: (tareas: RawTask[]) => {
+            this.CategoriasK.forEach(cat => cat.tasks = []);
+
+            tareas.forEach(t => {
+              const categoria = this.CategoriasK.find(c => c.id === t.estadoId.toString());
+              if (categoria) {
+                const task: Task = {
+                  ...t,
+                  assignee: Array.isArray(t.responsables)
+                    ? t.responsables.map(r => r.usuario)
+                    : [],
+                  etiquetas: Array.isArray(t.etiquetas) ? t.etiquetas : [],
+                  bloquesContenido: Array.isArray(t.bloquesContenido) ? t.bloquesContenido : [],
+                  title: t.titulo ?? '',
+                  dueDate: t.fechaLimite ?? '',
+                  priority: t.priority ?? 'Media',
+                  description: t.description ?? ''
+                };
+                categoria.tasks.push(task);
+              }
+            });
+
+            this.CategoriasK.forEach(cat => {
+              cat.tasks.sort((a, b) => (a.posicion ?? 0) - (b.posicion ?? 0));
+            });
+
+            this.generarListaResponsables();
+            this.generarListaPrioridades();
+            this.cdr.detectChanges();
+          },
+          error: (err) => {
+            console.error('Error al cargar tareas:', err);
+          }
+        });
+
+        // 1. Obtener TODOS los miembros del proyecto para el formulario
+        this.boardService.getEquipoProyecto(proyectoId).subscribe({
+          next: (miembros: MiembroProyecto[]) => {
+            this.miembrosDelProyecto = miembros.map((m, index) => ({
+              usuario: m.usuario,
+              tareaId: '', // no asignado aún
+              id: index,   // usamos el índice como id único temporal
+              usuarioId: m.usuario.id
+            }));
+            console.log('Miembros para asignación:', this.miembrosDelProyecto);
+          },
+          error: (err) => console.error('Error al cargar miembros:', err)
+        });
+
+
+        // 2. Obtener responsables que ya tienen tareas asignadas
+        //this.boardService.getMiembrosDelProyecto(proyectoId).subscribe({
+        //  next: (responsables: ResponsableTarea[]) => {
+        //    this.equipoDelProyecto = responsables;
+        //    console.log('Responsables cargados:', this.equipoDelProyecto);
+        //  },
+        //  error: (err) => console.error('Error al cargar responsables:', err)
+        //});
+
+
+
+
+      },
+      error: (err) => {
+        console.error('Error al cargar estados:', err);
+      }
+    });
   }
-  constructor(private cdr: ChangeDetectorRef) { }
 
-  public viewMode: 'kanban' | 'list' | 'assigned' = 'kanban';
+
+  getNombreResponsables(users: User[]): string {
+    if (!users || users.length === 0) return '';
+    return users.map(u => `${u.nombre} ${u.apellido}`).join(', ');
+  }
+
+  drop(event: CdkDragDrop<Task[]>) {
+    const prevTasks = event.previousContainer.data;
+    const currTasks = event.container.data;
+
+    const task = prevTasks[event.previousIndex];
+
+    const cambioDeColumna = event.previousContainer.id !== event.container.id;
+
+    if (!cambioDeColumna) {
+      moveItemInArray(currTasks, event.previousIndex, event.currentIndex);
+      this.reordenarDentroMismaColumna(event.container.id, currTasks);
+    } else {
+      const nuevoEstadoId = Number(event.container.id);
+
+      this.boardService.updateTask(task.id, { estadoId: nuevoEstadoId, posicion: event.currentIndex }).subscribe({
+        next: () => {
+          transferArrayItem(prevTasks, currTasks, event.previousIndex, event.currentIndex);
+          this.reordenarDentroMismaColumna(event.container.id, currTasks);
+        },
+        error: err => {
+          console.error('Error al mover tarea:', err);
+        }
+      });
+    }
+  }
+
+
+  reordenarDentroMismaColumna(containerId: string, tasks: Task[]) {
+    tasks.forEach((t, idx) => {
+      console.log(`Actualizando tarea ${t.id} a posición ${idx}`);
+      this.boardService.updateTask(t.id, { posicion: idx }).subscribe({
+        next: _ => { },
+        error: e => console.error('Error al reordenar tarea:', e)
+      });
+    });
+  }
+
+  get categoriasIds(): string[] {
+    return this.CategoriasK.map(cat => cat.id);
+  }
+
+
+  onDragStarted() {
+    this.hoveredTaskId = null;
+  }
+
+  onDragEnded() {
+    this.hoveredTaskId = null;
+  }
+
+  onTaskHover(taskId: string) {
+    this.hoveredTaskId = taskId;
+    if (this.timeoutId) clearTimeout(this.timeoutId);
+    this.timeoutId = setTimeout(() => {
+      if (this.hoveredTaskId === taskId) this.hoveredTaskId = null;
+    }, 3000);
+  }
+
+  onTaskHoverLeave(taskId: string) {
+    if (this.hoveredTaskId === taskId) this.hoveredTaskId = null;
+  }
 
   setViewMode(mode: 'kanban' | 'list' | 'assigned') {
     if (this.viewMode === mode) return;
-
     this.viewMode = mode;
-
-    // Espera a que Angular actualice el DOM
     setTimeout(() => {
-      this.cdr.detectChanges(); // fuerza renderizado inmediato
-
-      // Aplica animación solo al contenedor correspondiente
+      this.cdr.detectChanges();
       if (mode === 'kanban') this.applyAnimation(this.kanbanContainer);
       if (mode === 'list') this.applyAnimation(this.listContainer);
       if (mode === 'assigned') this.applyAnimation(this.assignedContainer);
     });
   }
 
-
-
-  getPriorityBadgeClass(priority: string): string {
-    switch (priority) {
-      case 'Alta':
-        return 'ml-auto badge badge-error w-fit animate-bounce animate-duration-1000';
-      case 'Media':
-        return 'ml-auto badge badge-warning w-fit';   // sin animación
-      case 'Baja':
-        return 'ml-auto badge badge-success w-fit';   // sin animación
-      default:
-        return 'ml-auto badge badge-neutral w-fit';   // sin animación
-    }
+  private applyAnimation(ref?: ElementRef) {
+    if (!ref) return;
+    const el = ref.nativeElement as HTMLElement;
+    el.classList.remove('fade-slide-in');
+    void el.offsetWidth;
+    el.classList.add('fade-slide-in');
   }
 
-  getCategoryClasses(categoryName: string): string {
-    switch (categoryName) {
-      case 'Sin empezar':
-        return 'bg-slate-900/10 text-slate-400';  // muy tenue y texto gris claro
-      case 'Por hacer':
-        return 'bg-sky-900/10 text-sky-400';     // azul muy suave con texto azul claro
-      case 'Hecho':
-        return 'bg-green-900/10 text-green-400'; // verde muy suave con texto verde claro
-      default:
-        return 'bg-base-200 text-base-content';
-    }
-  }
-
-  getCardColorClass(nombre: string): string {
-    switch (nombre) {
-      case 'Sin empezar':
-        return 'bg-slate-900/20 text-slate-300';  // Fondo oscuro gris tenue, texto gris claro
-      // Otras opciones para 'Sin empezar':
-      // return 'bg-slate-800/30 text-slate-200'; 
-      // return 'bg-gray-900/25 text-gray-300';
-
-      case 'Por hacer':
-        return 'bg-sky-900/20 text-sky-300';      // Fondo azul oscuro tenue, texto azul claro
-      // Otras opciones para 'Por hacer':
-      // return 'bg-sky-800/30 text-sky-200';
-
-      case 'Hecho':
-        return 'bg-green-900/20 text-green-300';  // Fondo verde oscuro tenue, texto verde claro
-      // Otras opciones para 'Hecho':
-      // return 'bg-green-800/30 text-green-200';
-      // return 'bg-emerald-900/20 text-emerald-300';
-      // return 'bg-teal-900/20 text-teal-300';
-
-      default:
-        return 'bg-base-100 text-base-content';
-    }
-  }
-
-  getButtonColorClass(nombre: string): string {
-    switch (nombre) {
-      case 'Sin empezar':
-        return 'bg-slate-700/50 text-white hover:bg-slate-700/70'; // fondo oscuro y semi-transparente
-      case 'Por hacer':
-        return 'bg-sky-700/50 text-white hover:bg-sky-700/70';
-      case 'Hecho':
-        return 'bg-green-700/50 text-white hover:bg-green-700/70';
-      default:
-        return 'btn-outline btn-primary';
-    }
-  }
-
-  // Clases para el fondo de cada columna
-  getColumnColorClass(nombre: string): string {
-    switch (nombre) {
-      case 'Sin empezar':
-        return 'bg-slate-900/10';   // fondo muy tenue oscuro
-      case 'Por hacer':
-        return 'bg-sky-900/10';
-      case 'Hecho':
-        return 'bg-green-900/10';
-      default:
-        return 'bg-gray-700/10';
-    }
-  }
-
-  // Clases para el fondo de cada tarea
-  getTaskBackgroundClass(nombre: string): string {
-    switch (nombre) {
-      case 'Sin empezar':
-        return 'bg-slate-900/20';
-      case 'Por hacer':
-        return 'bg-sky-900/20';
-      case 'Hecho':
-        return 'bg-green-900/20';
-      default:
-        return 'bg-gray-700/20';
-    }
-  }
-
-  // Clases para el color del texto del título de columna
-  getTextColorClass(nombre: string): string {
-    switch (nombre) {
-      case 'Sin empezar':
-        // Opciones de gris
-        // return 'text-slate-400';  // gris azulado suave
-        // return 'text-gray-400';   // gris neutro medio
-        // return 'text-zinc-400';   // gris ligeramente cálido
-        // return 'text-neutral-400'; // gris neutral
-
-        // Opciones con colores suaves
-        // return 'text-indigo-400'; // azul suave
-        // return 'text-purple-400'; // morado suave
-
-        // Ejemplo escogido:
-        return 'text-slate-400';
-
-      case 'Por hacer':
-        // Opciones azules
-        // return 'text-sky-400';   // azul cielo suave (actual)
-        // return 'text-blue-400';  // azul clásico
-        // return 'text-indigo-400';// azul un poco más morado
-
-        // Ejemplo escogido:
-        return 'text-sky-400';
-
-      case 'Hecho':
-        // Opciones verdes
-        // return 'text-green-400';   // verde medio (actual)
-        // return 'text-emerald-400'; // verde brillante
-        // return 'text-teal-400';    // verde azulado
-
-        // Ejemplo escogido:
-        return 'text-green-400';
-
-      default:
-        // Opciones de gris para valores no definidos
-        // return 'text-gray-300';
-        return 'text-gray-300';
-    }
-  }
-
-  hoveredTaskId: string | null = null;
-  timeoutId: any;
-
-  onTaskHover(taskId: string) {
-    this.hoveredTaskId = taskId;
-    if (this.timeoutId) {
-      clearTimeout(this.timeoutId);
-    }
-    this.timeoutId = setTimeout(() => {
-      if (this.hoveredTaskId === taskId) {
-        this.hoveredTaskId = null;
-      }
-    }, 3000); // 3 segundos para que desaparezca el borde
-  }
-
-  onTaskHoverLeave(taskId: string) {
-    if (this.hoveredTaskId === taskId) {
-      this.hoveredTaskId = null;
-    }
-  }
-
-
-
-  // Filtros para la vista LISTA (solo frontend, prototipo con pocos datos)
-  // Cuando se implemente backend (Prisma + PostgreSQL), esta función se debe cambiar
-  // para hacer la consulta con filtros directamente en el servidor y así optimizar recursos.
-
-  // Filtros
-  public filtroResponsable: string = '';
-  public filtroPrioridad: string = '';
-  public textoFiltro: string = '';
-
-  // Listas únicas
-  public responsablesUnicos: string[] = [];
-  public prioridadesUnicas: string[] = [];
-
-  public mostrarPanelFiltros: boolean = false;
-
-  ngOnInit() {
-    this.generarListaResponsables();
-    this.generarListaPrioridades();
-  }
-
-  private generarListaPrioridades(): void {
+  // Filtros & listas auxiliares
+  private generarListaResponsables() {
     const set = new Set<string>();
-    this.CategoriasK.forEach(cat => {
-      cat.tasks.forEach(task => set.add(task.priority));
-    });
-    this.prioridadesUnicas = Array.from(set);
-  }
+    this.CategoriasK.forEach(cat =>
+      cat.tasks.forEach(task => {
+        (task.assignee ?? []).forEach(u => set.add(u.id));
+      })
+    );
 
-  private generarListaResponsables(): void {
-    const set = new Set<string>();
-    this.CategoriasK.forEach(cat => {
-      cat.tasks.forEach(task => task.assignee.forEach(persona => set.add(persona)));
-    });
     this.responsablesUnicos = Array.from(set);
   }
 
-  // Getter con filtros
-  public get tareasFiltradas() {
-    const tareasFiltradas: { tarea: Task; categoria: string }[] = [];
-
-    this.CategoriasK.forEach(cat => {
+  private generarListaPrioridades() {
+    const set = new Set<string>();
+    this.CategoriasK.forEach(cat =>
       cat.tasks.forEach(task => {
-        const cumpleResponsable =
-          !this.filtroResponsable || task.assignee.includes(this.filtroResponsable);
-        const cumplePrioridad = !this.filtroPrioridad || task.priority === this.filtroPrioridad;
-        const cumpleTexto =
+        if (task.priority) set.add(task.priority);
+      })
+    );
+    this.prioridadesUnicas = Array.from(set);
+  }
+
+  get tareasFiltradas() {
+    const res: { tarea: Task; categoria: string }[] = [];
+    this.CategoriasK.forEach(cat =>
+      cat.tasks.forEach(task => {
+        const cumpleResp = !this.filtroResponsable || task.assignee?.some(u => u.id === this.filtroResponsable);
+        const cumplePri = !this.filtroPrioridad || task.priority === this.filtroPrioridad;
+        const cumpleText =
           !this.textoFiltro ||
-          task.title.toLowerCase().includes(this.textoFiltro.toLowerCase()) ||
-          task.description.toLowerCase().includes(this.textoFiltro.toLowerCase());
+          (task.title?.toLowerCase().includes(this.textoFiltro.toLowerCase()) ?? false) ||
+          (task.description?.toLowerCase().includes(this.textoFiltro.toLowerCase()) ?? false);
 
-        if (cumpleResponsable && cumplePrioridad && cumpleTexto) {
-          tareasFiltradas.push({ tarea: task, categoria: cat.nombre });
+        if (cumpleResp && cumplePri && cumpleText) {
+          res.push({ tarea: task, categoria: cat.nombre });
         }
-      });
-    });
+      })
+    );
+    return res;
+  }
 
-    return tareasFiltradas;
+
+
+  get tareasAsignadasFiltradas() {
+    const res: { tarea: Task; categoria: Categoria }[] = [];
+    this.CategoriasK.forEach(cat =>
+      cat.tasks.forEach(task => {
+        if (task.assignee?.some(u => u.id === this.currentUser)) {
+
+          if (!this.filtroTitulo || (task.title?.toLowerCase().includes(this.filtroTitulo.toLowerCase()) ?? false)) {
+            res.push({ tarea: task, categoria: cat });
+          }
+        }
+      })
+    );
+    return res;
   }
 
   public limpiarFiltros(): void {
@@ -400,130 +375,189 @@ export class Board {
     this.textoFiltro = '';
   }
 
-
-
-
-  // FILTRO X TITULO
-  public filtroTituloAsignadas: string = '';
-
-  public get tareasAsignadasFiltradas() {
-    const tareas: { tarea: Task; categoria: Categoria }[] = [];
-
-
-    this.CategoriasK.forEach(categoria => {
-      categoria.tasks.forEach(tarea => {
-        if (tarea.assignee.includes(this.currentUser)) {
-          if (!this.filtroTituloAsignadas || tarea.title.toLowerCase().includes(this.filtroTituloAsignadas.toLowerCase())) {
-            tareas.push({ tarea, categoria });
-          }
-        }
-      });
-    });
-
-    return tareas;
-  }
-
-  public mostrarPanelFiltroTituloAsignadas = false;
-
-
-  // TAREA ASIGNADA
-
-
-  public filtroTitulo: string = '';
-  public mostrarPanelFiltroTitulo: boolean = false;
-
-  @ViewChild('thTitulo') thTitulo!: ElementRef;
-
-  // Alterna mostrar/ocultar filtro
   toggleFiltroTitulo() {
     this.mostrarPanelFiltroTitulo = !this.mostrarPanelFiltroTitulo;
   }
 
-  // Limpia filtro y oculta panel
   limpiarFiltroTitulo() {
     this.filtroTitulo = '';
     this.mostrarPanelFiltroTitulo = false;
   }
 
-  // Aquí iría la lógica para filtrar basado en filtroTitulo si la tienes
-  aplicarFiltroTitulo() {
-    // Puede ser solo binding, o llamada a función de filtrado
-  }
+  // Modal de Crear Tarea
+  abrirModal(categoria: Categoria) {
+    this.categoriaSeleccionadaForModal = categoria;
 
-  // Detectar clicks fuera del filtro para cerrarlo automáticamente
-  @HostListener('document:click', ['$event'])
-  clickFuera(event: Event) {
-    if (!this.mostrarPanelFiltroTitulo) return;
-
-    // Si el click NO está dentro del thTitulo o el panel de filtro, ocultar panel
-    const clickedInsideTitulo = this.thTitulo.nativeElement.contains(event.target);
-    if (!clickedInsideTitulo) {
-      this.mostrarPanelFiltroTitulo = false;
-    }
-  }
-
-
-  // NUEVO ESTILO, (AUN NO LO APLICO AL HTML)
-
-  textoBusqueda = '';  // Para el input de búsqueda
-
-  buscarTareas() {
-    // Lógica para filtrar tareas globalmente
-    // O simplemente lanzar un filtro de texto en la vista actual
-    console.log('Buscando:', this.textoBusqueda);
-  }
-
-  abrirModalNuevaTarea() {
-    // Mostrar un modal o panel lateral para crear tarea
-    console.log('Abrir modal de nueva tarea');
-  }
-
-
-  // FORMULARIO DE LA TAREA TEMPORAL
-
-  selectedCategoryId: string | null = null;
-
-  newTask = {
-    title: '',
-    description: '',
-    priority: 'Media',
-    assignee: '',
-    dueDate: ''
-  };
-
-
-  abrirModal(categoriaId: string) {
-    this.selectedCategoryId = categoriaId;
-    (document.getElementById('modalNuevaTarea') as HTMLDialogElement)?.showModal();
-  }
-
-  cerrarModal() {
-    (document.getElementById('modalNuevaTarea') as HTMLDialogElement)?.close();
-    this.selectedCategoryId = null;
-  }
-
-  crearTarea() {
-    if (!this.selectedCategoryId) return;
-
-    const tarea = {
-      ...this.newTask,
-      categoryId: this.selectedCategoryId
-    };
-
-    // TODO: Aquí haces el POST al backend con `tarea`
-    console.log('Enviando tarea al backend:', tarea);
-
-    // Limpiar y cerrar
+    // Resetear datos del nuevo task para que no quede info previa
     this.newTask = {
       title: '',
       description: '',
       priority: 'Media',
-      assignee: '',
+      assigneeIds: [] as string[],
       dueDate: ''
     };
-    this.cerrarModal();
+
+    // Mostrar el modal
+    const modal = document.getElementById('modalNuevaTarea') as HTMLDialogElement;
+    modal?.showModal();
   }
 
 
+  cerrarModal() {
+    const modal = document.getElementById('modalNuevaTarea') as HTMLDialogElement;
+    modal?.close();
+    this.newTask = {
+      title: '',
+      description: '',
+      priority: 'Media',
+      assigneeIds: [],
+      dueDate: ''
+    };
+    this.categoriaSeleccionadaForModal = null;
+  }
+  crearTarea() {
+    if (!this.categoriaSeleccionadaForModal) {
+      console.error('No hay categoría seleccionada para nueva tarea');
+      return;
+    }
 
+    if (!this.newTask.title.trim()) {
+      alert('El título es obligatorio');
+      return;
+    }
+
+    const estadoId = Number(this.categoriaSeleccionadaForModal.id);
+
+    // Validamos IDs de responsables seleccionados
+    const responsablesArr = this.newTask.assigneeIds.filter(id => !!id);
+
+    const proyectoId =
+      this.CategoriasK.find(cat => cat.tasks.length > 0)?.tasks[0].proyectoId ?? '123';
+
+    const fechaLimiteISO = this.newTask.dueDate?.trim()
+      ? new Date(this.newTask.dueDate).toISOString()
+      : undefined;
+
+    // Armar payload acorde al backend (responsablesIds)
+    const payload = {
+      titulo: this.newTask.title,
+      estadoId,
+      posicion: this.categoriaSeleccionadaForModal.tasks.length,
+      proyectoId,
+      responsablesIds: responsablesArr,
+      fechaLimite: fechaLimiteISO,
+      bloquesContenido: [],
+    };
+
+    this.boardService.createTask(payload).subscribe({
+      next: (tareaNueva) => {
+        // Aquí transformamos los responsablesIds en objetos con estructura usuario,
+        // para que la UI pueda mostrar datos de los responsables correctamente
+        const responsablesParaUI = responsablesArr.map(id => {
+          // Intentamos buscar los datos completos del usuario en miembrosDelProyecto
+          const miembro = this.miembrosDelProyecto.find(m => m.usuario.id === id);
+          return miembro ? miembro.usuario : { id, nombre: 'Desconocido', apellido: '', email: '' };
+        });
+
+        const task: Task = {
+          ...tareaNueva,
+          // Cambiamos 'assignee' a array de usuarios para la UI
+          assignee: responsablesParaUI,
+          etiquetas: tareaNueva.etiquetas ?? [],
+          bloquesContenido: tareaNueva.bloquesContenido ?? [],
+          title: tareaNueva.titulo ?? '',
+          dueDate: tareaNueva.fechaLimite ?? '',
+          priority: (tareaNueva as any).priority ?? 'Media',
+          description: (tareaNueva as any).description ?? ''
+        };
+
+        this.categoriaSeleccionadaForModal!.tasks.push(task);
+
+        this.categoriaSeleccionadaForModal!.tasks.sort((a, b) => (a.posicion ?? 0) - (b.posicion ?? 0));
+
+        this.generarListaResponsables();
+        this.generarListaPrioridades();
+        this.cdr.detectChanges();
+        this.cerrarModal();
+      },
+      error: err => {
+        console.error('Error creando tarea:', err);
+        alert('Ocurrió un error al crear la tarea');
+      }
+    });
+  }
+
+  @HostListener('document:click', ['$event'])
+  clickFuera(event: Event) {
+    if (!this.mostrarPanelFiltroTitulo) return;
+    const clickedInside = this.thTitulo.nativeElement.contains(event.target);
+    if (!clickedInside) {
+      this.mostrarPanelFiltroTitulo = false;
+    }
+  }
+
+  getColumnColorClass(nombre: string): string {
+    switch (nombre) {
+      case 'Sin empezar':
+        return 'bg-slate-900/10';
+      case 'Por hacer':
+        return 'bg-sky-900/10';
+      case 'Hecho':
+        return 'bg-green-900/10';
+      default:
+        return 'bg-base-200';
+    }
+  }
+
+  getCardColorClass(nombre: string): string {
+    switch (nombre) {
+      case 'Sin empezar':
+        return 'bg-slate-900/20 text-slate-300';
+      case 'Por hacer':
+        return 'bg-sky-900/20 text-sky-300';
+      case 'Hecho':
+        return 'bg-green-900/20 text-green-300';
+      default:
+        return 'bg-base-100 text-base-content';
+    }
+  }
+
+  getTextColorClass(nombre: string): string {
+    switch (nombre) {
+      case 'Sin empezar':
+        return 'text-slate-400';
+      case 'Por hacer':
+        return 'text-sky-400';
+      case 'Hecho':
+        return 'text-green-400';
+      default:
+        return 'text-gray-300';
+    }
+  }
+
+  getPriorityBadgeClass(priority: string): string {
+    switch (priority) {
+      case 'Alta':
+        return 'ml-auto badge badge-error w-fit animate-bounce animate-duration-1000';
+      case 'Media':
+        return 'ml-auto badge badge-warning w-fit';
+      case 'Baja':
+        return 'ml-auto badge badge-success w-fit';
+      default:
+        return 'ml-auto badge badge-neutral w-fit';
+    }
+  }
+
+  getButtonColorClass(nombre: string): string {
+    switch (nombre) {
+      case 'Sin empezar':
+        return 'bg-slate-700/50 text-white hover:bg-slate-700/70';
+      case 'Por hacer':
+        return 'bg-sky-700/50 text-white hover:bg-sky-700/70';
+      case 'Hecho':
+        return 'bg-green-700/50 text-white hover:bg-green-700/70';
+      default:
+        return 'btn-outline btn-primary';
+    }
+  }
 }

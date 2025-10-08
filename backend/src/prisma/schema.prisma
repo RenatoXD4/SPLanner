@@ -240,6 +240,3 @@ model TareasEtiquetas {
   @@schema("public")
 
 }
-
-
-

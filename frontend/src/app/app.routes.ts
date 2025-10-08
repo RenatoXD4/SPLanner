@@ -17,4 +17,8 @@ export const routes: Routes = [
   path: '',
      loadChildren: () => import('./core/features/auth/auth.routes').then( m => m.AUTH_ROUTES),
   },
+  {
+  path: 'kanvan',
+     loadChildren: () => import('./core/features/kanvan/kanvan.routes').then( m => m.KANBVAN_ROUTES),
+  }
 ];

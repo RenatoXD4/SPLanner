@@ -1,0 +1,66 @@
+<h2>Listado de Tareas - Prueba</h2>
+
+<!-- Formulario para crear nueva tarea -->
+<div>
+  <input
+    type="text"
+    [value]="nuevoTitulo"
+    (input)="nuevoTitulo = $event.target.value"
+    placeholder="Título de la tarea"
+  />
+
+  <select [value]="nuevoEstadoId" (change)="onEstadoChange($event)">
+    @for (estado of estadosDisponibles; track estado) {
+      <option value="{{ estado.id }}">{{ estado.nombre }}</option>
+    }
+  </select>
+
+  <button (click)="crearTarea()">Crear tarea</button>
+</div>
+
+<hr />
+
+<!-- Formulario para editar tarea -->
+@if (tareaSeleccionada != null) {
+  <div style="border:1px solid #888; padding:10px; margin-bottom:15px">
+    <h3>Editar tarea: {{ tareaSeleccionada.id }}</h3>
+
+    <input
+      type="text"
+      [value]="tareaSeleccionada.titulo"
+      (input)="tareaSeleccionada.titulo = $event.target.value"
+      placeholder="Título de la tarea"
+    />
+
+    <select [value]="tareaSeleccionada.estadoId" (change)="onEstadoChangeEdit($event)">
+      @for (estado of estadosDisponibles; track estado) {
+        <option value="{{ estado.id }}">{{ estado.nombre }}</option>
+      }
+    </select>
+
+    <button (click)="guardarCambios()">Guardar cambios</button>
+    <button (click)="cancelarEdicion()">Cancelar</button>
+  </div>
+}@else {
+  <p>Formulario oculto porque no hay tarea seleccionada.</p>
+}
+
+<!-- Lista de tareas -->
+@if (tareas.length > 0) {
+  <ul>
+    @for (A of tareas; track A) {
+      <li>
+        <strong>Id:</strong> {{ A.id }} -
+        <strong>Título:</strong> {{ A.titulo }} -
+        <strong>Estado:</strong> {{ A.estadoId }} -
+
+        <button (click)="actualizarTarea(A)">Actualizar</button>
+        <button (click)="eliminarTarea(A.id)">Eliminar</button>
+      </li>
+    }
+  </ul>
+} @else {
+  <p>No hay tareas para mostrar.</p>
+}
+
+<button (click)="cargarTareas()">Recargar tareas</button>

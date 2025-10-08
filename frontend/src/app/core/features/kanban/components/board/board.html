@@ -84,12 +84,13 @@
             ]"
           >
             <span class="font-medium text-sm text-base-content">
-              {{ A.title }}
+              {{ A.title ?? '' }}
             </span>
-            <span>{{ A.assignee.join(' - ') }}</span>
-            <span>{{ A.description }}</span>
+            <span>{{ getNombreResponsables(A.assignee ?? []) }}</span>
 
-            <span class="ml-auto badge w-fit" [ngClass]="getPriorityBadgeClass(A.priority)">
+            <span>{{ A.description ?? '' }}</span>
+
+            <span class="ml-auto badge w-fit" [ngClass]="getPriorityBadgeClass(A.priority ?? '')">
               {{ A.priority }}
             </span>
           </div>
@@ -97,11 +98,10 @@
         </div>
 
         <!-- Botón Nueva Tarea -->
-        <!-- Botón Nueva Tarea -->
         <button
           class="btn btn-sm w-full font-medium transition hover:scale-105"
           [ngClass]="getButtonColorClass(item.nombre)"
-          (click)="abrirModal(item.id)"
+          (click)="abrirModal(item)"
         >
           + Nueva Tarea
         </button>
@@ -195,7 +195,7 @@
             <tr class="hover:bg-base-300/30 transition duration-150 ease-in-out">
               <td class="px-4 py-3 font-medium max-w-[220px] truncate">{{ item.tarea.title }}</td>
               <td class="px-4 py-3 max-w-[320px] line-clamp-2">{{ item.tarea.description }}</td>
-              <td class="px-4 py-3">{{ item.tarea.assignee.join(', ') }}</td>
+
               <td class="px-4 py-3">
                 <span
                   class="badge text-xs font-semibold px-2 py-1"
@@ -220,93 +220,41 @@
 
     <!-- VISTA TAREAS ASIGNADAS -->
     @if (viewMode === 'assigned') {
-    <div #assignedContainer class="w-full">
-      <div class="mb-4 flex justify-between items-center">
-        <h2 class="text-lg font-semibold">Mis Tareas Asignadas</h2>
+    <!-- ... -->
 
-        <button
-          class="btn btn-sm btn-outline flex items-center gap-2"
-          (click)="mostrarPanelFiltroTituloAsignadas = !mostrarPanelFiltroTituloAsignadas"
-        >
-          <span class="icon-[tabler--filter] text-lg"></span>
-          <span>Filtrar por título</span>
-        </button>
-      </div>
-
-      <!-- Tabla estilo lista -->
-      <div class="w-full overflow-x-auto rounded-xl shadow border border-base-300">
-        <table class="table table-zebra bg-base-200 rounded-xl text-sm">
-          <thead class="bg-primary text-primary-content text-xs uppercase">
-            <tr>
-              <th
-                class="px-4 py-3 text-left whitespace-nowrap relative cursor-pointer select-none"
-                (click)="toggleFiltroTitulo()"
-                #thTitulo
-              >
-                Título
-                <!-- Panel filtro superpuesto -->
-                @if (mostrarPanelFiltroTitulo) {
-                <div
-                  class="absolute top-full left-0 mt-1 ml-2 w-64 bg-base-100 border border-base-300 shadow-lg rounded-lg z-50 p-3"
-                  (click)="$event.stopPropagation()"
-                >
-                  <input
-                    type="text"
-                    placeholder="Buscar título..."
-                    class="input input-sm input-bordered w-full mb-2"
-                    [(ngModel)]="filtroTitulo"
-                    (input)="aplicarFiltroTitulo()"
-                  />
-                  <button (click)="limpiarFiltroTitulo()" class="btn btn-outline btn-xs w-full">
-                    Limpiar filtro
-                  </button>
-                </div>
-                }
-              </th>
-              <th class="px-4 py-3 text-left whitespace-nowrap">Descripción</th>
-              <th class="px-4 py-3 text-left whitespace-nowrap">Responsables</th>
-              <th class="px-4 py-3 text-left whitespace-nowrap">Prioridad</th>
-              <th class="px-4 py-3 text-left whitespace-nowrap">Fecha</th>
-              <th class="px-4 py-3 text-left whitespace-nowrap">Categoría</th>
-            </tr>
-          </thead>
-
-          <tbody class="divide-y divide-base-300 text-sm">
-            @for (item of tareasAsignadasFiltradas; track item.tarea.id) {
-            <tr class="hover:bg-base-300/30 transition duration-150 ease-in-out">
-              <td class="px-4 py-3 font-medium max-w-[220px] truncate">
-                {{ item.tarea.title }}
-              </td>
-              <td class="px-4 py-3 max-w-[320px] line-clamp-2">
-                {{ item.tarea.description }}
-              </td>
-              <td class="px-4 py-3">
-                {{ item.tarea.assignee.join(', ') }}
-              </td>
-              <td class="px-4 py-3">
-                <span
-                  class="badge text-xs font-semibold px-2 py-1"
-                  [ngClass]="{
-                    'badge-error': item.tarea.priority === 'Alta',
-                    'badge-warning': item.tarea.priority === 'Media',
-                    'badge-success': item.tarea.priority === 'Baja'
-                  }"
-                >
-                  {{ item.tarea.priority }}
-                </span>
-              </td>
-              <td class="px-4 py-3 whitespace-nowrap">
-                {{ item.tarea.dueDate }}
-              </td>
-              <td class="px-4 py-3 whitespace-nowrap">
-                {{ item.categoria.nombre }}
-              </td>
-            </tr>
-            }
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <tbody class="divide-y divide-base-300 text-sm">
+      @for (item of tareasAsignadasFiltradas; track item.tarea.id) {
+      <tr class="hover:bg-base-300/30 transition duration-150 ease-in-out">
+        <td class="px-4 py-3 font-medium max-w-[220px] truncate">
+          {{ item.tarea.title ?? '' }}
+        </td>
+        <td class="px-4 py-3 max-w-[320px] line-clamp-2">
+          {{ item.tarea.description ?? '' }}
+        </td>
+        <td class="px-4 py-3">
+          {{ item.tarea.assignee?.join(', ') ?? '' }}
+        </td>
+        <td class="px-4 py-3">
+          <span
+            class="badge text-xs font-semibold px-2 py-1"
+            [ngClass]="{
+              'badge-error': item.tarea.priority === 'Alta',
+              'badge-warning': item.tarea.priority === 'Media',
+              'badge-success': item.tarea.priority === 'Baja'
+            }"
+          >
+            {{ item.tarea.priority }}
+          </span>
+        </td>
+        <td class="px-4 py-3 whitespace-nowrap">
+          {{ item.tarea.dueDate }}
+        </td>
+        <td class="px-4 py-3 whitespace-nowrap">
+          {{ item.categoria.nombre }}
+        </td>
+      </tr>
+      }
+    </tbody>
     }
   </main>
 
@@ -354,15 +302,24 @@
         </div>
 
         <!-- Responsable -->
+        <!-- Selector de responsables -->
+        <!-- Responsable -->
         <div class="form-control">
-          <label class="label">Responsable</label>
-          <input
-            type="text"
-            class="input input-bordered w-full"
-            [(ngModel)]="newTask.assignee"
-            name="assignee"
-            placeholder="Ej: Ana, Luis"
-          />
+          <label class="label">
+            <span class="label-text">Responsables</span>
+          </label>
+          <select
+            class="select select-bordered w-full"
+            multiple
+            [(ngModel)]="newTask.assigneeIds"
+            name="assigneeIds"
+          >
+            @for (miembro of miembrosDelProyecto; track miembro.usuario.id) {
+            <option [value]="miembro.usuario.id">
+              {{ miembro.usuario.nombre }} {{ miembro.usuario.apellido }}
+            </option>
+            }
+          </select>
         </div>
 
         <!-- Fecha -->

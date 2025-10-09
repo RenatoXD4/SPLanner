@@ -1,38 +1,37 @@
-// dashboard.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-export interface DashboardStats {
-  totalProjects: number;
-  totalTasks: number;
-  pendingTasks: number;
-  completedTasks: number;
-  completionPercentage: number;
-  userPendingTasks: number;
-  userResponsibleTasks: number;
-}
-
-export interface RecentProject {
-  id: string;
-  nombre: string;
-  descripcion: string;
-  totalTareas: number;
-  tareasCompletadas: number;
-  createdAt: string;
-  porcentajeCompletado: number;
-}
-
-export interface DashboardData {
-  userInfo: {
-    id: string;
-    nombre: string;
-    apellido: string;
-    email: string;
-    createdAt: string;
+export interface DashboardApiResponse {
+  success: boolean;
+  message?: string;
+  data: {
+    userInfo: {
+      id: string;
+      nombre: string;
+      apellido: string;
+      email: string;
+      createdAt: string;
+    };
+    stats: {
+      totalProjects: number;
+      totalTasks: number;
+      pendingTasks: number;
+      completedTasks: number;
+      completionPercentage: number;
+      userPendingTasks: number;
+      userResponsibleTasks: number;
+    };
+    recentProjects: Array<{
+      id: string;
+      nombre: string;
+      descripcion: string | null;
+      totalTareas: number;
+      tareasCompletadas: number;
+      createdAt: string;
+      porcentajeCompletado: number;
+    }>;
   };
-  stats: DashboardStats;
-  recentProjects: RecentProject[];
 }
 
 @Injectable({
@@ -43,10 +42,8 @@ export class DashboardService {
 
   constructor(private http: HttpClient) { }
 
-  getDashboardData(userId: string): Observable<{success: boolean; data: DashboardData; message: string}> {
-    return this.http.get<{success: boolean; data: DashboardData; message: string}>(
-      `${this.apiUrl}/${userId}/dashboard`
-    );
-  }
+  getDashboardData(userId: string): Observable<DashboardApiResponse> {
 
+    return this.http.get<DashboardApiResponse>(`${this.apiUrl}/${userId}/dashboard`);
+  }
 }

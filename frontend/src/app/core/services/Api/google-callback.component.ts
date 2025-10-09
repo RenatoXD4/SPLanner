@@ -26,24 +26,42 @@ export class GoogleCallbackComponent implements OnInit {
     this.handleGoogleCallback();
   }
 
-  private handleGoogleCallback(): void {
-    this.route.queryParams.subscribe(params => {
-      const token = params['token'];
-      const error = params['error'];
+ private handleGoogleCallback(): void {
+  this.route.queryParams.subscribe(params => {
 
-      if (token) {
-        // Procesar token exitoso
-        this.authService.handleGoogleCallback(token);
-      } else if (error) {
-        // Manejar error
-        console.error('Error en autenticación Google:', error);
-        this.router.navigate(['/login'], {
-          queryParams: { error }
-        });
-      } else {
-        // No hay token ni error, redirigir al login
-        this.router.navigate(['/login']);
+    const token = params['token'];
+    const userDataString = params['user'];
+    const error = params['error'];
+
+    if (error) {
+
+      this.router.navigate(['/login'], {
+        queryParams: { error }
+      });
+      return;
+    }
+
+    if (token) {
+
+
+      let userData = null;
+
+      // PARSEAR el userData de string JSON a objeto
+      if (userDataString) {
+        try {
+          userData = JSON.parse(userDataString);
+
+        } catch (parseError) {
+
+        }
       }
-    });
-  }
+
+      // Pasar el objeto parseado al servicio
+      this.authService.handleGoogleCallback(token, userData);
+
+    } else {
+      this.router.navigate(['/login']);
+    }
+  });
+}
 }

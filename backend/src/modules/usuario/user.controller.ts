@@ -17,6 +17,8 @@ interface GoogleUserInfo {
   family_name: string;
   given_name: string;
   id: string;
+  locale: string;
+  name: string;
   picture: string;
   verified_email: boolean;
 }
@@ -33,11 +35,15 @@ interface RegisterRequestBody {
   password: string;
 }
 
+// ÚNICA interfaz UserResponse consolidada
 interface UserResponse {
   apellido: string;
+  createdAt?: string;
   email: string;
   id: string;
   nombre: string;
+  picture?: string;
+  verified_email?: boolean;
 }
 
 export class UserController {
@@ -54,52 +60,117 @@ export class UserController {
   }
 
   // Obtener información del usuario actual
-  public getCurrentUser(
-    req: Request,
-    res: Response
-  ): void {
-    res.status(200).json({
-      message: "Usuario autenticado",
-      user: null
-    });
-  }
-
-  //Obtener estadísticas del dashboard
-public async getDashboardStats(
+public async getCurrentUser(
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<void> {
   try {
-    const { userId } = req.params;
-
-    if (!userId) {
-      res.status(400).json({ 
-        message: "ID de usuario es requerido",
+    console.log('🔍 === getCurrentUser ENDPOINT LLAMADO ===');
+    
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader?.startsWith('Bearer ')) {
+      console.log('❌ No hay token de autorización');
+      res.status(401).json({ 
+        message: "Token de autenticación requerido",
         success: false 
       });
       return;
     }
 
-    const dashboardData = await this.userService.getUserDashboardStats(userId);
+    const token = authHeader.split(' ')[1];
 
-    res.status(200).json({
-      data: dashboardData,
-      message: "Estadísticas del dashboard obtenidas correctamente",
-      success: true
+
+    // Usar el token de Google para obtener información del usuario
+    const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     });
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('Usuario no encontrado')) {
-      res.status(404).json({ 
-        message: error.message,
+
+    if (!userInfoResponse.ok) {
+    
+      res.status(401).json({ 
+        message: "Token de Google inválido o expirado",
         success: false 
       });
       return;
     }
-    console.error('Error en getDashboardStats:', error);
+
+    // TYPE CASTING para evitar errores de TypeScript
+    const googleUser = await userInfoResponse.json() as {
+      email: string;
+      family_name: string;
+      given_name: string;
+      id: string;
+      name?: string;
+      picture?: string;
+      verified_email?: boolean;
+    };
+
+    console.log('Datos de Google recibidos:', googleUser.email);
+
+    // Crear userResponse con tipos seguros
+    const userResponse = {
+      apellido: googleUser.family_name || 'Google',
+      createdAt: new Date().toISOString(),
+      email: googleUser.email,
+      id: googleUser.id,
+      nombre: googleUser.given_name || 'Usuario'
+    };
+
+    console.log('Enviando respuesta con usuario:', userResponse);
+    
+    res.status(200).json({
+      message: "Usuario autenticado",
+      success: true,
+      user: userResponse
+    });
+    
+  } catch (error) {
+    console.error('Error en getCurrentUser:', error);
     next(error);
   }
 }
+
+  //Obtener estadísticas del dashboard
+  public async getDashboardStats(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const { userId } = req.params;
+
+      if (!userId) {
+        res.status(400).json({ 
+          message: "ID de usuario es requerido",
+          success: false 
+        });
+        return;
+      }
+
+      const dashboardData = await this.userService.getUserDashboardStats(userId);
+
+      res.status(200).json({
+        data: dashboardData,
+        message: "Estadísticas del dashboard obtenidas correctamente",
+        success: true
+      });
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('Usuario no encontrado')) {
+        res.status(404).json({ 
+          message: error.message,
+          success: false 
+        });
+        return;
+      }
+      console.error('Error en getDashboardStats:', error);
+      next(error);
+    }
+  }
+
   // Iniciar autenticación con Google
   public googleAuth(
     req: Request,
@@ -199,8 +270,20 @@ public async getDashboardStats(
       console.log('Usuario procesado:', user.email);
       console.log('Google callback exitoso, redirigiendo a frontend');
 
-      // Redirigir al frontend de Angular con el token
-      const frontendCallbackUrl = `http://localhost:4200/auth/google/callback?token=${tokens.access_token}`;
+      // Crear UserResponse para enviar al frontend
+      const userResponse: UserResponse = {
+        apellido: user.apellido,
+        createdAt: new Date().toISOString(), // Ya está como string
+        email: user.email,
+        id: user.id,
+        nombre: user.nombre
+      };
+
+      // Codificar usuario para URL
+      const encodedUser = encodeURIComponent(JSON.stringify(userResponse));
+      
+      // Redirigir al frontend de Angular con token y usuario
+      const frontendCallbackUrl = `http://localhost:4200/auth/google/callback?token=${tokens.access_token}&user=${encodedUser}`;
       console.log('Redirigiendo al frontend:', frontendCallbackUrl);
       
       res.redirect(frontendCallbackUrl);
@@ -239,7 +322,7 @@ public async getDashboardStats(
         apellido: user.apellido,
         email: user.email,
         id: user.id,
-        nombre: user.nombre,
+        nombre: user.nombre
       };
 
       res.status(200).json({
@@ -283,7 +366,7 @@ public async getDashboardStats(
         apellido: user.apellido,
         email: user.email,
         id: user.id,
-        nombre: user.nombre,
+        nombre: user.nombre
       };
 
       res.status(201).json({

@@ -3,8 +3,8 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { catchError, tap } from 'rxjs/operators';
 import { throwError } from 'rxjs';
-
 import { environment } from '../../../../../environments/environment';
+import { Router } from '@angular/router';
 
 interface RegisterResponse {
   message: string;
@@ -21,7 +21,6 @@ interface RegisterResponse {
   providedIn: 'root'
 })
 export class RegistroService {
-
   private readonly API_URL = `${environment.apiUrl}/usuarios`;
 
   userForm: FormGroup;
@@ -30,40 +29,35 @@ export class RegistroService {
   name: FormControl;
   apellido: FormControl;
 
-  // Signals para controlar la visibilidad de errores
   emailTouched = signal(false);
   passwordTouched = signal(false);
   nameTouched = signal(false);
   apellidoTouched = signal(false);
 
-  // Signals para estado de carga y éxito
   isLoading = signal(false);
   isSuccess = signal(false);
   errorMessage = signal('');
-
-  // Nuevo signal para error específico de email existente
   emailExistsError = signal(false);
 
-  // Patrones regex para validaciones
   private readonly EMAIL_PATTERN = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   private readonly PASSWORD_PATTERN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.])[A-Za-z\d@$!%*?&.]{8,}$/;
   private readonly NAME_PATTERN = /^[A-ZÁÉÍÓÚÑ][a-záéíóúñ]{1,49}(?:\s[A-ZÁÉÍÓÚÑ][a-záéíóúñ]{1,49})*$/;
 
-  constructor(private http: HttpClient) {
-    // Validaciones para email
+  constructor(
+    private http: HttpClient,
+    private router: Router
+  ) {
     this.email = new FormControl('', [
       Validators.required,
       Validators.pattern(this.EMAIL_PATTERN)
     ]);
 
-    // Validaciones para password
     this.password = new FormControl('', [
       Validators.required,
       Validators.minLength(8),
       Validators.pattern(this.PASSWORD_PATTERN)
     ]);
 
-    // Validaciones para nombre
     this.name = new FormControl('', [
       Validators.required,
       Validators.minLength(2),
@@ -71,7 +65,6 @@ export class RegistroService {
       Validators.pattern(this.NAME_PATTERN)
     ]);
 
-    // Validaciones para apellido
     this.apellido = new FormControl('', [
       Validators.required,
       Validators.minLength(2),
@@ -87,13 +80,11 @@ export class RegistroService {
       apellido: this.apellido
     });
 
-    // Resetear error de email existente cuando el usuario modifica el email
     this.email.valueChanges.subscribe(() => {
       this.emailExistsError.set(false);
     });
   }
 
-  // Validador personalizado para evitar que nombre y apellido sean iguales
   private sameNameValidator(control: FormControl): { [key: string]: boolean } | null {
     if (this.name && this.apellido && this.name.value === this.apellido.value) {
       return { 'sameName': true };
@@ -101,7 +92,6 @@ export class RegistroService {
     return null;
   }
 
-  // Métodos para mostrar errores
   showEmailError(): boolean {
     return (this.emailTouched() && this.email.invalid) || this.emailExistsError();
   }
@@ -118,7 +108,6 @@ export class RegistroService {
     return this.apellidoTouched() && this.apellido.invalid;
   }
 
-  // Métodos para obtener mensajes de error específicos
   getEmailErrorMessage(): string {
     if (this.emailExistsError()) {
       return 'Este correo electrónico ya está registrado';
@@ -165,7 +154,6 @@ export class RegistroService {
     return '';
   }
 
-  // Marcar campo como touched
   markFieldAsTouched(fieldName: string): void {
     switch (fieldName) {
       case 'email':
@@ -183,120 +171,107 @@ export class RegistroService {
     }
   }
 
-// Método para enviar datos al backend
-registerUser() {
-  if (this.userForm.valid) {
-    this.isLoading.set(true);
-    this.errorMessage.set('');
-    this.emailExistsError.set(false);
+  registerUser() {
+    if (this.userForm.valid) {
+      this.isLoading.set(true);
+      this.errorMessage.set('');
+      this.emailExistsError.set(false);
 
-    const userData = {
-      nombre: this.name.value,
-      apellido: this.apellido.value,
-      email: this.email.value,
-      password: this.password.value
-    };
+      const userData = {
+        nombre: this.name.value,
+        apellido: this.apellido.value,
+        email: this.email.value,
+        password: this.password.value
+      };
 
-    return this.http.post<RegisterResponse>(`${this.API_URL}/register`, userData)
-      .pipe(
-        tap(response => {
-          console.log('Usuario registrado exitosamente:', response);
-          this.isSuccess.set(true);
-          this.isLoading.set(false);
-          this.userForm.reset();
-          this.resetTouchedStates();
-        }),
-        catchError(error => {
-          console.error('Error completo en el registro:', error);
-          this.isLoading.set(false);
-          this.isSuccess.set(false);
+      return this.http.post<RegisterResponse>(`${this.API_URL}/register`, userData)
+        .pipe(
+          tap(response => {
+            console.log('Usuario registrado exitosamente:', response);
+            this.isSuccess.set(true);
+            this.isLoading.set(false);
+            this.userForm.reset();
+            this.resetTouchedStates();
+          }),
+          catchError(error => {
+            console.error('Error completo en el registro:', error);
+            this.isLoading.set(false);
+            this.isSuccess.set(false);
 
-          const isEmailExistsError = this.detectEmailExistsError(error);
-          if (isEmailExistsError) {
-            this.emailExistsError.set(true);
-            this.emailTouched.set(true);
-          } else {
-            const errorMessage = this.getErrorMessage(error);
-            this.errorMessage.set(errorMessage);
-          }
+            const isEmailExistsError = this.detectEmailExistsError(error);
+            if (isEmailExistsError) {
+              this.emailExistsError.set(true);
+              this.emailTouched.set(true);
+            } else {
+              const errorMessage = this.getErrorMessage(error);
+              this.errorMessage.set(errorMessage);
+            }
 
-          this.playShakeAnimation();
-          return throwError(() => error);
-        })
-      );
-  } else {
-    this.handleSubmit();
-    return throwError(() => new Error('Formulario inválido'));
-  }
-}
-
-
-
-
-// Método simplificado para detectar errores de email existente
-private detectEmailExistsError(error: any): boolean {
-  const errorText = this.extractErrorText(error.error);
-  const emailExistsMessages = [
-    'El usuario ya existe con este email',
-    'el usuario ya existe con este email',
-    'usuario ya existe',
-    'email ya existe'
-  ];
-
-  const isEmailError = emailExistsMessages.some(message =>
-    errorText.includes(message)
-  );
-
-
-  return isEmailError;
-}
-
-// Método mejorado para extraer texto
-private extractErrorText(errorObj: any): string {
-  if (!errorObj) return '';
-
-  // Si es string (HTML o texto plano)
-  if (typeof errorObj === 'string') {
-    return errorObj;
-  }
-
-  // Si es objeto, buscar en propiedades comunes
-  const possibleFields = ['error', 'message', 'detail', 'reason', 'description'];
-  for (const field of possibleFields) {
-    if (errorObj[field] && typeof errorObj[field] === 'string') {
-      return errorObj[field];
+            this.playShakeAnimation();
+            return throwError(() => error);
+          })
+        );
+    } else {
+      this.handleSubmit();
+      return throwError(() => new Error('Formulario inválido'));
     }
   }
 
-  return '';
-}
+  private detectEmailExistsError(error: any): boolean {
+    const errorText = this.extractErrorText(error.error);
+    const emailExistsMessages = [
+      'El usuario ya existe con este email',
+      'el usuario ya existe con este email',
+      'usuario ya existe',
+      'email ya existe'
+    ];
 
-// Método para obtener mensaje de error general
-private getErrorMessage(error: any): string {
-  // Buscar en diferentes propiedades comunes
-  const possibleMessages = [
-    error.error?.error,
-    error.error?.message,
-    error.error?.detail,
-    error.error?.reason,
-    error.message,
-    error.statusText
-  ];
+    const isEmailError = emailExistsMessages.some(message =>
+      errorText.includes(message)
+    );
 
-  const message = possibleMessages.find(msg => msg && typeof msg === 'string');
+    return isEmailError;
+  }
 
-  return message || 'Error de conexión con el servidor';
-}
+  private extractErrorText(errorObj: any): string {
+    if (!errorObj) return '';
+
+    if (typeof errorObj === 'string') {
+      return errorObj;
+    }
+
+    const possibleFields = ['error', 'message', 'detail', 'reason', 'description'];
+    for (const field of possibleFields) {
+      if (errorObj[field] && typeof errorObj[field] === 'string') {
+        return errorObj[field];
+      }
+    }
+
+    return '';
+  }
+
+  private getErrorMessage(error: any): string {
+    const possibleMessages = [
+      error.error?.error,
+      error.error?.message,
+      error.error?.detail,
+      error.error?.reason,
+      error.message,
+      error.statusText
+    ];
+
+    const message = possibleMessages.find(msg => msg && typeof msg === 'string');
+    return message || 'Error de conexión con el servidor';
+  }
 
   handleSubmit(): void {
-    // Marcar todos los campos como touched al enviar
     this.emailTouched.set(true);
     this.passwordTouched.set(true);
     this.nameTouched.set(true);
     this.apellidoTouched.set(true);
 
     if (this.userForm.valid) {
-
+      // Lógica de envío
     } else {
       console.log('Formulario inválido');
       this.playShakeAnimation();

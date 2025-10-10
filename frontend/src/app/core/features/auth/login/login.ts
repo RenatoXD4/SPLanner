@@ -24,7 +24,7 @@ export class Login {
     private authService: AuthService
   ) {
     this.loginService.setOnLoginSuccess(() => {
-        this.router.navigate(['/board']);
+        this.router.navigate(['/Menu']);
     });
   }
 

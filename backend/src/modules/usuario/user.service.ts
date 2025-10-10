@@ -42,6 +42,20 @@ export class UserService {
     }
   }
 
+  // Obtener estadísticas del dashboard
+  async getUserDashboardStats(userId: string) {
+  try {
+    if (!userId) {
+      throw new Error('ID de usuario es requerido');
+    }
+
+    return await this.userRepository.getUserDashboardStats(userId);
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+    throw new Error(`Error al obtener estadísticas del dashboard: ${errorMessage}`);
+  }
+}
+
   // Login
   async loginUser(credentials: {
     email: string;
@@ -80,7 +94,7 @@ export class UserService {
     return user;
   }
 
-  private generateRandomPassword(): string {
+   private generateRandomPassword(): string {
     return Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
   }
 }

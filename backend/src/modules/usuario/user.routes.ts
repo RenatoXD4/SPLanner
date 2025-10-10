@@ -15,4 +15,8 @@ routerUser.post("/login", userController.login.bind(userController));
 routerUser.get("/auth/google", userController.googleAuth.bind(userController));
 routerUser.get("/auth/google/callback", userController.googleCallback.bind(userController));
 
+
+//Dashboard
+
+routerUser.get("/:userId/dashboard", userController.getDashboardStats.bind(userController));
 export default routerUser;

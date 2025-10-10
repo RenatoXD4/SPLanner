@@ -14,6 +14,10 @@ export const routes: Routes = [
   path: '',
      loadChildren: () => import('./core/features/auth/auth.routes').then( m => m.AUTH_ROUTES),
   },
+  {
+    path: '',
+    loadChildren: () => import("./core/features/menu-principal/Menu.routes").then((m) => m.MENU_ROUTES),
+  },
 
 
 

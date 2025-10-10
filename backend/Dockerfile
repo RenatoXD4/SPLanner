@@ -35,7 +35,7 @@ COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/src/prisma ./src/prisma
 
 # Expone el puerto de tu aplicación Express (cámbialo si usas otro)
-EXPOSE 3000
+EXPOSE 9001
 
 # AJUSTE: Tu punto de entrada es index.ts, por lo que el comando usa dist/index.js
 CMD ["node", "dist/index.js"]

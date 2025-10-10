@@ -3,6 +3,8 @@ import { NextFunction, Request, Response } from "express";
 
 import { UserService } from "./user.service.js";
 
+const port = process.env.PORT ?? "9001";
+const frontendPort = "80";
 // Interfaces para Google OAuth
 interface GoogleTokens {
   access_token: string;
@@ -51,7 +53,7 @@ export class UserController {
 
   // Método de debug temporal - CORREGIDO
   public debugRedirectUri(req: Request, res: Response): void {
-    const redirectUri = "http://localhost:9001/api-v1/auth/google/callback";
+    const redirectUri = `http://localhost:${port}/api-v1/auth/google/callback`;
     res.json({
       encoded: encodeURIComponent(redirectUri),
       message: "Verifica que esta URI coincida EXACTAMENTE con Google Cloud Console",
@@ -177,7 +179,7 @@ public async getCurrentUser(
     res: Response
   ): void {
     const clientId = "886585953509-h00qukeb9m39eahdj9631dc2tl7g9jlu.apps.googleusercontent.com";
-    const redirectUri = "http://localhost:9001/api-v1/auth/google/callback";
+    const redirectUri = `http://localhost:${port}/api-v1/auth/google/callback`;
     const scope = "email profile";
     
     console.log(' URI de redirección que se está enviando a Google:');
@@ -211,7 +213,7 @@ public async getCurrentUser(
 
       const clientId = "886585953509-h00qukeb9m39eahdj9631dc2tl7g9jlu.apps.googleusercontent.com";
       const clientSecret = "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";
-      const redirectUri = "http://localhost:9001/api-v1/auth/google/callback";
+      const redirectUri = `http://localhost:${port}/api-v1/auth/google/callback`;
 
       // Intercambiar código por tokens de acceso
       const tokenParams = new URLSearchParams({
@@ -270,20 +272,8 @@ public async getCurrentUser(
       console.log('Usuario procesado:', user.email);
       console.log('Google callback exitoso, redirigiendo a frontend');
 
-      // Crear UserResponse para enviar al frontend
-      const userResponse: UserResponse = {
-        apellido: user.apellido,
-        createdAt: new Date().toISOString(), // Ya está como string
-        email: user.email,
-        id: user.id,
-        nombre: user.nombre
-      };
-
-      // Codificar usuario para URL
-      const encodedUser = encodeURIComponent(JSON.stringify(userResponse));
-      
-      // Redirigir al frontend de Angular con token y usuario
-      const frontendCallbackUrl = `http://localhost:4200/auth/google/callback?token=${tokens.access_token}&user=${encodedUser}`;
+      // Redirigir al frontend de Angular con el token
+      const frontendCallbackUrl = `http://localhost:${frontendPort}/auth/google/callback?token=${tokens.access_token}`;
       console.log('Redirigiendo al frontend:', frontendCallbackUrl);
       
       res.redirect(frontendCallbackUrl);
@@ -292,7 +282,7 @@ public async getCurrentUser(
       console.error(' Error en googleCallback:', error);
       
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido en autenticación con Google';
-      const frontendErrorUrl = `http://localhost:4200/auth/google/callback?error=${encodeURIComponent(errorMessage)}`;
+      const frontendErrorUrl = `http://localhost:${frontendPort}/auth/google/callback?error=${encodeURIComponent(errorMessage)}`;
       console.error('Redirigiendo con error:', frontendErrorUrl);
       
       res.redirect(frontendErrorUrl);

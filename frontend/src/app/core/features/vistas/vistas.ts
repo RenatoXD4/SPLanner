@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ViewContainerRef, TemplateRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule, HttpClient } from '@angular/common/http';
 import { Sidebar } from '../../shared/ui/sidebar/sidebar';
+
 interface Usuario {
   id: string;
   nombre: string;
@@ -23,28 +24,33 @@ interface ProyectoConUsuario extends Proyecto {
 @Component({
   selector: 'app-vistas',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule,Sidebar],
+  imports: [CommonModule, FormsModule, HttpClientModule, Sidebar],
   templateUrl: './vistas.html',
   styleUrls: ['./vistas.css']
 })
 export class Vistas implements OnInit {
 
-  // UI
+  // ------------------- UI -------------------
   mostrarSidebar = true;
-  mostrarModal = false;
-  mostrarAjustes = false;
-  modalEditar = false;
-  mostrarConfirmEliminar = false;
 
   filtroTexto = '';
-  mensajesExito: string[] = [];
 
-  // Datos
+  // ------------------- Datos -------------------
   proyectos: ProyectoConUsuario[] = [];
   proyectoAEliminar: ProyectoConUsuario | null = null;
   nuevoProyectoData: Proyecto = this.crearProyectoVacio();
 
   private apiUrl = 'http://localhost:9001/api-v1/projects';
+
+  // ------------------- Contenedores dinámicos -------------------
+  @ViewChild('modalContainer', { read: ViewContainerRef }) modalContainer!: ViewContainerRef;
+  @ViewChild('modalTemplate', { read: TemplateRef }) modalTemplate!: TemplateRef<any>;
+
+  @ViewChild('confirmContainer', { read: ViewContainerRef }) confirmContainer!: ViewContainerRef;
+  @ViewChild('confirmTemplate', { read: TemplateRef }) confirmTemplate!: TemplateRef<any>;
+
+  @ViewChild('mensajeContainer', { read: ViewContainerRef }) mensajeContainer!: ViewContainerRef;
+  @ViewChild('mensajeTemplate', { read: TemplateRef }) mensajeTemplate!: TemplateRef<any>;
 
   constructor(private http: HttpClient) {}
 
@@ -58,7 +64,7 @@ export class Vistas implements OnInit {
       next: res => {
         this.proyectos = res.map(p => this.normalizarProyecto(p));
       },
-      error: () => this.mostrarMensaje('Error al cargar proyectos', false)
+      error: () => this.mostrarMensaje('Error al cargar proyectos')
     });
   }
 
@@ -71,36 +77,36 @@ export class Vistas implements OnInit {
       creadoPorId: this.nuevoProyectoData.creadoPorId
     };
 
-    const peticion$ = this.modalEditar && this.nuevoProyectoData.id
+    const peticion$ = this.nuevoProyectoData.id
       ? this.http.patch<ProyectoConUsuario>(`${this.apiUrl}/${this.nuevoProyectoData.id}`, datos)
       : this.http.post<ProyectoConUsuario>(this.apiUrl, datos);
 
     peticion$.subscribe({
       next: res => {
         const proyecto = this.normalizarProyecto(res);
-        if (this.modalEditar) {
-          this.proyectos = this.proyectos.map(p => p.id === proyecto.id ? proyecto : p);
+        if (this.nuevoProyectoData.id) {
+          const index = this.proyectos.findIndex(p => p.id === proyecto.id);
+          if (index >= 0) this.proyectos[index] = proyecto;
           this.mostrarMensaje('Proyecto editado exitosamente');
         } else {
-          this.proyectos = [...this.proyectos, proyecto];
+          this.proyectos.push(proyecto);
           this.mostrarMensaje('Proyecto creado exitosamente');
         }
         this.cerrarModal();
       },
-      error: () => this.mostrarMensaje(this.modalEditar ? 'Error al editar proyecto' : 'Error al crear proyecto', false)
+      error: () => this.mostrarMensaje(this.nuevoProyectoData.id ? 'Error al editar proyecto' : 'Error al crear proyecto')
     });
   }
 
   editarProyecto(proyecto: ProyectoConUsuario): void {
-    this.modalEditar = true;
     this.nuevoProyectoData = { ...proyecto };
-    this.mostrarModal = true;
+    this.abrirModal();
   }
 
-  // ------------------- ELIMINAR -------------------
   confirmarEliminar(proyecto: ProyectoConUsuario): void {
     this.proyectoAEliminar = proyecto;
-    this.mostrarConfirmEliminar = true;
+    this.confirmContainer.clear();
+    this.confirmContainer.createEmbeddedView(this.confirmTemplate);
   }
 
   eliminarProyecto(): void {
@@ -112,21 +118,28 @@ export class Vistas implements OnInit {
         this.cancelarEliminar();
         this.mostrarMensaje('Proyecto eliminado exitosamente');
       },
-      error: () => this.mostrarMensaje('Error al eliminar proyecto', false)
+      error: () => this.mostrarMensaje('Error al eliminar proyecto')
     });
   }
 
   cancelarEliminar(): void {
-    this.mostrarConfirmEliminar = false;
     this.proyectoAEliminar = null;
+    this.confirmContainer.clear();
+  }
+
+  // ------------------- Modal -------------------
+  abrirModal(): void {
+    this.nuevoProyectoData = this.nuevoProyectoData.id ? this.nuevoProyectoData : this.crearProyectoVacio();
+    this.modalContainer.clear();
+    this.modalContainer.createEmbeddedView(this.modalTemplate);
   }
 
   cerrarModal(): void {
-    this.mostrarModal = false;
-    this.modalEditar = false;
     this.nuevoProyectoData = this.crearProyectoVacio();
+    this.modalContainer.clear();
   }
 
+  // ------------------- Helpers -------------------
   private crearProyectoVacio(): Proyecto {
     return { nombre: '', descripcion: '', creadoPorId: 'id-usuario-existente' };
   }
@@ -139,33 +152,17 @@ export class Vistas implements OnInit {
     };
   }
 
-  // ------------------- FILTROS -------------------
-  get proyectosFiltrados(): ProyectoConUsuario[] {
+  proyectosFiltrados(): ProyectoConUsuario[] {
     const texto = this.filtroTexto.trim().toLowerCase();
     return this.proyectos.filter(p => !texto || p.nombre.toLowerCase().includes(texto));
   }
 
-  // ------------------- UI -------------------
+  mostrarMensaje(msg: string): void {
+    const view = this.mensajeContainer.createEmbeddedView(this.mensajeTemplate, { $implicit: msg });
+    setTimeout(() => view.destroy(), 3000);
+  }
+
   toggleSidebar(): void {
     this.mostrarSidebar = !this.mostrarSidebar;
-    if (!this.mostrarSidebar) this.mostrarAjustes = false;
-  }
-
-  toggleAjustes(): void {
-    this.mostrarAjustes = !this.mostrarAjustes;
-  }
-
-  abrirModal(): void {
-    this.modalEditar = false;
-    this.nuevoProyectoData = this.crearProyectoVacio();
-    this.mostrarModal = true;
-  }
-
-  // ------------------- MENSAJES -------------------
-  mostrarMensaje(mensaje: string, exito: boolean = true): void {
-    this.mensajesExito.push(mensaje);
-    setTimeout(() => {
-      this.mensajesExito.shift();
-    }, 3000);
   }
 }

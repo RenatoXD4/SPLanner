@@ -272,11 +272,24 @@ public async getCurrentUser(
       console.log('Usuario procesado:', user.email);
       console.log('Google callback exitoso, redirigiendo a frontend');
 
-      // Redirigir al frontend de Angular con el token
-      const frontendCallbackUrl = `http://localhost:${frontendPort}/auth/google/callback?token=${tokens.access_token}`;
+// Crear UserResponse para enviar al frontend
+      const userResponse: UserResponse = {
+        apellido: user.apellido,
+        createdAt: new Date().toISOString(), // Ya está como string
+        email: user.email,
+        id: user.id,
+        nombre: user.nombre
+      };
+
+      // Codificar usuario para URL
+      const encodedUser = encodeURIComponent(JSON.stringify(userResponse));
+
+      // Redirigir al frontend de Angular con token y usuario
+      const frontendCallbackUrl = `http://localhost:${frontendPort}/auth/google/callback?token=${tokens.access_token}&user=${encodedUser}`;
       console.log('Redirigiendo al frontend:', frontendCallbackUrl);
-      
+
       res.redirect(frontendCallbackUrl);
+      
 
     } catch (error: unknown) {
       console.error(' Error en googleCallback:', error);

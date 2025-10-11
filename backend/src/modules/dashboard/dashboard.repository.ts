@@ -10,7 +10,7 @@ export class UserRepository {
     email: string;
     nombre: string;
     password: string;
-  }): Promise<Usuario> {
+  }): Promise<Omit<Usuario, "password">> {
     return await prisma.usuario.create({
       data: userData,
       select: {
@@ -24,7 +24,7 @@ export class UserRepository {
   }
 
   // Eliminar usuario
-  async deleteUser(id: string): Promise<Usuario> {
+  async deleteUser(id: string): Promise<Omit<Usuario, 'createdAt' | 'password'>> {
     return await prisma.usuario.delete({
       select: {
         apellido: true,
@@ -37,7 +37,7 @@ export class UserRepository {
   }
 
   // Obtener todos los usuarios
-  async getAllUsers(): Promise<Usuario[]> {
+  async getAllUsers(): Promise<Omit<Usuario, "password">[]> {
     return await prisma.usuario.findMany({
       select: {
         apellido: true,
@@ -58,7 +58,7 @@ export class UserRepository {
   }
 
   // Obtener usuario por ID
-  async getUserById(id: string): Promise<null | Usuario> {
+  async getUserById(id: string): Promise<null | Omit<Usuario, 'password'>>  {
     return await prisma.usuario.findUnique({
       select: {
         apellido: true,
@@ -231,7 +231,7 @@ export class UserRepository {
     email?: string;
     nombre?: string;
     password?: string;
-  }): Promise<Usuario> {
+  }): Promise<Omit<Usuario, 'password'>>{
     return await prisma.usuario.update({
       data: userData,
       select: {

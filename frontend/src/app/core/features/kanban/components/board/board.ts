@@ -62,7 +62,6 @@ interface Task {
   dueDate?: string;
 }
 
-// Agrega esto cerca del inicio, junto a tus otras interfaces
 
 interface RawTask {
   id: string;

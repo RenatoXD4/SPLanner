@@ -2,10 +2,8 @@ import cors from "cors";
 import { config } from "dotenv";
 import express, { NextFunction, Request, Response } from "express";
 
-// Carga las variables definidas en .env
 config();
 
-import { prisma } from "./src/lib/prisma.js";
 import routerKanbantask from "./src/modules/kanban/kanban.routes.js";
 import routerProject from "./src/modules/projects/projects.routes.js";
 import routerUser from "./src/modules/usuario/user.routes.js";
@@ -14,39 +12,49 @@ const app = express();
 const port = process.env.PORT ?? "9001";
 const api = "api-v1";
 
-app.use(express.json());
-// Lista de orígenes permitidos, puedes agregar más
-//const allowedOrigins = ["http://localhost:4200/" /, otros orígenes si necesitas/];
+//app.use(cors({ credentials: true, origin: true }));   DESCOMENTAR ESTO EN CASO DE FALLO DEL CORS (NO RECOMENDADO EN PRODUCCION)
 
+const allowedOrigins = ["http://localhost:4200/", "http://localhost/"];
+
+// Middleware de CORS (debe ir antes de las rutas)
+app.use(cors({
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.warn(`Origen no permitido por CORS: ${origin}`);
+      callback(new Error("No permitido por CORS"));
+    }
+  },
+}));
+
+// Middleware para parsear JSON
+app.use(express.json());
+
+// Logger básico
 app.use((req, res, next) => {
   console.log(`${req.method} ${req.originalUrl}`);
   next();
 });
 
+// Rutas
 app.use(`/${api}/kanban`, routerKanbantask);
 app.use(`/${api}/projects`, routerProject);
 //Ruta de login y google auth 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 app.use(`/${api}/usuarios`, routerUser);
+// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 app.use(`/${api}`, routerUser);
 
 
+// Ruta raíz
 app.get("/", (req: Request, res: Response) => {
   res.send("Hello World!");
 });
 
-// CORS manual simple
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', 'http://localhost');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
-  }
-  next();
-});
-
-// Middleware global de manejo de errores (agrega next para manejo correcto)
+// Middleware global de manejo de errores
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
   console.error("Error:", err);
@@ -59,17 +67,9 @@ app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
     error: errorMessage,
     message: "Error interno del servidor."
   });
-  // No necesitas llamar a next() si aquí terminas la respuesta
 });
 
-
-app.use(express.json());
-
-app.use((req, res, next) => {
-  console.log(`${req.method} ${req.originalUrl}`);
-  next();
-});
-
+// Inicia el servidor
 app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
+  console.log(`Servidor escuchando en puerto ${port}`);
 });

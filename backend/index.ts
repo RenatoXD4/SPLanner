@@ -1,13 +1,38 @@
-import { config } from 'dotenv';
-config();
-import express from "express"; 
+import cors from "cors";
+import { config } from "dotenv";
+import express, { NextFunction, Request, Response } from "express";
 
+// Carga las variables definidas en .env
+config();
+
+import { prisma } from "./src/lib/prisma.js";
+import routerKanbantask from "./src/modules/kanban/kanban.routes.js";
 import routerProject from "./src/modules/projects/projects.routes.js";
 import routerUser from "./src/modules/usuario/user.routes.js";
 
 const app = express();
 const port = process.env.PORT ?? "9001";
 const api = "api-v1";
+
+app.use(express.json());
+// Lista de orígenes permitidos, puedes agregar más
+//const allowedOrigins = ["http://localhost:4200/" /, otros orígenes si necesitas/];
+
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.originalUrl}`);
+  next();
+});
+
+app.use(`/${api}/kanban`, routerKanbantask);
+app.use(`/${api}/projects`, routerProject);
+//Ruta de login y google auth 
+app.use(`/${api}/usuarios`, routerUser);
+app.use(`/${api}`, routerUser);
+
+
+app.get("/", (req: Request, res: Response) => {
+  res.send("Hello World!");
+});
 
 // CORS manual simple
 app.use((req, res, next) => {
@@ -21,18 +46,29 @@ app.use((req, res, next) => {
   next();
 });
 
+// Middleware global de manejo de errores (agrega next para manejo correcto)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
+  console.error("Error:", err);
+  const errorMessage =
+    err instanceof Error ? err.message :
+    typeof err === "string" ? err :
+    "Error desconocido";
+
+  res.status(500).json({
+    error: errorMessage,
+    message: "Error interno del servidor."
+  });
+  // No necesitas llamar a next() si aquí terminas la respuesta
+});
+
+
 app.use(express.json());
 
 app.use((req, res, next) => {
   console.log(`${req.method} ${req.originalUrl}`);
   next();
 });
-
-app.use(`${api}/projects`, routerProject);
-
-//Ruta de login y google auth 
-app.use(`/${api}/usuarios`, routerUser);
-app.use(`/${api}`, routerUser);
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);

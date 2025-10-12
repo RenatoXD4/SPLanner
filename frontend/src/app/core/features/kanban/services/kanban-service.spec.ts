@@ -1,13 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 
-import { KanbanService } from './kanban-service';
+import { BoardService } from './kanban-service';
 
 describe('KanbanService', () => {
-  let service: KanbanService;
+  let service: BoardService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(KanbanService);
+    service = TestBed.inject(BoardService);
   });
 
   it('should be created', () => {

@@ -17,6 +17,7 @@ routerUser.get("/auth/google/callback", userController.googleCallback.bind(userC
 
 
 //Dashboard
-
 routerUser.get("/:userId/dashboard", userController.getDashboardStats.bind(userController));
+//Modificar dato
+routerUser.put('/users/:userId/profile', userController.updateProfile.bind(userController));
 export default routerUser;

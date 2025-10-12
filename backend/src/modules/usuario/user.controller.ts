@@ -1,10 +1,10 @@
-// src/modules/usuario/user.controller.ts
 import { NextFunction, Request, Response } from "express";
 
 import { UserService } from "./user.service.js";
 
 const port = process.env.PORT ?? "9001";
 const frontendPort = "80";
+
 // Interfaces para Google OAuth
 interface GoogleTokens {
   access_token: string;
@@ -37,6 +37,12 @@ interface RegisterRequestBody {
   password: string;
 }
 
+interface UpdateProfileRequestBody {
+  apellido?: string;
+  newPassword?: string;
+  nombre?: string;
+}
+
 // ÚNICA interfaz UserResponse consolidada
 interface UserResponse {
   apellido: string;
@@ -51,7 +57,7 @@ interface UserResponse {
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  // Método de debug temporal - CORREGIDO
+  // Método de debug temporal
   public debugRedirectUri(req: Request, res: Response): void {
     const redirectUri = `http://localhost:${port}/api-v1/auth/google/callback`;
     res.json({
@@ -62,81 +68,76 @@ export class UserController {
   }
 
   // Obtener información del usuario actual
-public async getCurrentUser(
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> {
-  try {
-    console.log('🔍 === getCurrentUser ENDPOINT LLAMADO ===');
-    
-    const authHeader = req.headers.authorization;
-    
-    if (!authHeader?.startsWith('Bearer ')) {
-      console.log('❌ No hay token de autorización');
-      res.status(401).json({ 
-        message: "Token de autenticación requerido",
-        success: false 
+  public async getCurrentUser(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const authHeader = req.headers.authorization;
+      
+      if (!authHeader?.startsWith('Bearer ')) {
+        res.status(401).json({ 
+          message: "Token de autenticación requerido",
+          success: false 
+        });
+        return;
+      }
+
+      const token = authHeader.split(' ')[1];
+
+      // Usar el token de Google para obtener información del usuario
+      const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
-      return;
-    }
 
-    const token = authHeader.split(' ')[1];
+      if (!userInfoResponse.ok) {
+        res.status(401).json({ 
+          message: "Token de Google inválido o expirado",
+          success: false 
+        });
+        return;
+      }
 
+      // TYPE CASTING para evitar errores de TypeScript
+      const googleUser = await userInfoResponse.json() as {
+        email: string;
+        family_name: string;
+        given_name: string;
+        id: string;
+        name?: string;
+        picture?: string;
+        verified_email?: boolean;
+      };
 
-    // Usar el token de Google para obtener información del usuario
-    const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+      console.log('Datos de Google recibidos:', googleUser.email);
 
-    if (!userInfoResponse.ok) {
-    
-      res.status(401).json({ 
-        message: "Token de Google inválido o expirado",
-        success: false 
+      // Crear userResponse con tipos seguros
+      const userResponse = {
+        apellido: googleUser.family_name || 'Google',
+        createdAt: new Date().toISOString(),
+        email: googleUser.email,
+        id: googleUser.id,
+        nombre: googleUser.given_name || 'Usuario'
+      };
+
+      console.log('Enviando respuesta con usuario:', userResponse);
+      
+      res.status(200).json({
+        message: "Usuario autenticado",
+        success: true,
+        user: userResponse
       });
-      return;
+      
+    } catch (error) {
+      console.error('Error en getCurrentUser:', error);
+      next(error);
     }
-
-    // TYPE CASTING para evitar errores de TypeScript
-    const googleUser = await userInfoResponse.json() as {
-      email: string;
-      family_name: string;
-      given_name: string;
-      id: string;
-      name?: string;
-      picture?: string;
-      verified_email?: boolean;
-    };
-
-    console.log('Datos de Google recibidos:', googleUser.email);
-
-    // Crear userResponse con tipos seguros
-    const userResponse = {
-      apellido: googleUser.family_name || 'Google',
-      createdAt: new Date().toISOString(),
-      email: googleUser.email,
-      id: googleUser.id,
-      nombre: googleUser.given_name || 'Usuario'
-    };
-
-    console.log('Enviando respuesta con usuario:', userResponse);
-    
-    res.status(200).json({
-      message: "Usuario autenticado",
-      success: true,
-      user: userResponse
-    });
-    
-  } catch (error) {
-    console.error('Error en getCurrentUser:', error);
-    next(error);
   }
-}
 
-  //Obtener estadísticas del dashboard
+  // Obtener estadísticas del dashboard
   public async getDashboardStats(
     req: Request,
     res: Response,
@@ -197,7 +198,7 @@ public async getCurrentUser(
     res.redirect(authUrl);
   }
 
-  // Callback de Google OAuth - 
+  // Callback de Google OAuth
   public async googleCallback(
     req: Request,
     res: Response
@@ -234,7 +235,6 @@ public async getCurrentUser(
         method: 'POST',
       });
 
-      // CORRECCIÓN: Convertir status a string
       if (!tokenResponse.ok) {
         const errorText = await tokenResponse.text();
         console.error('Error de Google OAuth:', errorText);
@@ -268,14 +268,10 @@ public async getCurrentUser(
         lastName: googleUser.family_name,
         picture: googleUser.picture
       });
-
-      console.log('Usuario procesado:', user.email);
-      console.log('Google callback exitoso, redirigiendo a frontend');
-
-// Crear UserResponse para enviar al frontend
+      // Crear UserResponse para enviar al frontend
       const userResponse: UserResponse = {
         apellido: user.apellido,
-        createdAt: new Date().toISOString(), // Ya está como string
+        createdAt: new Date().toISOString(),
         email: user.email,
         id: user.id,
         nombre: user.nombre
@@ -381,4 +377,60 @@ public async getCurrentUser(
       next(e);
     }
   }
+
+  // Actualizar perfil de usuario
+  public async updateProfile(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const { userId } = req.params;
+    const { apellido, newPassword, nombre } = req.body as UpdateProfileRequestBody;
+    if (!userId) {
+      res.status(400).json({ 
+        message: "ID de usuario es requerido",
+        success: false 
+      });
+      return;
+    }
+    // Validar que al menos un campo sea proporcionado
+    if (!nombre && !apellido && !newPassword) {
+      res.status(400).json({ 
+        message: "Al menos un campo debe ser proporcionado para actualizar",
+        success: false 
+      });
+      return;
+    }
+    const updatedUser = await this.userService.updateUserProfile(userId, {
+      apellido,
+      newPassword,
+      nombre
+    });
+    const userResponse: UserResponse = {
+      apellido: updatedUser.apellido,
+      email: updatedUser.email,
+      id: updatedUser.id,
+      nombre: updatedUser.nombre
+    };
+    res.status(200).json({
+      message: "Perfil actualizado exitosamente",
+      success: true,
+      user: userResponse
+    });
+  } catch (error) {
+    if (error instanceof Error) {
+      if (error.message.includes('contraseña actual') || 
+          error.message.includes('Usuario no encontrado')) {
+        res.status(400).json({ 
+          message: error.message,
+          success: false 
+        });
+        return;
+      }
+    }
+    console.error('Error en updateProfile:', error);
+    next(error);
+  }
+}
 }

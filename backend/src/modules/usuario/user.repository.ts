@@ -1,7 +1,7 @@
 // src/modules/usuario/user.repository.ts
 import { config } from 'dotenv';
 config();
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Usuario } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -27,8 +27,13 @@ export class UserRepository {
     });
   }
 
- // src/modules/usuario/user.repository.ts
-public async getUserDashboardStats(userId: string) {
+  public async getUserById(userId: string) {
+    return await prisma.usuario.findUnique({
+      where: { id: userId }
+    });
+  } // ← Aquí cerraste correctamente este método
+
+  public async getUserDashboardStats(userId: string) {
     const user = await prisma.usuario.findUnique({
       include: {
         miembroDe: {
@@ -68,7 +73,7 @@ public async getUserDashboardStats(userId: string) {
     });
 
     if (!user) {
-      throw new Error('Usuario no encontrado'); // Lanzamos error en lugar de retornar null
+      throw new Error('Usuario no encontrado');
     }
 
     // Combinar proyectos creados y proyectos donde es miembro
@@ -143,6 +148,19 @@ public async getUserDashboardStats(userId: string) {
       }
     };
   }
+
+ public async updateUser(userId: string, data: {
+  apellido?: string;
+  nombre?: string;
+  password?: string;
+}): Promise<Usuario> {
+  return await prisma.usuario.update({
+    data: {
+      ...data,
+    },
+    where: { id: userId }
+  });
+}
 
   public async verifyCredentials(email: string, password: string) {
     return await prisma.usuario.findFirst({

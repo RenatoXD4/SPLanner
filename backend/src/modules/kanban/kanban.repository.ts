@@ -45,9 +45,58 @@ type TipoDeBloque = 'CHECKLIST' | 'CODE' | 'HEADING_1' | 'HEADING_2' | 'IMAGE' |
 
 export class KanbanRepository {
 
+    // Crear etiquetas por defecto (prioridades)                                    // RELACIONADO CON ETIQUETAS
+    // Ahora necesita un proyectoId para asignar las etiquetas por defecto a un proyecto
+    public async createDefaultPriorities(proyectoId: string): Promise<void> {
+        const defaultPriorities = ["Alta", "Media", "Baja"];
+
+        for (const nombre of defaultPriorities) {
+            await prisma.etiqueta.upsert({      // upsert es basicamente insertar y actualizar, en caso de que ya exista lo actualiza, en caso de que no exista lo crea 
+                create: {
+                    nombre,
+                    proyectoId,
+                },
+                update: {},
+                where: {
+                    // La clave única ahora es compuesta: nombre + proyectoId       // esto se ve en la tabla etiquetas en el unique que es donde estan estas 2 relaciones
+                    nombre_proyectoId: {
+                        nombre,
+                        proyectoId,
+                    }
+                },
+            });
+        }
+    }
+
+    // Eliminar etiqueta por ID y proyecto, devolviendo la etiqueta eliminada
+    public async deleteEtiqueta(id: number, proyectoId: string): Promise<Etiqueta> {
+        const etiqueta = await prisma.etiqueta.findFirst({
+            where: { id, proyectoId },
+        });
+
+        if (!etiqueta) {
+            throw new Error("Etiqueta no encontrada o no pertenece al proyecto");
+        }
+
+        return prisma.etiqueta.delete({
+            where: { id },
+        });
+    }
+
     // Elimina tarea por id
     public async deleteTask(id: string): Promise<Tarea> {
         return prisma.tarea.delete({ where: { id } });
+    }
+
+    // Obtener todas las etiquetas ordenadas alfabéticamente
+    // Debe recibir proyectoId para filtrar etiquetas de ese proyecto
+    public async getAllEtiquetas(proyectoId: string): Promise<Etiqueta[]> {
+        if (!proyectoId.trim()) throw new Error("El proyectoId es obligatorio");
+
+        return prisma.etiqueta.findMany({
+            orderBy: { nombre: "asc" },
+            where: { proyectoId },
+        });
     }
 
     // Obtiene todas las tareas de un proyecto, con relaciones
@@ -65,9 +114,11 @@ export class KanbanRepository {
         });
     }
 
-
     // Obtener estados del proyecto con tareas
     public async getEstadosByProyectoId(proyectoId: string) {
+        if (!proyectoId.trim()) {
+            throw new Error("El ID del proyecto es requerido.");
+        }
         return prisma.estado.findMany({
             include: {
                 tareas: {
@@ -81,6 +132,17 @@ export class KanbanRepository {
             },
             orderBy: { posicion: 'asc' },
             where: { proyectoId }
+        });
+    }
+
+
+    // Obtener una etiqueta por ID    // Para evitar que un usuario acceda a etiquetas de otro proyecto, opcionalmente se puede recibir proyectoId y validar
+    public async getEtiquetaById(id: number, proyectoId?: string): Promise<Etiqueta | null> {
+        return prisma.etiqueta.findFirst({
+            where: {
+                id,
+                ...(proyectoId ? { proyectoId } : {}),
+            },
         });
     }
 
@@ -107,7 +169,6 @@ export class KanbanRepository {
             usuarioId: m.usuario.id
         }));
     }
-
 
     // Obtener miembros del proyecto asignados a 1 tarea
     public async getResponsablesDelProyecto(proyectoId: string): Promise<ResponsableConUsuario[]> {
@@ -153,6 +214,15 @@ export class KanbanRepository {
         });
     }
 
+    // Crear nueva etiqueta   // Recibir proyectoId y guardarlo
+    public async insertNuevaEtiqueta(nombre: string, proyectoId: string): Promise<Etiqueta> {
+        if (!nombre.trim()) throw new Error("El nombre de la etiqueta es obligatorio");
+        if (!proyectoId.trim()) throw new Error("El proyectoId es obligatorio");
+
+        return prisma.etiqueta.create({
+            data: { nombre, proyectoId },
+        });
+    }
 
     // Crear tarea, con posibilidad de asignar responsables, etiquetas y bloques
     public async insertNuevaTarea(data: {
@@ -204,7 +274,17 @@ export class KanbanRepository {
         });
     }
 
-    // En tu KanbanRepository (ej: kanbanRepository.ts)
+    // Actualizar etiqueta
+    public async updateEtiqueta(id: number, nombre: string, proyectoId: string): Promise<Etiqueta> {
+        if (!nombre.trim()) throw new Error("El nombre de la etiqueta es obligatorio");
+        if (!proyectoId.trim()) throw new Error("El proyectoId es obligatorio");
+
+        return prisma.etiqueta.update({
+            data: { nombre, proyectoId },
+            where: { id },
+        });
+    }
+
 
     public async updateTaskPartial(params: {
         data?: Partial<Tarea>;
@@ -298,7 +378,6 @@ export class KanbanRepository {
         });
     }
 
-
     // Actualización parcial solo en campos simples (sin relaciones)
     public async UpdateTaskv2(params: {
         data: Partial<Tarea>;
@@ -309,5 +388,6 @@ export class KanbanRepository {
             where: params.where,
         });
     }
+
 
 }

@@ -103,7 +103,7 @@ export class BoardService {
    */
   createTask(data: Partial<Task> & {
     responsablesIds?: string[];
-    etiquetaIds?: number[]; // corregido de etiquetasIds a etiquetaIds para coherencia con backend
+    etiquetaIds?: number[];
     bloquesContenido?: Partial<BloqueContenido>[];
   }): Observable<Task> {
     return this.http.post<Task>(`${this.apiUrl}/tasks`, data).pipe(
@@ -130,16 +130,6 @@ export class BoardService {
     );
   }
 
-  /**
-   * (Opcional) Reordenar varias tareas en una columna
-   * No implementado en backend aún, eliminar o comentar por ahora
-   */
-  // reordenarTareas(tareas: { id: string; posicion: number }[]): Observable<void> {
-  //   return this.http.post<void>(`${this.apiUrl}/tasks/reordenar`, { tareas }).pipe(
-  //     catchError(this.handleError)
-  //   );
-  // }
-
   // Miembros con tareas asignadas (responsables actuales)
   getMiembrosDelProyecto(proyectoId: string): Observable<Responsable[]> {
     return this.http.get<Responsable[]>(`${this.apiUrl}/proyectos/${proyectoId}/miembros`).pipe(
@@ -154,6 +144,53 @@ export class BoardService {
     );
   }
 
+  /**
+   * Obtener todas las etiquetas de un proyecto específico
+   */
+  getAllEtiquetas(proyectoId: string): Observable<Etiqueta[]> {
+    return this.http.get<Etiqueta[]>(`${this.apiUrl}/etiquetas?proyectoId=${proyectoId}`).pipe(
+      retry(2),
+      catchError(this.handleError)
+    );
+  }
 
+  /**
+   * Obtener etiqueta por ID (opcionalmente por proyectoId)
+   */
+  getEtiquetaById(id: number, proyectoId?: string): Observable<Etiqueta> {
+    // Construir params opcional para proyectoId
+    const params = proyectoId ? { proyectoId } : undefined;
+
+    return this.http.get<Etiqueta>(`${this.apiUrl}/etiquetas/${id}`, { params }).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Crear una etiqueta
+   */
+  createEtiqueta(nombre: string): Observable<Etiqueta> {
+    return this.http.post<Etiqueta>(`${this.apiUrl}/etiquetas`, { nombre }).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Actualizar etiqueta (por ID)
+   */
+  updateEtiqueta(id: number, nombre: string): Observable<Etiqueta> {
+    return this.http.put<Etiqueta>(`${this.apiUrl}/etiquetas/${id}`, { nombre }).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Eliminar etiqueta (por ID)
+   */
+  deleteEtiqueta(id: number): Observable<Etiqueta> {
+    return this.http.delete<Etiqueta>(`${this.apiUrl}/etiquetas/${id}`).pipe(
+      catchError(this.handleError)
+    );
+  }
 
 }

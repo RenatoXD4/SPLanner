@@ -20,7 +20,7 @@ const allowedOrigins = ["http://localhost:4200" /*, otros orígenes si necesitas
 
 app.use(cors({
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   origin: function (origin, callback) {
 
     if (!origin) { callback(null, true); return; }

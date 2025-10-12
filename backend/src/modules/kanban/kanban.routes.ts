@@ -48,6 +48,21 @@ routerKanbantask.get('/proyectos/:proyectoId/miembros', controladorDeF.requestGe
 // Obtener equipo completo del proyecto (todos los miembros)
 routerKanbantask.get('/proyectos/:proyectoId/equipo', controladorDeF.requestGetEquipoProyecto.bind(controladorDeF));
 
+// Crear etiqueta
+routerKanbantask.post('/etiquetas', controladorDeF.requestCreateEtiqueta.bind(controladorDeF));
+
+// Obtener TODAS las etiquetas
+routerKanbantask.get('/etiquetas', controladorDeF.requestGetAllEtiquetas.bind(controladorDeF)); //http://localhost:9001/api-v1/kanban/etiquetas/1
+
+// Obtener una etiqueta por ID
+routerKanbantask.get('/etiquetas/:id', controladorDeF.requestGetEtiquetaById.bind(controladorDeF)); //http://localhost:9001/api-v1/kanban/etiquetas/1?proyectoId=1fc2cb1f-7580-47dd-b28e-49f139dbfb44
+
+// Actualizar etiqueta (por ID)
+routerKanbantask.put('/etiquetas/:id', controladorDeF.requestUpdateEtiqueta.bind(controladorDeF));
+
+// Eliminar etiqueta (por ID)
+routerKanbantask.delete('/etiquetas/:id', controladorDeF.requestDeleteEtiqueta.bind(controladorDeF));
+
 
 
 // para usar postman>> http://localhost:9001/api-v1/kanban/tasks/2c1a2523-c447-4b65-a595-17324cad1532       --> debe de ser un Id de proyecto valido   http://localhost:9001/api-v1/kanban/tasks/idproyectoaqui

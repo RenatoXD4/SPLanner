@@ -4,7 +4,6 @@
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
-
 /////////////////////////////// CONFIG DATABASE
 generator client {
   provider = "prisma-client-js"
@@ -14,13 +13,13 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  schemas = ["public"]
+  schemas  = ["public"]
 }
 
 ////////////////////////////// TABLAS
 
 model Usuario {
-  id        String @id @default(uuid()) //ID Aleatorio, para mayor seguridad.
+  id        String   @id @default(uuid()) //ID Aleatorio, para mayor seguridad.
   nombre    String
   apellido  String
   email     String   @unique
@@ -29,7 +28,7 @@ model Usuario {
 
   // Relaciones: Un usuario puede...
   // ...crear muchos proyectos.
-  proyectosCreados Proyectos[] @relation("ProyectosCreados")
+  proyectosCreados Proyectos[]    @relation("ProyectosCreados")
   // ...ser miembro en diferentes proyectos (a través de la tabla Miembro).
   miembroDe        Miembro[]
   // ...ser responsable de varias tareas (a través de la tabla Responsable).
@@ -57,27 +56,30 @@ model Proyectos {
   // ...muchos miembros.
   miembros Miembro[]
   // ...varios estados o columnas en el tablero (To Do, Doing, Done).
-  estados  Estado[]       /// ID de 
+  estados  Estado[] /// ID de 
   // ...muchas tareas.
   tareas   Tarea[]
+
+  etiquetas Etiqueta[] // Cada etiqueta pertenece a un unico proyecto / Cada proyecto puede tener muchas etiquetas
+
   @@schema("public")
 }
 
 // Modelo para las tareas dentro de un proyecto.
 model Tarea {
-  id              String       @id @default(uuid())
-  titulo          String?    @db.VarChar(255)
-  fechaLimite     DateTime? @db.Date
+  id          String    @id @default(uuid())
+  titulo      String?   @db.VarChar(255)
+  fechaLimite DateTime? @db.Date
   // Posición de la tarea dentro de una columna/estado.
-  posicion        Int       @default(0)
-  createdAt       DateTime  @default(now())
+  posicion    Int       @default(0)
+  createdAt   DateTime  @default(now())
 
   // Relación con el proyecto al que pertenece.
-  proyecto    Proyectos @relation(fields: [proyectoId], references: [id], onDelete: Cascade)
-  proyectoId  String
+  proyecto   Proyectos @relation(fields: [proyectoId], references: [id], onDelete: Cascade)
+  proyectoId String
   // Relación con el estado actual de la tarea.
-  estado      Estado @relation(fields: [estadoId], references: [id], onDelete: Restrict)
-  estadoId    Int
+  estado     Estado    @relation(fields: [estadoId], references: [id], onDelete: Restrict)
+  estadoId   Int
 
   // Relaciones: Una tarea puede tener...
   // ...varios usuarios responsables.
@@ -90,28 +92,28 @@ model Tarea {
   etiquetas      TareasEtiquetas[]
 
   BloqueContenido BloqueContenido[]
+
   @@schema("public")
 }
 
 /////// BLOQUE MANIPULA EL ORDEN DE COMPONENTES DENTRO DE UNA TAREA > ej: un titulo no especificamente debe de aparecer de los primeros, se podria mover al final de la desc de la tarea
 model BloqueContenido {
-  id        String   @id @default(uuid())
+  id      String @id @default(uuid())
   // A qué tarea pertenece este bloque
-  tarea     Tarea    @relation(fields: [tareaId], references: [id], onDelete: Cascade)
-  tareaId   String
+  tarea   Tarea  @relation(fields: [tareaId], references: [id], onDelete: Cascade)
+  tareaId String
 
   // El tipo de bloque que es
   // Ej: "heading1", "paragraph", "checklist", "code", "image"
   tipo      TipoDeBloque
   // El contenido real del bloque (texto, URL de la imagen, etc.)
-  contenido String   @db.Text
+  contenido String       @db.Text
   // Para mantener el orden de los bloques dentro de la tarea
   posicion  Int
 
   @@index([tareaId, posicion]) // Indexar por tarea y posición para una carga rápida
   @@schema("public")
 }
-
 
 // Define los únicos valores permitidos para el tipo de bloque
 enum TipoDeBloque {
@@ -121,8 +123,10 @@ enum TipoDeBloque {
   CHECKLIST
   IMAGE
   CODE
+
   @@schema("public")
 }
+
 // --- MODELOS DE RELACIÓN Y SOPORTE ---
 
 // Roles que un usuario puede tener en un proyecto (ej: Admin, Miembro).
@@ -132,6 +136,7 @@ model Roles {
 
   // Relación: Un rol puede ser asignado a muchos miembros.
   miembros Miembro[]
+
   @@schema("public")
 }
 
@@ -141,11 +146,11 @@ model Miembro {
   id Int @id @default(autoincrement())
 
   // Relaciones explícitas.
-  usuario    Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)     
-  usuarioId  String                                                                             
-  proyecto   Proyectos @relation(fields: [proyectoId], references: [id], onDelete: Cascade)     
+  usuario    Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  usuarioId  String
+  proyecto   Proyectos @relation(fields: [proyectoId], references: [id], onDelete: Cascade)
   proyectoId String
-  rol        Roles @relation(fields: [rolId], references: [id], onDelete: Restrict)
+  rol        Roles     @relation(fields: [rolId], references: [id], onDelete: Restrict)
   rolId      Int
 
   // Un usuario solo puede ser miembro de un proyecto una vez.
@@ -155,10 +160,10 @@ model Miembro {
 
 // Define los estados o columnas del tablero Kanban para un proyecto.
 model Estado {
-  id        Int    @id @default(autoincrement())
-  nombre    String @db.VarChar(50)
+  id       Int    @id @default(autoincrement())
+  nombre   String @db.VarChar(50)
   // Posición de la columna en el tablero.
-  posicion  Int       /// POSICIÓN EN EL ARRAY
+  posicion Int /// POSICIÓN EN EL ARRAY
 
   // Relación con el proyecto al que pertenece el estado.
   proyecto   Proyectos @relation(fields: [proyectoId], references: [id], onDelete: Cascade)
@@ -166,6 +171,7 @@ model Estado {
 
   // Relación: Un estado puede contener muchas tareas.
   tareas Tarea[]
+
   @@schema("public")
 }
 
@@ -196,6 +202,7 @@ model Comentario {
   // Relación con el autor del comentario.
   autor     Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
   usuarioId String
+
   @@schema("public")
 }
 
@@ -214,29 +221,36 @@ model Notificacion {
   // Relación opcional con una tarea.
   tarea     Tarea?  @relation(fields: [tareaId], references: [id], onDelete: Cascade)
   tareaId   String?
+
   @@schema("public")
 }
 
 // Modelo para las etiquetas que se pueden asignar a las tareas.              --> Lista de etiquetas
 model Etiqueta {
   id     Int    @id @default(autoincrement())
-  nombre String @unique @db.VarChar(50)
+  nombre String @db.VarChar(50)
 
-  // Relación: Una etiqueta puede estar en muchas tareas.
+  // Nueva relación directa con el proyecto al que pertenece la etiqueta
+  proyecto   Proyectos @relation(fields: [proyectoId], references: [id], onDelete: Cascade)
+  proyectoId String
+
+  // Relación con tareas a través de la tabla pivote // Relación: Una etiqueta puede estar en muchas tareas.
   tareas TareasEtiquetas[]
+
+  // Regla: un mismo nombre puede repetirse en distintos proyectos,
+  // pero debe ser único dentro de un mismo proyecto
+  @@unique([nombre, proyectoId])
   @@schema("public")
 }
 
 // Tabla pivote para la relación muchos-a-muchos entre Tarea y Etiqueta.      --> Asignación de etiquetas dentro de una tarea
 model TareasEtiquetas {
-  
   // Relaciones explícitas que forman la clave primaria compuesta.
-  tarea     Tarea    @relation(fields: [tareaId], references: [id], onDelete: Cascade)
-  tareaId   String
-  etiqueta  Etiqueta @relation(fields: [etiquetaId], references: [id], onDelete: Cascade)
+  tarea      Tarea    @relation(fields: [tareaId], references: [id], onDelete: Cascade)
+  tareaId    String
+  etiqueta   Etiqueta @relation(fields: [etiquetaId], references: [id], onDelete: Cascade)
   etiquetaId Int
 
   @@id([tareaId, etiquetaId])
   @@schema("public")
-
 }

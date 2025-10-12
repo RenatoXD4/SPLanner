@@ -1,4 +1,4 @@
-import type { Tarea } from "@prisma/client";
+import type { Etiqueta, Tarea } from "@prisma/client";
 
 import { KanbanRepository, ResponsableConUsuario, TareaConRelaciones } from "./kanban.repository.js";
 
@@ -28,15 +28,48 @@ export class KanbanService {
     this.kanbanrepo = new KanbanRepository();
   }
 
-  // Crear tarea -> retorna tarea con relaciones completas
+  // Crear etiquetas por defecto (prioridades)
+  public async createDefaultPriorities(proyectoId: string): Promise<void> {
+    await this.kanbanrepo.createDefaultPriorities(proyectoId);
+  }
+
+  // Crear nueva etiqueta
+  public async createEtiqueta(nombre: string, proyectoId: string): Promise<Etiqueta> {
+    if (!nombre.trim()) throw new Error("El nombre de la etiqueta es obligatorio");
+    if (!proyectoId.trim()) throw new Error("El ID del proyecto es obligatorio");
+
+    return this.kanbanrepo.insertNuevaEtiqueta(nombre, proyectoId);
+  }
+  // Crear tarea -> retorna tarea con relaciones completas    // Obtener tareas por proyecto -> con relaciones
   public async createTask(data: CreateTareaInput): Promise<TareaConRelaciones> {
-    const { estadoId, proyectoId, titulo } = data;
+    const { estadoId, fechaLimite, proyectoId, titulo } = data;
 
     if (!titulo.trim()) throw new Error("El título de la tarea es obligatorio.");
     if (!proyectoId.trim()) throw new Error("El ID del proyecto es obligatorio.");
     if (!estadoId) throw new Error("El ID del estado es obligatorio.");
 
-    return this.kanbanrepo.insertNuevaTarea(data);
+    // Si fechaLimite viene como string, convertir a Date
+    let fechaLimiteDate: Date | undefined = undefined;
+    if (fechaLimite) {
+      if (typeof fechaLimite === 'string') {
+        fechaLimiteDate = new Date(fechaLimite);
+      } else {
+        fechaLimiteDate = fechaLimite;
+      }
+    }
+
+    return this.kanbanrepo.insertNuevaTarea({
+      ...data,
+      fechaLimite: fechaLimiteDate,
+    });
+  }
+
+  // Eliminar etiqueta
+  public async deleteEtiqueta(id: number, proyectoId: string): Promise<Etiqueta> {
+    if (!id) throw new Error("El ID de la etiqueta es requerido");
+    if (!proyectoId.trim()) throw new Error("El ID del proyecto es obligatorio");
+
+    return this.kanbanrepo.deleteEtiqueta(id, proyectoId);
   }
 
   // Eliminar tarea (solo devuelve tarea base)
@@ -44,7 +77,13 @@ export class KanbanService {
     return this.kanbanrepo.deleteTask(id);
   }
 
-  // Obtener tareas por proyecto -> con relaciones
+  // Obtener todas las etiquetas
+  public async getAllEtiquetas(proyectoId: string): Promise<Etiqueta[]> {
+    if (!proyectoId.trim()) throw new Error("El ID del proyecto es obligatorio");
+
+    return this.kanbanrepo.getAllEtiquetas(proyectoId);
+  }
+
 
   public async getAlltasks(idproyecto: string): Promise<TareaConRelaciones[]> {
     if (!idproyecto.trim()) {
@@ -54,6 +93,20 @@ export class KanbanService {
     return this.kanbanrepo.getAllTask(idproyecto);
   }
 
+  // Obtener etiqueta por ID
+  public async getEtiquetaById(params: { id: number; proyectoId?: string }): Promise<Etiqueta> {
+    const { id, proyectoId } = params;
+
+    if (!id) throw new Error("El ID de la etiqueta es requerido");
+
+    // Aquí pasamos ambos parámetros al repo, ajusta según el repo
+    const etiqueta = await this.kanbanrepo.getEtiquetaById(id, proyectoId);
+
+    if (!etiqueta) throw new Error("Etiqueta no encontrada");
+
+    return etiqueta;
+  }
+
   // Obtener responsables asignados a tareas
   public async getMiembrosDelProyecto(proyectoId: string): Promise<ResponsableConUsuario[]> {
     if (!proyectoId.trim()) {
@@ -61,6 +114,7 @@ export class KanbanService {
     }
     return this.kanbanrepo.getResponsablesDelProyecto(proyectoId); // <---- CORRECTO
   }
+
 
   // Obtener una tarea por ID -> con relaciones
   public async getTaskById(id: string): Promise<TareaConRelaciones> {
@@ -79,9 +133,14 @@ export class KanbanService {
 
   // Obtener estados por proyecto (puede incluir tareas con relaciones, se deja igual)
   public async obtenerEstados(proyectoId: string) {
+
+    // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
+    if (!proyectoId || !proyectoId.trim()) {
+      throw new Error("El ID del proyecto es requerido.");
+    }
+
     return this.kanbanrepo.getEstadosByProyectoId(proyectoId);
   }
-
 
   //miembros a 1 tarea
   public async obtenerMiembrosProyecto(proyectoId: string): Promise<ResponsableConUsuario[]> {
@@ -90,6 +149,16 @@ export class KanbanService {
     }
     return this.kanbanrepo.getMiembrosProyecto(proyectoId); // <---- CORRECTO
   }
+
+  // Actualizar etiqueta
+  public async updateEtiqueta(id: number, nombre: string, proyectoId: string): Promise<Etiqueta> {
+    if (!id) throw new Error("El ID de la etiqueta es requerido");
+    if (!nombre.trim()) throw new Error("El nombre de la etiqueta es obligatorio");
+    if (!proyectoId.trim()) throw new Error("El ID del proyecto es obligatorio");
+
+    return this.kanbanrepo.updateEtiqueta(id, nombre, proyectoId);
+  }
+
 
   // Actualización con relaciones (responsables, etiquetas, etc.)
   public async updateTaskConRelaciones(params: {
@@ -122,7 +191,17 @@ export class KanbanService {
       where: { id },
     });
   }
+
+
 }
 
 const kanbanSer = new KanbanService();
 export { kanbanSer };
+
+
+
+
+
+
+
+

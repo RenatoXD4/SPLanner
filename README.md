@@ -37,3 +37,7 @@ Proyecto Kanban
   --> git branch -d feature/nombre
 
 
+# Cambios en BD
+
+  ej> npx prisma migrate dev --name relacion-etiquetas-proyecto                 --> esto crea todo normal si es que no tiene ningun dato la tabla
+  ej> npx prisma migrate dev --name relacion-etiquetas-proyecto --create-only   --> esto es para crear el nuevo dato/relacion pero lo creara como opcional, luego tendras que aplicarlo de forma manual en la bd a cada dato el nuevo dato. Luego de eso podras ejecutar lo siguiente para normalizar todo --> npx prisma migrate dev

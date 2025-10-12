@@ -1,37 +1,42 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-import express, { Request, Response, NextFunction } from "express";
-import cors from "cors"; // <-- IMPORTAR CORS
+import cors from "cors";
+import express, { Request, Response } from "express";
+
 import routerProject from "./src/modules/projects/projects.routes.js";
 
 const app = express();
 const port = process.env.PORT ?? 9001;
 const api = "api-v1";
 
-// ======================= CORS =======================
-// Permitir solicitudes desde tu frontend Angular
-app.use(cors({
-  origin: 'http://localhost:4200',       // Frontend permitido
-  methods: ['GET', 'POST', 'PATCH', 'DELETE'], // Métodos permitidos
-  allowedHeaders: ['Content-Type', 'Authorization'] // Headers permitidos
-}));
+// Configuración de CORS
+app.use(
+  cors({
+    allowedHeaders: ["Content-Type", "Authorization"],
+    methods: ["GET", "POST", "PATCH", "DELETE"],
+    origin: "http://localhost:4200",
+  })
+);
 
 // Middleware para parsear JSON
 app.use(express.json());
 
-// Rutas
+// Rutas del proyecto
 app.use(`/${api}/projects`, routerProject);
 
-// Ruta principal
+// Ruta raíz
 app.get("/", (req: Request, res: Response) => {
   res.send("Hello World!");
 });
 
 // Middleware de manejo de errores
-app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+app.use((err: Error & { status?: number }, _req: Request, res: Response) => {
   console.error(err);
-  res.status(err.status || 500).json({ message: err.message || "Error interno del servidor" });
+
+  res.status(err.status ?? 500).json({
+    message: err.message, // ya no usamos ?? porque siempre existe
+  });
 });
 
 // Levantar servidor

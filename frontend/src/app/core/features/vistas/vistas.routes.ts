@@ -1,8 +1,8 @@
-import { Routes } from "@angular/router";
+import { Routes } from '@angular/router';
 
-export const vistas_routes: Routes = [
+export const VISTAS_ROUTE: Routes = [
   {
-    path: 'proyectos',
-    loadComponent: () => import('./vistas').then(m => m.Vistas)
+    path: '',
+    loadComponent: () => import('./vistas').then(m => m.Vistas),
   }
 ];

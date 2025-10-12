@@ -12,7 +12,8 @@ export const APP_ROUTES: Routes = [
   },
   {
     path: 'proyectos',
-    loadComponent: () => import('./core/features/vistas/vistas').then(m => m.Vistas),
+    loadChildren: () => import('./core/features/vistas/vistas.routes').then(m => m.VISTAS_ROUTE),
   },
   // Puedes agregar rutas adicionales aquí
 ];
+//ruta

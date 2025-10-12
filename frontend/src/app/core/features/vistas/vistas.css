@@ -1,25 +1,27 @@
 /* ================= MODALES BURBUJA ================= */
 .modal-burbuja {
-  transform: scale(0.5);
+  transform: scale(0.6);
   opacity: 0;
-  animation: burbujaIn 0.4s cubic-bezier(0.25, 1.5, 0.5, 1) forwards;
+  animation: burbujaIn 0.35s cubic-bezier(0.25, 1.5, 0.5, 1) forwards;
   background: linear-gradient(135deg, #1f2937, #111827);
-  border-radius: 1.5rem;
-  padding: 1.5rem;
-  width: 28rem;
-  max-width: 90%;
+  border-radius: 2rem;
+  padding: 2rem;
+  width: 30rem;
+  max-width: 95%;
   z-index: 50;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+  box-shadow: 0 15px 40px rgba(0,0,0,0.7);
   color: #f9fafb;
   font-family: 'Inter', sans-serif;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.05);
 }
 
 /* Fondo del modal */
 .backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.4);
-  backdrop-filter: blur(5px);
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(6px);
   z-index: 40;
   transition: opacity 0.3s ease;
 }
@@ -42,7 +44,7 @@
 /* Animación de entrada de modal */
 @keyframes burbujaIn {
   0% {
-    transform: scale(0.5) translateY(30px);
+    transform: scale(0.6) translateY(40px);
     opacity: 0;
   }
   100% {
@@ -64,27 +66,28 @@
 }
 
 .mensaje-burbuja {
-  background: linear-gradient(to right, #10b981, #3b82f6);
+  background: linear-gradient(135deg, #10b981, #3b82f6);
   color: white;
-  padding: 0.75rem 1.5rem;
+  padding: 0.75rem 1.75rem;
   border-radius: 9999px;
   font-weight: 600;
   font-size: 0.875rem;
-  min-width: 8rem;
-  max-width: 20rem;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.3);
-  animation: flotar 0.5s ease forwards, desaparecer 3s ease forwards;
+  min-width: 10rem;
+  max-width: 22rem;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.35);
+  animation: flotar 0.4s ease forwards, desaparecer 3s ease forwards;
   pointer-events: auto;
+  text-align: center;
 }
 
 /* Animación de aparición flotante */
 @keyframes flotar {
   0% {
-    transform: translateY(-20px);
+    transform: translateY(-25px) scale(0.95);
     opacity: 0;
   }
   100% {
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
     opacity: 1;
   }
 }
@@ -92,5 +95,15 @@
 /* Animación de desaparición */
 @keyframes desaparecer {
   0%, 70% { opacity: 1; }
-  100% { opacity: 0; transform: translateY(-20px); }
+  100% { opacity: 0; transform: translateY(-25px) scale(0.95); }
+}
+
+/* ================= BOTONES EN MODALES ================= */
+.modal-burbuja button {
+  transition: all 0.25s ease;
+}
+
+.modal-burbuja button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 15px rgba(0,0,0,0.3);
 }

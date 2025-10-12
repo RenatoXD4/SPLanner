@@ -28,12 +28,12 @@ export class Login {
     });
   }
 
-  // Método para login con Google
+  //Método para login con Google
   loginWithGoogle(): void {
     this.authService.loginWithGoogle();
   }
 
-  // ... el resto de tus métodos existentes se mantienen igual
+  //el resto de tus métodos existentes se mantienen igual
   onLogin(): void {
     console.log("Click en login");
     this.loginService.handleSubmit();

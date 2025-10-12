@@ -1,0 +1,10 @@
+# Dependencias y artefactos de compilación
+node_modules
+dist
+
+# Archivos de entorno local (estos se deben inyectar, no copiar)
+.env
+
+# Logs y archivos del sistema operativo
+npm-debug.log
+.DS_Store

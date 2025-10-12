@@ -3,6 +3,8 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { FormButton } from '../../../shared/ui/buttons/form-button/form-button';
 import { LoginService } from '../services/login-service';
+import { Router } from '@angular/router';
+import { AuthService } from '../../../services/auth-service';
 
 @Component({
   selector: 'app-login',
@@ -11,17 +13,32 @@ import { LoginService } from '../services/login-service';
   styleUrl: './login.css'
 })
 export class Login {
+  showPassword: boolean = false;
+  showSuccessPopup: boolean = false;
+  isRedirecting: boolean = false;
 
-  // Inyectar el servicio
-  constructor(public loginService: LoginService) {}
 
-  // Método para manejar el login
+  constructor(
+    public loginService: LoginService,
+    private router: Router,
+    private authService: AuthService
+  ) {
+    this.loginService.setOnLoginSuccess(() => {
+        this.router.navigate(['/Menu']);
+    });
+  }
+
+  //Método para login con Google
+  loginWithGoogle(): void {
+    this.authService.loginWithGoogle();
+  }
+
+  //el resto de tus métodos existentes se mantienen igual
   onLogin(): void {
     console.log("Click en login");
     this.loginService.handleSubmit();
   }
 
-  // Métodos de conveniencia para acceder a los métodos del servicio
   get userForm() {
     return this.loginService.userForm;
   }
@@ -44,5 +61,17 @@ export class Login {
 
   handleSubmit(): void {
     this.loginService.handleSubmit();
+  }
+
+  isLoading(): boolean {
+    return this.loginService.isLoading();
+  }
+
+  getErrorMessage(): string {
+    return this.loginService.errorMessage();
+  }
+
+  togglePasswordVisibility() {
+    this.showPassword = !this.showPassword;
   }
 }

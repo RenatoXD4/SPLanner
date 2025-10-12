@@ -8,47 +8,15 @@ config();
 import { prisma } from "./src/lib/prisma.js";
 import routerKanbantask from "./src/modules/kanban/kanban.routes.js";
 import routerProject from "./src/modules/projects/projects.routes.js";
+import routerUser from "./src/modules/usuario/user.routes.js";
 
 const app = express();
 const port = process.env.PORT ?? "9001";
 const api = "api-v1";
 
-// Lista de orígenes permitidos, puedes agregar más
-const allowedOrigins = ["http://localhost:4200" /*, otros orígenes si necesitas */];
-
-// Configuración dinámica de CORS para múltiples orígenes
-
-app.use(cors({
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  origin: function (origin, callback) {
-
-    if (!origin) { callback(null, true); return; }
-
-    if (allowedOrigins.includes(origin)) {
-
-      callback(null, true);
-    } else {
-
-      console.warn(`CORS - Origen no permitido: ${origin}`);
-
-      callback(null, false);
-    }
-  },
-}));
-
-// Obtener todas las tareas
-app.get('/api-v1/kanban', async (req, res) => {
-  try {
-    const tareas = await prisma.tarea.findMany();
-    res.status(200).json(tareas);
-  } catch (error) {
-    console.error('Error al obtener tareas:', error);
-    res.status(500).json({ error: 'Error interno al obtener tareas' });
-  }
-});
-
 app.use(express.json());
+// Lista de orígenes permitidos, puedes agregar más
+//const allowedOrigins = ["http://localhost:4200/" /, otros orígenes si necesitas/];
 
 app.use((req, res, next) => {
   console.log(`${req.method} ${req.originalUrl}`);
@@ -57,9 +25,25 @@ app.use((req, res, next) => {
 
 app.use(`/${api}/kanban`, routerKanbantask);
 app.use(`/${api}/projects`, routerProject);
+//Ruta de login y google auth 
+app.use(`/${api}/usuarios`, routerUser);
+app.use(`/${api}`, routerUser);
+
 
 app.get("/", (req: Request, res: Response) => {
   res.send("Hello World!");
+});
+
+// CORS manual simple
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', 'http://localhost');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
 });
 
 // Middleware global de manejo de errores (agrega next para manejo correcto)
@@ -79,7 +63,13 @@ app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
 });
 
 
+app.use(express.json());
+
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.originalUrl}`);
+  next();
+});
 
 app.listen(port, () => {
-  console.log(`Servidor escuchando en http://localhost:${port}/${api}`);
+  console.log(`Example app listening on port ${port}`);
 });

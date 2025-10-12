@@ -1,8 +1,6 @@
 <aside
   class="hidden md:block bg-gradient-to-b from-gray-900 via-gray-800 to-gray-950 text-white p-6 shadow-2xl z-40 transition-all duration-300 h-screen fixed md:static top-0 left-0"
-  [class.w-64]="sidebarDesktopOpen"
-  [class.w-24]="!sidebarDesktopOpen"
->
+  [class.w-64]="sidebarDesktopOpen" [class.w-24]="!sidebarDesktopOpen">
   <div class="flex flex-col h-full justify-between">
     <!-- HEADER -->
     <div>
@@ -11,8 +9,7 @@
           @if (sidebarDesktopOpen) {
           <div class="flex items-center gap-3">
             <div
-              class="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center font-bold text-white text-lg min-w-10"
-            >
+              class="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center font-bold text-white text-lg min-w-10">
               SP
             </div>
             <h1 class="text-xl font-bold text-white whitespace-nowrap">SPlanner</h1>
@@ -22,38 +19,14 @@
 
         <button
           class="btn btn-circle btn-ghost text-xl text-white bg-gray-700 hover:bg-gray-600 transition duration-200 min-h-0 h-8 w-8 ml-auto"
-          (click)="sidebarDesktopOpen = !sidebarDesktopOpen"
-          aria-label="Toggle sidebar"
-        >
+          (click)="sidebarDesktopOpen = !sidebarDesktopOpen" aria-label="Toggle sidebar">
           @if (sidebarDesktopOpen) {
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M15 19l-7-7 7-7"
-            />
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
           </svg>
           } @if (!sidebarDesktopOpen) {
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M9 5l7 7-7 7"
-            />
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
           </svg>
           }
         </button>
@@ -63,149 +36,68 @@
       <ul class="space-y-2">
         @for (item of menuItems; track item) {
         <li>
-          <a
-            (click)="activeItem = item.label"
+          <a (click)="activeItem = item.label"
             class="group flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors duration-200"
             [ngClass]="{
               'bg-gray-700 text-white': activeItem === item.label,
               'text-gray-300 hover:bg-gray-700': activeItem !== item.label
-            }"
-          >
+            }">
             <div class="flex-shrink-0 w-6 h-6 flex items-center justify-center">
               @if (item.icon === 'home') {
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-6 w-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                [class.text-green-400]="activeItem === item.label"
-                [class.text-gray-400]="activeItem !== item.label"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M3 12l2-2m0 0l7-7 7 7M13 5v6h6m-6 0v6m-7 4h14a2 2 0 002-2v-7a2 2 0 00-2-2h-1.586a1 1 0 00-.707.293l-7.414 7.414a1 1 0 01-1.414 0L5 12.586a1 1 0 00-.707-.293H3a2 2 0 00-2 2v7a2 2 0 002 2z"
-                />
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor" [class.text-green-400]="activeItem === item.label"
+                [class.text-gray-400]="activeItem !== item.label">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M3 12l2-2m0 0l7-7 7 7M13 5v6h6m-6 0v6m-7 4h14a2 2 0 002-2v-7a2 2 0 00-2-2h-1.586a1 1 0 00-.707.293l-7.414 7.414a1 1 0 01-1.414 0L5 12.586a1 1 0 00-.707-.293H3a2 2 0 00-2 2v7a2 2 0 002 2z" />
               </svg>
               } @if (item.icon === 'calendar') {
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-6 w-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                [class.text-green-400]="activeItem === item.label"
-                [class.text-gray-400]="activeItem !== item.label"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                />
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor" [class.text-green-400]="activeItem === item.label"
+                [class.text-gray-400]="activeItem !== item.label">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
               } @if (item.icon === 'settings') {
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-6 w-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                [class.text-green-400]="activeItem === item.label"
-                [class.text-gray-400]="activeItem !== item.label"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M11.049 2.927c.3-.921 1.603-.921 1.902 0a1.75 1.75 0 002.516 1.07c.96-.52 2.068.144 2.068 1.299v2.292c0 1.155-1.108 1.819-2.068 1.298a1.75 1.75 0 00-2.516 1.07c-.299.921-1.602.921-1.902 0a1.75 1.75 0 00-2.516-1.07c-.96.521-2.068-.143-2.068-1.298V5.296c0-1.154 1.108-1.819 2.068-1.299a1.75 1.75 0 002.516-1.07z"
-                />
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 8v4m0 4h.01"
-                />
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor" [class.text-green-400]="activeItem === item.label"
+                [class.text-gray-400]="activeItem !== item.label">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M11.049 2.927c.3-.921 1.603-.921 1.902 0a1.75 1.75 0 002.516 1.07c.96-.52 2.068.144 2.068 1.299v2.292c0 1.155-1.108 1.819-2.068 1.298a1.75 1.75 0 00-2.516 1.07c-.299.921-1.602.921-1.902 0a1.75 1.75 0 00-2.516-1.07c-.96.521-2.068-.143-2.068-1.298V5.296c0-1.154 1.108-1.819 2.068-1.299a1.75 1.75 0 002.516-1.07z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01" />
               </svg>
               } @if (item.icon === 'dashboard') {
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-6 w-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                [class.text-green-400]="activeItem === item.label"
-                [class.text-gray-400]="activeItem !== item.label"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M3 13h8V3H3v10zM13 21h8v-6h-8v6zM13 3v6h8V3h-8zM3 21h8v-4H3v4z"
-                />
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor" [class.text-green-400]="activeItem === item.label"
+                [class.text-gray-400]="activeItem !== item.label">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M3 13h8V3H3v10zM13 21h8v-6h-8v6zM13 3v6h8V3h-8zM3 21h8v-4H3v4z" />
               </svg>
               } @if (item.icon === 'project') {
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-6 w-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                [class.text-green-400]="activeItem === item.label"
-                [class.text-gray-400]="activeItem !== item.label"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V7a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
-                />
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor" [class.text-green-400]="activeItem === item.label"
+                [class.text-gray-400]="activeItem !== item.label">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V7a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
               </svg>
               } @if (item.icon === 'team') {
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-6 w-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                [class.text-green-400]="activeItem === item.label"
-                [class.text-gray-400]="activeItem !== item.label"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87M12 7a4 4 0 100-8 4 4 0 000 8z"
-                />
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor" [class.text-green-400]="activeItem === item.label"
+                [class.text-gray-400]="activeItem !== item.label">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87M12 7a4 4 0 100-8 4 4 0 000 8z" />
               </svg>
               } @if (item.icon === 'recent') {
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-6 w-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                [class.text-green-400]="activeItem === item.label"
-                [class.text-gray-400]="activeItem !== item.label"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor" [class.text-green-400]="activeItem === item.label"
+                [class.text-gray-400]="activeItem !== item.label">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               }
             </div>
 
-            <span
-              class="text-sm font-semibold whitespace-nowrap transition-opacity duration-200"
-              [class.opacity-100]="sidebarDesktopOpen"
-              [class.opacity-0]="!sidebarDesktopOpen"
-              >{{ item.label }}</span
-            >
+            <span class="text-sm font-semibold whitespace-nowrap transition-opacity duration-200"
+              [class.opacity-100]="sidebarDesktopOpen" [class.opacity-0]="!sidebarDesktopOpen">{{ item.label }}</span>
           </a>
         </li>
         }
@@ -214,25 +106,13 @@
 
     <!-- LOGOUT BUTTON -->
     <div class="mt-6">
-      <button
-        (click)="logout()"
-        class="w-full flex items-center gap-3 p-3 rounded-lg cursor-pointer text-gray-300 hover:bg-red-600 hover:text-white transition-colors duration-200"
-      >
+      <button (click)="logout()"
+        class="w-full flex items-center gap-3 p-3 rounded-lg cursor-pointer text-gray-300 hover:bg-red-600 hover:text-white transition-colors duration-200">
         <!-- Ícono visible siempre -->
         @if (true) {
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="h-6 w-6"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H7a2 2 0 01-2-2V7a2 2 0 012-2h4a2 2 0 012 2v1"
-          />
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H7a2 2 0 01-2-2V7a2 2 0 012-2h4a2 2 0 012 2v1" />
         </svg>
         }
 
@@ -250,47 +130,19 @@
 <!-- BOTÓN HAMBURGUESA (SOLO EN MÓVIL) -->
 <div class="fixed top-4 left-4 z-50 md:hidden">
   @if (!sidebarMobileOpen) {
-  <button
-    class="btn btn-circle btn-ghost text-xl text-white bg-gray-900 shadow-lg transition-transform duration-300"
-    (click)="sidebarMobileOpen = true"
-    aria-label="Open sidebar"
-  >
+  <button class="btn btn-circle btn-ghost text-xl text-white bg-gray-900 shadow-lg transition-transform duration-300"
+    (click)="sidebarMobileOpen = true" aria-label="Open sidebar">
     <!-- Icono hamburguesa -->
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      class="h-6 w-6"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-    >
-      <path
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        stroke-width="2"
-        d="M4 6h16M4 12h16M4 18h16"
-      />
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
     </svg>
   </button>
   } @if (sidebarMobileOpen) {
-  <button
-    class="btn btn-circle btn-ghost text-xl text-white bg-gray-900 shadow-lg transition-transform duration-300"
-    (click)="sidebarMobileOpen = false"
-    aria-label="Close sidebar"
-  >
+  <button class="btn btn-circle btn-ghost text-xl text-white bg-gray-900 shadow-lg transition-transform duration-300"
+    (click)="sidebarMobileOpen = false" aria-label="Close sidebar">
     <!-- Icono cerrar (X) -->
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      class="h-6 w-6"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-    >
-      <path
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        stroke-width="2"
-        d="M6 18L18 6M6 6l12 12"
-      />
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
     </svg>
   </button>
   }
@@ -298,131 +150,52 @@
 
 @if (sidebarMobileOpen) {
 <aside
-  class="fixed inset-y-0 left-0 z-40 w-64 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-950 text-white p-6 pt-16 shadow-2xl md:hidden transition-all duration-300 ease-in-out"
->
+  class="fixed inset-y-0 left-0 z-40 w-64 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-950 text-white p-6 pt-16 shadow-2xl md:hidden transition-all duration-300 ease-in-out">
   <nav>
     <ul class="space-y-2">
       @for (item of menuItems; track item.label) {
       <li>
-        <a
-          (click)="activeItem = item.label; sidebarMobileOpen = false"
-          class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-700 transition-colors"
-          [ngClass]="{
+        <a (click)="activeItem = item.label; sidebarMobileOpen = false"
+          class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-700 transition-colors" [ngClass]="{
             'bg-gray-700 text-white': activeItem === item.label,
             'text-gray-300': activeItem !== item.label
-          }"
-        >
+          }">
           <!-- ÍCONO: Cambia según item.icon -->
           @if (item.icon === 'home') {
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M3 12l2-2m0 0l7-7 7 7M13 5v6h6m-6 0v6m-7 4h14a2 2 0 002-2v-7a2 2 0 00-2-2h-1.586a1 1 0 00-.707.293l-7.414 7.414a1 1 0 01-1.414 0L5 12.586a1 1 0 00-.707-.293H3a2 2 0 00-2 2v7a2 2 0 002 2z"
-            />
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M3 12l2-2m0 0l7-7 7 7M13 5v6h6m-6 0v6m-7 4h14a2 2 0 002-2v-7a2 2 0 00-2-2h-1.586a1 1 0 00-.707.293l-7.414 7.414a1 1 0 01-1.414 0L5 12.586a1 1 0 00-.707-.293H3a2 2 0 00-2 2v7a2 2 0 002 2z" />
           </svg>
           } @if (item.icon === 'calendar') {
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-            />
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
           } @if (item.icon === 'dashboard') {
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M3 13h8V3H3v10zm10 8h8v-6h-8v6zm0-8h8V3h-8v10zM3 21h8v-6H3v6z"
-            />
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M3 13h8V3H3v10zm10 8h8v-6h-8v6zm0-8h8V3h-8v10zM3 21h8v-6H3v6z" />
           </svg>
           } @if (item.icon === 'team') {
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87M12 12a4 4 0 100-8 4 4 0 000 8zm6 0a4 4 0 100-8 4 4 0 000 8zM6 12a4 4 0 100-8 4 4 0 000 8z"
-            />
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87M12 12a4 4 0 100-8 4 4 0 000 8zm6 0a4 4 0 100-8 4 4 0 000 8zM6 12a4 4 0 100-8 4 4 0 000 8z" />
           </svg>
           } @if (item.icon === 'recent') {
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           } @if (item.icon === 'settings') {
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M11.049 2.927c.3-.921 1.603-.921 1.902 0a1.75 1.75 0 002.516 1.07c.96-.52 2.068.144 2.068 1.299v2.292c0 1.155-1.108 1.819-2.068 1.298a1.75 1.75 0 00-2.516 1.07c-.299.921-1.602.921-1.902 0a1.75 1.75 0 00-2.516-1.07c-.96.521-2.068-.143-2.068-1.298V5.296c0-1.154 1.108-1.819 2.068-1.299a1.75 1.75 0 002.516-1.07z"
-            />
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 8v4m0 4h.01"
-            />
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M11.049 2.927c.3-.921 1.603-.921 1.902 0a1.75 1.75 0 002.516 1.07c.96-.52 2.068.144 2.068 1.299v2.292c0 1.155-1.108 1.819-2.068 1.298a1.75 1.75 0 00-2.516 1.07c-.299.921-1.602.921-1.902 0a1.75 1.75 0 00-2.516-1.07c-.96.521-2.068-.143-2.068-1.298V5.296c0-1.154 1.108-1.819 2.068-1.299a1.75 1.75 0 002.516-1.07z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01" />
           </svg>
           } @if (item.icon === 'project') {
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M3 7a2 2 0 012-2h2a2 2 0 012 2v2H3V7zm0 4h8v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6zm10-4a2 2 0 012-2h2a2 2 0 012 2v2h-6V7zm0 4h6v6a2 2 0 01-2 2h-2a2 2 0 01-2-2v-6z"
-            />
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M3 7a2 2 0 012-2h2a2 2 0 012 2v2H3V7zm0 4h8v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6zm10-4a2 2 0 012-2h2a2 2 0 012 2v2h-6V7zm0 4h6v6a2 2 0 01-2 2h-2a2 2 0 01-2-2v-6z" />
           </svg>
           }
 
@@ -437,21 +210,10 @@
     <div class="mt-8 pt-4 border-t border-gray-700">
       <button
         class="flex items-center gap-2 p-3 w-full text-left text-gray-300 hover:bg-gray-700 rounded-lg transition-colors"
-        (click)="logout()"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="h-5 w-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1"
-          />
+        (click)="logout()">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1" />
         </svg>
         <span>Cerrar sesión</span>
       </button>
@@ -460,8 +222,6 @@
 </aside>
 
 <!-- Fondo oscuro -->
-<div
-  class="fixed inset-0 z-30 bg-black bg-opacity-50 md:hidden transition-opacity duration-300"
-  (click)="sidebarMobileOpen = false"
-></div>
+<div class="fixed inset-0 z-30 bg-black bg-opacity-50 md:hidden transition-opacity duration-300"
+  (click)="sidebarMobileOpen = false"></div>
 }

@@ -6,7 +6,6 @@ import { provideHttpClient, withFetch } from '@angular/common/http';  // importa
 
 
 import { APP_ROUTES } from './app.routes'; // ✅ aquí cambias "routes" por "APP_ROUTES"
-import { routes } from './app.routes';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -14,7 +13,6 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
     provideRouter(APP_ROUTES), // ✅ aquí también usas APP_ROUTES
-    provideRouter(routes),
     provideClientHydration(withEventReplay()),
     provideHttpClient(withFetch())  // activar fetch aquí
   ]

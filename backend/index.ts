@@ -1,3 +1,6 @@
+// Carga las variables definidas en .env
+
+import routerKanbantask from "./src/modules/kanban/kanban.routes.js";
 import cors from "cors";
 import { config } from "dotenv";
 import express, { NextFunction, Request, Response } from "express";
@@ -70,6 +73,16 @@ app.use((req, res, next) => {
   next();
 });
 
+// Middleware de manejo de errores
+app.use((err: Error & { status?: number }, _req: Request, res: Response) => {
+  console.error(err);
+
+  res.status(err.status ?? 500).json({
+    message: err.message, // ya no usamos ?? porque siempre existe
+  });
+});
+
+// Levantar servidor
 app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
+  console.log(`🚀 Servidor corriendo en http://localhost:${port}`);
 });

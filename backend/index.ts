@@ -4,6 +4,13 @@ dotenv.config();
 import cors from "cors";
 import express, { Request, Response } from "express";
 
+<<<<<<< Updated upstream
+=======
+// Carga las variables definidas en .env
+config();
+
+import routerKanbantask from "./src/modules/kanban/kanban.routes.js";
+>>>>>>> Stashed changes
 import routerProject from "./src/modules/projects/projects.routes.js";
 
 const app = express();

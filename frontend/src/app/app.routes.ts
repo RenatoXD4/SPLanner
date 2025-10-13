@@ -11,7 +11,7 @@ export const APP_ROUTES: Routes = [
     loadChildren: () => import('./core/features/auth/auth.routes').then(m => m.AUTH_ROUTES),
   },
   {
-    path: 'proyectos',
+    path: '',
     loadChildren: () => import('./core/features/vistas/vistas.routes').then(m => m.VISTAS_ROUTE),
   },
   // Puedes agregar rutas adicionales aquí

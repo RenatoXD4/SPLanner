@@ -1,33 +1,70 @@
-<div class="w-full h-full flex flex-col justify-center items-center min-h-screen pb-5 bg-gradient-to-b  from-purple-00">
-  <div class="w-full max-w-md mx-auto px-5 py-8 lg:py-0 lg:h-200 lg:flex lg:items-center shadow-xl/100 bg-black">
-    <div class="w-full max-w-[350px] mx-auto lg:mt-32">
+<div class="w-full min-h-screen flex items-center justify-center relative overflow-hidden bg-gray-900 py-8">
+  <!-- Contenedor del formulario -->
+  <div class="relative z-10 w-full max-w-md mx-auto animate-fade-in-up">
+    <div
+      class="bg-gradient-to-b from-gray-900 via-gray-800 to-gray-950 border border-green-900 rounded-2xl shadow-2xl p-8 mx-4 transform transition-all duration-500 ease-out animate-form-appear">
+
+      <div class="w-full max-w-[350px] mx-auto">
 
 
 
-      <h1 class="text-3xl font-bold text-white mb-2 text-center">Iniciar Sesion</h1>
-      <div class="relative my-6">
-        <div class="absolute inset-0 flex items-center">
-          <div class="w-full border-t border-white-800"></div>
+        <!-- Logo SPlanner -->
+        <div class="flex justify-center mb-4">
+          <svg width="220" height="55" viewBox="0 0 170 50" class="h-16 w-auto">
+            <defs>
+              <linearGradient id="mainGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#1edf28" />
+                <stop offset="100%" stop-color="#1edf28" />
+              </linearGradient>
+            </defs>
+            <rect x="5" y="5" width="45" height="45" rx="6" fill="url(#mainGradient)" />
+            <rect x="12" y="15" width="6" height="25" fill="#fbbf24" rx="1.5" />
+            <rect x="22" y="11" width="6" height="29" fill="#10b981" rx="1.5" />
+            <rect x="32" y="17" width="6" height="23" fill="#ef4444" rx="1.5" />
+            <text x="55" y="33" font-family="Arial, sans-serif" font-size="24" font-weight="bold"
+              fill="url(#mainGradient)">
+              SPlanner
+            </text>
+          </svg>
         </div>
-      </div>
 
-      <p class="text-white-500 mb-8 text-center">Ingresa tu correo y contraseña para iniciar</p>
+        <h1 class="text-2xl font-bold text-white mb-2 text-center">Iniciar Sesión</h1>
 
-      <!-- Formulario de email/contraseña -->
-      <form class="space-y-6" [formGroup]="userForm" (submit)="handleSubmit()">
-        <!-- Campo Email -->
-        <div class="relative transition-all duration-300 ease-in-out" [class.mb-8]="showEmailError()">
-          <label for="email" class="block text-sm font-medium text-white mb-2">Correo</label>
-          <input id="email" type="email" placeholder="correo@gmail.com"
-            class="w-full px-4 py-3 bg-zinc-950 border border-zinc-800 rounded-lg text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all duration-300"
-            autocomplete="email" formControlName="email" (blur)="markFieldAsTouched('email')">
+        <div class="relative my-4">
+          <div class="absolute inset-0 flex items-center">
+            <div class="w-full border-t border-gray-600"></div>
+          </div>
+        </div>
 
-          <!-- Alerta animada para email -->
-          @if (showEmailError()) {
-          <div class="absolute top-full left-0 right-0 mt-1 animate-fade-in-down">
-            <div class="bg-red-500/90 text-white p-3 rounded-lg shadow-lg border border-red-400">
+        <p class="text-gray-400 mb-6 text-center text-sm">Ingresa tu correo y contraseña para iniciar</p>
+
+        <!-- Mensaje de error general -->
+        @if (getErrorMessage()) {
+        <div class="mb-3 p-3 bg-red-500/90 text-white rounded-lg border border-red-400">
+          <div class="flex items-center gap-2">
+            <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                clip-rule="evenodd" />
+            </svg>
+            <span class="text-sm">{{ getErrorMessage() }}</span>
+          </div>
+        </div>
+        }
+
+        <form class="space-y-5" [formGroup]="userForm" (submit)="handleSubmit()">
+          <!-- Campo Email -->
+          <div>
+            <label for="email" class="block text-sm font-medium text-white mb-2">Correo</label>
+            <input id="email" type="email" placeholder="correo@gmail.com"
+              class="w-full px-4 py-3 bg-black border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
+              formControlName="email" (blur)="markFieldAsTouched('email')">
+
+            <!-- Error debajo del input -->
+            @if (showEmailError()) {
+            <div class="mt-2 bg-red-500/90 text-white p-3 rounded-lg border border-red-400">
               <div class="flex items-center gap-2">
-                <svg class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd"
                     d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
                     clip-rule="evenodd" />
@@ -35,23 +72,43 @@
                 <span class="text-sm">{{ getEmailErrorMessage() }}</span>
               </div>
             </div>
+            }
           </div>
-          }
-        </div>
 
-        <!-- Campo Password -->
-        <div class="relative transition-all duration-300 ease-in-out" [class.mb-8]="showPasswordError()">
-          <label for="password" class="block text-sm font-medium text-white mb-2">Password</label>
-          <input id="password" type="password" placeholder="********"
-            class="w-full px-4 py-3 bg-zinc-950 border border-zinc-800 rounded-lg text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all duration-300"
-            formControlName="password" (blur)="markFieldAsTouched('password')">
+          <!-- Campo Password -->
+          <div>
+            <label for="password" class="block text-sm font-medium text-white mb-2">Contraseña</label>
+            <div class="relative">
+              <input id="password" [type]="showPassword ? 'text' : 'password'" placeholder="********"
+                class="w-full px-4 py-3 bg-black border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
+                formControlName="password" (blur)="markFieldAsTouched('password')">
 
-          <!-- Alerta animada para password -->
-          @if (showPasswordError()) {
-          <div class="absolute top-full left-0 right-0 mt-1 animate-fade-in-down">
-            <div class="bg-red-500/90 text-white p-3 rounded-lg shadow-lg border border-red-400">
+              <button type="button" (click)="togglePasswordVisibility()"
+                class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-green-400 transition-colors">
+                @if (showPassword) {
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                  <path fill-rule="evenodd"
+                    d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                    clip-rule="evenodd" />
+                </svg>
+                } @else {
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd"
+                    d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z"
+                    clip-rule="evenodd" />
+                  <path
+                    d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z" />
+                </svg>
+                }
+              </button>
+            </div>
+
+            <!-- Error debajo del input -->
+            @if (showPasswordError()) {
+            <div class="mt-2 bg-red-500/90 text-white p-3 rounded-lg border border-red-400">
               <div class="flex items-center gap-2">
-                <svg class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd"
                     d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
                     clip-rule="evenodd" />
@@ -59,38 +116,38 @@
                 <span class="text-sm">Por favor ingresa tu contraseña</span>
               </div>
             </div>
+            }
           </div>
-          }
+
+          <div class="pt-2">
+            <app-form-button [text]="isLoading() ? 'Iniciando sesión...' : 'Iniciar sesión'" (buttonClick)="onLogin()">
+            </app-form-button>
+          </div>
+
+          <button type="button" (click)="loginWithGoogle()"
+            class="w-full flex items-center justify-center gap-2 border border-gray-600 bg-black text-white py-3 px-4 rounded-lg hover:bg-gray-700 transition-colors">
+            <svg class="w-5 h-5" viewBox="0 0 24 24">
+              <path fill="#4285F4"
+                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+              <path fill="#34A853"
+                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+              <path fill="#FBBC05"
+                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+              <path fill="#EA4335"
+                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+            </svg>
+            Iniciar con Google
+          </button>
+        </form>
+
+        <div class="mt-6 space-y-2 text-sm">
+          <a href="recuperar" class="block text-gray-400 hover:text-green-400 transition-colors text-center">
+            ¿Olvidaste tu contraseña?
+          </a>
+          <a href="registro" class="block text-gray-400 hover:text-green-400 transition-colors text-center">
+            ¿No tienes cuenta? Regístrate ahora
+          </a>
         </div>
-
-        <div class="pt-2">
-          <app-form-button [text]="'Iniciar sesion'" [disabled]="!userForm.valid" (buttonClick)="onLogin()">
-          </app-form-button>
-        </div>
-
-        <button type="button"
-          class="w-full flex items-center justify-center gap-2 border bg-black border-black-800 text-white py-3 px-4 rounded-md hover:bg-zinc-900 transition-colors mb-4">
-          <svg class="w-5 h-5" viewBox="0 0 48 48">
-            <path fill="#FFC107"
-              d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z" />
-            <path fill="#FF3D00"
-              d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z" />
-            <path fill="#4CAF50"
-              d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z" />
-            <path fill="#1976D2"
-              d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z" />
-          </svg>
-          Iniciar con Google
-        </button>
-      </form>
-
-      <div class="mt-6 space-y-2 text-sm">
-        <a href="recuperar" class="block text-white hover:text-zinc-300 transition-colors text-center">
-          Olvidaste tu contraseña?
-        </a>
-        <a href="registro" class="block text-white hover:text-zinc-300 transition-colors text-center">
-          ¿No tienes cuenta? Regístrate ahora
-        </a>
       </div>
     </div>
   </div>

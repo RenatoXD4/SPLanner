@@ -1,528 +1,702 @@
-import { Component } from '@angular/core';
+import { Component, ElementRef, ViewChild, ChangeDetectorRef, HostListener, OnInit } from '@angular/core';
 import {
   CdkDragDrop,
-  moveItemInArray,    // Filtro de columnas
-  transferArrayItem,  // Filtro de columnas
+  moveItemInArray,
+  transferArrayItem,
   CdkDrag,
-  CdkDropList,
+  CdkDropList
 } from '@angular/cdk/drag-drop';
 import { CommonModule } from '@angular/common';
-
-import { ElementRef, ViewChild, ChangeDetectorRef, HostListener } from '@angular/core';
-import { FormsModule } from '@angular/forms';  // <-- Importa FormsModule
+import { FormsModule } from '@angular/forms';
 
 import { Sidebar } from '../../../../shared/ui/sidebar/sidebar';
+import { BoardService } from '../../services/kanban-service';
+import { ActivatedRoute } from '@angular/router';
+import { identity } from 'rxjs';
 
-interface Task {
-  id: number;
-  title: string;
-  status: string;
-  assignee: string[];
-  dueDate: string;
-  priority: string;
-  description: string;
-}
-
-interface Categoria {
+export interface User {
   id: string;
   nombre: string;
-  tasks: Task[]; // ✅ Esto es lo que necesitas
+  apellido: string;
+  email: string;
+  avatarUrl?: string;
+}
+
+export interface MiembroProyecto {
+  usuario: User;
+  rol: any;
+}
+
+export interface ResponsableTarea {
+  usuario: User;
+  tareaId: string;
+  id: number;
+  usuarioId: string;
+}
+
+
+export interface Categoria {
+  id: string;
+  nombre: string;
+  posicion: number;
+  tasks: Task[];
+}
+
+interface Task {
+  id: string;
+  titulo?: string;
+  fechaLimite?: string;
+  posicion: number;
+  createdAt: string;
+  estadoId: number | string;
+  proyectoId: string;
+
+  // Campos backend opcionales que pueden venir
+  assignee?: User[]; // lista de usuarios asignados
+  etiquetas?: any[];
+  bloquesContenido?: any[];
+
+
+  // Campos frontend (para UI)
+  title?: string;
+  dueDate?: string;
+}
+
+// Agrega esto cerca del inicio, junto a tus otras interfaces
+
+interface RawTask {
+  id: string;
+  titulo?: string;
+  fechaLimite?: string;
+  posicion: number;
+  createdAt: string;
+  estadoId: number | string;
+  proyectoId: string;
+
+  responsables?: { usuario: User }[]; // ← NUEVO
+  etiquetas?: any[];
+  bloquesContenido?: any[];
+
+}
+
+export interface Etiqueta {
+  id: number;       // ID único de la etiqueta
+  nombre: string;   // Nombre de la etiqueta
 }
 
 
 @Component({
   selector: 'app-board',
-  imports: [CdkDropList, CdkDrag, CommonModule, FormsModule, Sidebar  // <-- Agrégalo aquí
-  ],
+  imports: [CdkDropList, CdkDrag, CommonModule, FormsModule, Sidebar],
   templateUrl: './board.html',
   styleUrl: './board.css',
-
 })
-export class Board {
-
-  sidebarOpen = false;
-
-  CategoriasK: Categoria[] = [
-    {
-      id: 'xd',
-      nombre: 'Sin empezar',
-      tasks: [
-        { id: 1, title: 'Tarea 1', status: 'todo', assignee: ['Ana', 'Luis'], dueDate: '2025-09-15', priority: 'Alta', description: '...asdasdasd' },
-        { id: 2, title: 'Tarea 2', status: 'todo', assignee: ['Juan'], dueDate: '2025-09-17', priority: 'Media', description: '...dededded' },
-        { id: 3, title: 'Tarea 2', status: 'todo', assignee: ['Luis'], dueDate: '2025-09-17', priority: 'Media', description: '...dededded' },
-        { id: 4, title: 'Tarea 2', status: 'todo', assignee: ['Juan'], dueDate: '2025-09-17', priority: 'Media', description: '...dededded' },
-        { id: 5, title: 'Tarea 2', status: 'todo', assignee: ['Luis'], dueDate: '2025-09-17', priority: 'Media', description: '...dededded' },
-        { id: 6, title: 'Tarea 2', status: 'todo', assignee: ['Juan'], dueDate: '2025-09-17', priority: 'Media', description: '...dededded' },
-        { id: 7, title: 'Tarea 2', status: 'todo', assignee: ['Juan'], dueDate: '2025-09-17', priority: 'Media', description: '...dededded' },
-        { id: 8, title: 'Tarea 2', status: 'todo', assignee: ['Luis'], dueDate: '2025-09-17', priority: 'Media', description: '...dededded' },
-        { id: 9, title: 'Tarea 2', status: 'todo', assignee: ['Juan'], dueDate: '2025-09-17', priority: 'Media', description: '...dededded' },
-
-      ],
-    },
-    {
-      id: 'todo',
-      nombre: 'Por hacer',
-      tasks: [],
-    },
-    {
-      id: 'done',
-      nombre: 'Hecho',
-      tasks: [],
-    }
-  ];
-
-
-  drop(event: CdkDragDrop<Task[]>) {
-    console.log('➡️ Drop event:', event);
-
-    if (event.previousContainer === event.container) {
-      console.log('🔄 Mismo contenedor - Reordenando tarea');
-      moveItemInArray(
-        event.container.data,
-        event.previousIndex,
-        event.currentIndex
-      );
-    } else {
-      console.log('📦 Contenedor anterior ID:', event.previousContainer.id);
-      console.log('📥 Nuevo contenedor ID:', event.container.id);
-
-      const task: Task = event.previousContainer.data[event.previousIndex];
-      console.log('🧱 Tarea movida:', task);
-
-      // Simulamos que el status depende del id del contenedor
-      const newStatus = this.getStatusFromContainerId(event.container.id);
-      console.log(`🆕 Nuevo status para la tarea ${task.id}:`, newStatus);
-
-      // Actualizamos el status antes de moverla visualmente
-      this.updateTaskStatus(task.id, newStatus);
-
-      transferArrayItem(
-        event.previousContainer.data,
-        event.container.data,
-        event.previousIndex,
-        event.currentIndex
-      );
-
-      console.log('✅ Tarea transferida');
-
-    }
-  }
-  isDragging = false;
-
-  onDragStarted() {
-    this.isDragging = true;
-
-    setTimeout(() => {
-      this.isDragging = false;
-    }, 0);  // 2 segundos para desactivar el borde
-  }
-
-  onDragEnded() {
-    this.isDragging = false;
-  }
-
-  // función dentro de la funcion DROP()
-  get categoriasIds(): string[] {
-    return this.CategoriasK.map(cat => cat.id);
-  }
-  getStatusFromContainerId(containerId: string): string {
-    return containerId; // Asumiendo que el id del contenedor es igual al status deseado
-  }
-  updateTaskStatus(taskId: number, newStatus: string) {
-    const task = this.CategoriasK
-      .flatMap(cat => cat.tasks)
-      .find(t => t.id === taskId);
-
-    if (task) {
-      task.status = newStatus;
-      console.log(`✔️ Status de tarea ${taskId} actualizado a:`, newStatus);
-    }
-  }
-  // función dentro de la funcion DROP() FINAL
-  /*
-    viewMode: 'kanban' | 'list' = 'kanban';
-  
-    toggleView(): void {
-      this.viewMode = this.viewMode === 'kanban' ? 'list' : 'kanban';
-    }
-  
-    */
-  currentUser: string = 'Juan';  // Cambia esto por el identificador de tu usuario
-
-  // CAMBIO DE VISTA, esto es necesario ya que esto es lo que activa que la animación se vea al hacer click en cada Botón
-  // La animación esta en el CSS
+export class Board implements OnInit {
   @ViewChild('kanbanContainer') kanbanContainer?: ElementRef;
   @ViewChild('listContainer') listContainer?: ElementRef;
   @ViewChild('assignedContainer') assignedContainer?: ElementRef;
-  private applyAnimation(ref?: ElementRef) {
-    if (!ref) return;
+  @ViewChild('thTitulo') thTitulo!: ElementRef;
 
-    const el = ref.nativeElement as HTMLElement;
+  currentUser: string = 'b5d6f7e8-4c12-4f6e-9a6b-abcdef123456';
+  sidebarOpen = false;
+  modalVisible = false;
 
-    el.classList.remove('fade-slide-in'); // Reinicia si ya estaba
-    void el.offsetWidth; // Trigger reflow para reiniciar animación
+  proyectoIdActual: string = '';
 
-    el.classList.add('fade-slide-in');
+  CategoriasK: Categoria[] = [];
+  miembrosDelProyecto: ResponsableTarea[] = [];
+
+
+  etiquetasUnicas: any[] = [];
+
+  viewMode: 'kanban' | 'list' | 'assigned' = 'kanban';
+
+  hoveredTaskId: string | null = null;
+  timeoutId?: ReturnType<typeof setTimeout>;
+
+  textoFiltro = '';
+  filtroResponsable = '';
+  filtroPrioridad = '';
+  prioridadesUnicas: string[] = [];
+  responsablesUnicos: string[] = [];
+
+  mostrarPanelFiltros = false;
+  mostrarPanelFiltroTitulo = false;
+  filtroTitulo = '';
+
+  categoriaSeleccionadaForModal: Categoria | null = null;
+
+  newTask = {
+    titulo: '',
+    fechaLimite: '',
+    responsablesIds: [] as string[],
+    etiquetaIds: [] as number[],
+    estadoId: 0,
+    proyectoId: '',
+    bloquesContenido: []
+  };
+
+  constructor(private cdr: ChangeDetectorRef, private boardService: BoardService, private route: ActivatedRoute) { }
+
+
+  ngOnInit() {
+    const proyectoId = this.route.snapshot.paramMap.get('id') || '1fc2cb1f-7580-47dd-b28e-49f139dbfb44';
+    this.proyectoIdActual = proyectoId;
+
+    this.boardService.getEstadosDelProyecto(proyectoId).subscribe({
+      next: (estados) => {
+
+        this.CategoriasK = estados.map(est => ({
+          id: est.id.toString(),
+          nombre: est.nombre,
+          posicion: (est as any).posicion ?? 0,
+          tasks: []
+        }));
+
+        this.boardService.getTareasPorProyecto(proyectoId).subscribe({
+          next: (tareas: RawTask[]) => {
+            this.CategoriasK.forEach(cat => cat.tasks = []);
+
+            tareas.forEach(t => {
+              const categoria = this.CategoriasK.find(c => c.id === t.estadoId.toString());
+              if (categoria) {
+                const task: Task = {
+                  ...t,
+                  assignee: Array.isArray(t.responsables)
+                    ? t.responsables.map(r => r.usuario)
+                    : [],
+                  etiquetas: Array.isArray(t.etiquetas) ? t.etiquetas : [],
+                  bloquesContenido: Array.isArray(t.bloquesContenido) ? t.bloquesContenido : [],
+                  title: t.titulo ?? '',
+                  dueDate: t.fechaLimite ?? '',
+
+                };
+                categoria.tasks.push(task);
+              }
+            });
+
+            this.CategoriasK.forEach(cat => {
+              cat.tasks.sort((a, b) => (a.posicion ?? 0) - (b.posicion ?? 0));
+            });
+
+            this.generarListaResponsables();
+            this.generarListaPrioridades();
+            this.cdr.detectChanges();
+          },
+          error: (err) => {
+            console.error('Error al cargar tareas:', err);
+          }
+        });
+
+        this.boardService.getAllEtiquetas(proyectoId).subscribe({
+          next: (etiquetas) => {
+            this.etiquetasUnicas = etiquetas.map(e => ({
+              id: e.id,        // ID de la etiqueta
+              nombre: e.nombre,  // Nombre de la etiqueta
+            }));
+          },
+          error: (err) => console.error('Error al cargar etiquetas:', err),
+        });
+
+
+
+        this.boardService.getEquipoProyecto(proyectoId).subscribe({
+          next: (miembros: MiembroProyecto[]) => {
+            setTimeout(() => {
+              this.miembrosDelProyecto = miembros.map((m, index) => ({
+                usuario: m.usuario,
+                tareaId: '',
+                id: index,
+                usuarioId: m.usuario.id
+              }));
+              this.cdr.detectChanges();
+            });
+          },
+          error: (err) => console.error('Error al cargar miembros:', err)
+        });
+
+      },
+      error: (err) => {
+        console.error('Error al cargar estados:', err);
+      }
+    });
   }
-  constructor(private cdr: ChangeDetectorRef) { }
 
-  public viewMode: 'kanban' | 'list' | 'assigned' = 'kanban';
+
+  private estilosPorColumna: Record<string, {
+    fondoColumna: string;
+    fondoTarjeta: string;
+    texto: string;
+    boton: string;
+  }> = {
+      'Sin empezar': {
+        fondoColumna: 'bg-slate-900/10',
+        fondoTarjeta: 'bg-slate-900/20 text-slate-300',
+        texto: 'text-slate-400',
+        boton: 'bg-slate-700/50 text-white hover:bg-slate-700/70',
+      },
+      'Por hacer': {
+        fondoColumna: 'bg-sky-900/10',
+        fondoTarjeta: 'bg-sky-900/20 text-sky-300',
+        texto: 'text-sky-400',
+        boton: 'bg-sky-700/50 text-white hover:bg-sky-700/70',
+      },
+      'Finalizado': {
+        fondoColumna: 'bg-green-900/10',
+        fondoTarjeta: 'bg-green-900/20 text-green-300',
+        texto: 'text-green-400',
+        boton: 'bg-green-700/50 text-white hover:bg-green-700/70',
+      },
+      // Estilos por defecto para columnas no reconocidas
+      'default': {
+        fondoColumna: 'bg-base-200',
+        fondoTarjeta: 'bg-base-100 text-base-content',
+        texto: 'text-gray-300',
+        boton: 'btn-outline btn-primary',
+      }
+    };
+
+  getColumnColorClass(nombre: string): string {
+    return this.estilosPorColumna[nombre]?.fondoColumna || this.estilosPorColumna['default'].fondoColumna;
+  }
+  getCardColorClass(nombre: string): string {
+    return this.estilosPorColumna[nombre]?.fondoTarjeta || this.estilosPorColumna['default'].fondoTarjeta;
+  }
+  getTextColorClass(nombre: string): string {
+    return this.estilosPorColumna[nombre]?.texto || this.estilosPorColumna['default'].texto;
+  }
+  getButtonColorClass(nombre: string): string {
+    return this.estilosPorColumna[nombre]?.boton || this.estilosPorColumna['default'].boton;
+  }
+  getPriorityBadgeClass(priority: string): string {
+    switch (priority) {
+      case 'Alta':
+        return 'ml-auto badge badge-error w-fit animate-bounce animate-duration-1000';
+      case 'Media':
+        return 'ml-auto badge badge-warning w-fit';
+      case 'Baja':
+        return 'ml-auto badge badge-success w-fit';
+      default:
+        return 'ml-auto badge badge-neutral w-fit';
+    }
+  }
+  getButtonClasses(view: string) {
+    return {
+      'border-primary text-primary font-semibold ring-2 ring-primary/30': this.viewMode === view,
+    };
+  }
+
+
+  getEtiquetaNombre(id: number): string {
+    return this.etiquetasUnicas.find(e => e.id === id)?.nombre ?? 'Sin nombre';
+  }
+
+  getEtiquetaColor(id: number): string {
+    return this.etiquetasUnicas.find(e => e.id === id)?.color ?? '#666';
+  }
+
+  getNombreResponsables(users?: User[]): string {
+    if (!users || users.length === 0) return '';
+    return users.map(u => `${u.nombre} ${u.apellido}`).join(', ');
+  }
+
+  // Función para obtener los nombres de las etiquetas asociadas a una tarea
+  getNombresEtiquetas(etiquetas: any[]): string[] {
+    if (!etiquetas || etiquetas.length === 0) return [];
+
+    return etiquetas
+      .map(e => {
+        // Accede al campo 'etiqueta' y luego toma su 'nombre'
+        return e.etiqueta ? e.etiqueta.nombre : '';
+      })
+      .filter(nombre => nombre); // Filtra cualquier cadena vacía
+  }
+
+  drop(event: CdkDragDrop<Task[]>) {
+    const prevTasks = event.previousContainer.data;
+    const currTasks = event.container.data;
+
+    const task = prevTasks[event.previousIndex];
+    const cambioDeColumna = event.previousContainer.id !== event.container.id;
+
+    if (!cambioDeColumna) {
+      // Reordenamiento dentro de la misma columna
+      moveItemInArray(currTasks, event.previousIndex, event.currentIndex);
+      this.reordenarDentroMismaColumna(event.container.id, currTasks);
+    } else {
+      // Cambio de columna
+      const nuevoEstadoId = Number(event.container.id);
+
+      // 1. Actualiza localmente antes de enviar al backend
+      task.estadoId = nuevoEstadoId;
+
+      // 2. Transfiere la tarea visualmente
+      transferArrayItem(prevTasks, currTasks, event.previousIndex, event.currentIndex);
+
+      // 3. Enviar al backend el cambio
+      this.boardService.updateTask(task.id, {
+        estadoId: nuevoEstadoId,
+        posicion: event.currentIndex
+      }).subscribe({
+        next: () => {
+          // 4. Reordenar tareas en la columna nueva
+          this.reordenarDentroMismaColumna(event.container.id, currTasks);
+          this.cdr.detectChanges();
+        },
+        error: err => {
+          console.error('Error al mover tarea:', err);
+
+          // Opción: volver a mover la tarea a su lugar original si falla
+          transferArrayItem(currTasks, prevTasks, event.currentIndex, event.previousIndex);
+
+          this.cdr.detectChanges(); // Forzar la detección de cambios en caso de error
+        }
+      });
+    }
+  }
+  onDragStarted() {
+    this.hoveredTaskId = null;
+  }
+  onDragEnded() {
+    this.hoveredTaskId = null;
+  }
+  onTaskHover(taskId: string) {
+    this.hoveredTaskId = taskId;
+    if (this.timeoutId) clearTimeout(this.timeoutId);
+    this.timeoutId = setTimeout(() => {
+      if (this.hoveredTaskId === taskId) this.hoveredTaskId = null;
+    }, 3000);
+  }
+  onTaskHoverLeave(taskId: string) {
+    if (this.hoveredTaskId === taskId) this.hoveredTaskId = null;
+  }
+  reordenarDentroMismaColumna(containerId: string, tasks: Task[]) {
+    tasks.forEach((t, idx) => {
+      if (t.posicion !== idx) {
+        this.boardService.updateTask(t.id, { posicion: idx }).subscribe({
+          next: () => {
+            t.posicion = idx;
+            this.cdr.detectChanges();  // Esto asegura que Angular detecte el cambio.
+          },
+          error: e => console.error('Error al reordenar tarea:', e)
+        });
+      }
+    });
+  }
+
+  get categoriasIds(): string[] {
+    return this.CategoriasK.map(cat => cat.id);
+  }
+
 
   setViewMode(mode: 'kanban' | 'list' | 'assigned') {
     if (this.viewMode === mode) return;
-
     this.viewMode = mode;
-
-    // Espera a que Angular actualice el DOM
     setTimeout(() => {
-      this.cdr.detectChanges(); // fuerza renderizado inmediato
-
-      // Aplica animación solo al contenedor correspondiente
+      this.cdr.detectChanges();
       if (mode === 'kanban') this.applyAnimation(this.kanbanContainer);
       if (mode === 'list') this.applyAnimation(this.listContainer);
       if (mode === 'assigned') this.applyAnimation(this.assignedContainer);
     });
   }
 
-
-
-
-  /*
-  // Puedes dejar esto comentado por ahora:
-  // metodo para verificar si la vista actual es assigned
-  get isAssignedView() {
-    return this.viewMode === 'assigned';
-  }
-  */
-
-
-  getPriorityBadgeClass(priority: string): string {
-    switch (priority) {
-      case 'Alta':
-        return 'ml-auto badge badge-error w-fit animate-bounce animate-duration-1000';
-      case 'Media':
-        return 'ml-auto badge badge-warning w-fit';   // sin animación
-      case 'Baja':
-        return 'ml-auto badge badge-success w-fit';   // sin animación
-      default:
-        return 'ml-auto badge badge-neutral w-fit';   // sin animación
-    }
+  private applyAnimation(ref?: ElementRef) {
+    if (!ref) return;
+    const el = ref.nativeElement as HTMLElement;
+    el.classList.remove('fade-slide-in');
+    void el.offsetWidth;
+    el.classList.add('fade-slide-in');
   }
 
-  getCategoryClasses(categoryName: string): string {
-    switch (categoryName) {
-      case 'Sin empezar':
-        return 'bg-slate-900/10 text-slate-400';  // muy tenue y texto gris claro
-      case 'Por hacer':
-        return 'bg-sky-900/10 text-sky-400';     // azul muy suave con texto azul claro
-      case 'Hecho':
-        return 'bg-green-900/10 text-green-400'; // verde muy suave con texto verde claro
-      default:
-        return 'bg-base-200 text-base-content';
-    }
-  }
-
-  getCardColorClass(nombre: string): string {
-    switch (nombre) {
-      case 'Sin empezar':
-        return 'bg-slate-900/20 text-slate-300';  // Fondo oscuro gris tenue, texto gris claro
-      // Otras opciones para 'Sin empezar':
-      // return 'bg-slate-800/30 text-slate-200'; 
-      // return 'bg-gray-900/25 text-gray-300';
-
-      case 'Por hacer':
-        return 'bg-sky-900/20 text-sky-300';      // Fondo azul oscuro tenue, texto azul claro
-      // Otras opciones para 'Por hacer':
-      // return 'bg-sky-800/30 text-sky-200';
-
-      case 'Hecho':
-        return 'bg-green-900/20 text-green-300';  // Fondo verde oscuro tenue, texto verde claro
-      // Otras opciones para 'Hecho':
-      // return 'bg-green-800/30 text-green-200';
-      // return 'bg-emerald-900/20 text-emerald-300';
-      // return 'bg-teal-900/20 text-teal-300';
-
-      default:
-        return 'bg-base-100 text-base-content';
-    }
-  }
-
-  getButtonColorClass(nombre: string): string {
-    switch (nombre) {
-      case 'Sin empezar':
-        return 'bg-slate-700/50 text-white hover:bg-slate-700/70'; // fondo oscuro y semi-transparente
-      case 'Por hacer':
-        return 'bg-sky-700/50 text-white hover:bg-sky-700/70';
-      case 'Hecho':
-        return 'bg-green-700/50 text-white hover:bg-green-700/70';
-      default:
-        return 'btn-outline btn-primary';
-    }
-  }
-
-  // Clases para el fondo de cada columna
-  getColumnColorClass(nombre: string): string {
-    switch (nombre) {
-      case 'Sin empezar':
-        return 'bg-slate-900/10';   // fondo muy tenue oscuro
-      case 'Por hacer':
-        return 'bg-sky-900/10';
-      case 'Hecho':
-        return 'bg-green-900/10';
-      default:
-        return 'bg-gray-700/10';
-    }
-  }
-
-  // Clases para el fondo de cada tarea
-  getTaskBackgroundClass(nombre: string): string {
-    switch (nombre) {
-      case 'Sin empezar':
-        return 'bg-slate-900/20';
-      case 'Por hacer':
-        return 'bg-sky-900/20';
-      case 'Hecho':
-        return 'bg-green-900/20';
-      default:
-        return 'bg-gray-700/20';
-    }
-  }
-
-  // Clases para el color del texto del título de columna
-  getTextColorClass(nombre: string): string {
-    switch (nombre) {
-      case 'Sin empezar':
-        // Opciones de gris
-        // return 'text-slate-400';  // gris azulado suave
-        // return 'text-gray-400';   // gris neutro medio
-        // return 'text-zinc-400';   // gris ligeramente cálido
-        // return 'text-neutral-400'; // gris neutral
-
-        // Opciones con colores suaves
-        // return 'text-indigo-400'; // azul suave
-        // return 'text-purple-400'; // morado suave
-
-        // Ejemplo escogido:
-        return 'text-slate-400';
-
-      case 'Por hacer':
-        // Opciones azules
-        // return 'text-sky-400';   // azul cielo suave (actual)
-        // return 'text-blue-400';  // azul clásico
-        // return 'text-indigo-400';// azul un poco más morado
-
-        // Ejemplo escogido:
-        return 'text-sky-400';
-
-      case 'Hecho':
-        // Opciones verdes
-        // return 'text-green-400';   // verde medio (actual)
-        // return 'text-emerald-400'; // verde brillante
-        // return 'text-teal-400';    // verde azulado
-
-        // Ejemplo escogido:
-        return 'text-green-400';
-
-      default:
-        // Opciones de gris para valores no definidos
-        // return 'text-gray-300';
-        return 'text-gray-300';
-    }
-  }
-  /*
-  hoveredListId: string | null = null;
-  timeoutId: any = null;
-
-  onMouseEnterList(listId: string) {
-    this.hoveredListId = listId;
-
-    if (this.timeoutId) {
-      clearTimeout(this.timeoutId);
-    }
-
-    this.timeoutId = setTimeout(() => {
-      if (this.hoveredListId === listId) {
-        this.hoveredListId = null;
-      }
-    }, 3000);
-  }
-
-  onMouseLeaveList(listId: string) {
-    if (this.hoveredListId === listId) {
-      this.hoveredListId = null;
-    }
-
-    if (this.timeoutId) {
-      clearTimeout(this.timeoutId);
-      this.timeoutId = null;
-    }
-  }
-  */
-  hoveredTaskId: string | null = null;
-  timeoutId: any;
-
-  onTaskHover(taskId: string) {
-    this.hoveredTaskId = taskId;
-    if (this.timeoutId) {
-      clearTimeout(this.timeoutId);
-    }
-    this.timeoutId = setTimeout(() => {
-      if (this.hoveredTaskId === taskId) {
-        this.hoveredTaskId = null;
-      }
-    }, 3000); // 3 segundos para que desaparezca el borde
-  }
-
-  onTaskHoverLeave(taskId: string) {
-    if (this.hoveredTaskId === taskId) {
-      this.hoveredTaskId = null;
-    }
-  }
-
-
-
-  // Filtros para la vista LISTA (solo frontend, prototipo con pocos datos)
-  // Cuando se implemente backend (Prisma + PostgreSQL), esta función se debe cambiar
-  // para hacer la consulta con filtros directamente en el servidor y así optimizar recursos.
-
-  // Filtros
-  public filtroResponsable: string = '';
-  public filtroPrioridad: string = '';
-  public textoFiltro: string = '';
-
-  // Listas únicas
-  public responsablesUnicos: string[] = [];
-  public prioridadesUnicas: string[] = [];
-
-  public mostrarPanelFiltros: boolean = false;
-
-  ngOnInit() {
-    this.generarListaResponsables();
-    this.generarListaPrioridades();
-  }
-
-  private generarListaPrioridades(): void {
+  // Filtros & listas auxiliares
+  private generarListaResponsables() {
     const set = new Set<string>();
-    this.CategoriasK.forEach(cat => {
-      cat.tasks.forEach(task => set.add(task.priority));
+    // Creamos un set con los IDs únicos de los responsables
+    this.CategoriasK.forEach(cat =>
+      cat.tasks.forEach(task => {
+        (task.assignee ?? []).forEach(u => set.add(u.id)); // Agregamos solo los IDs
+      })
+    );
+
+    // Generamos responsablesUnicos solo con los IDs (como se esperaba en el filtro)
+    this.responsablesUnicos = Array.from(set);
+
+    // Creamos una lista con los detalles completos de los responsables
+    const responsablesDetalles = Array.from(set).map(id => {
+      // Aquí comparamos con `usuarioId` en lugar de `usuario.id`
+      const usuario = this.miembrosDelProyecto.find(m => m.usuarioId === id);
+      if (usuario) {
+        return { id: usuario.usuario.id, nombre: usuario.usuario.nombre, apellido: usuario.usuario.apellido };
+      }
+      // Si no lo encontramos, lo agregamos como desconocido
+      return { id, nombre: 'Desconocido', apellido: '' };
     });
+
+  }
+
+  private generarListaPrioridades() {
+    const set = new Set<string>();
+
+    // Iteramos sobre las categorías y tareas para obtener las prioridades únicas
+    this.CategoriasK.forEach(cat => {
+      cat.tasks.forEach(task => {
+        if (task.etiquetas && Array.isArray(task.etiquetas)) {
+          task.etiquetas.forEach(etiqueta => {
+            if (etiqueta.nombre) {
+              set.add(etiqueta.nombre);
+            }
+          });
+        }
+      });
+    });
+
+    // Convertimos el Set a un array con las prioridades únicas
     this.prioridadesUnicas = Array.from(set);
   }
 
-  private generarListaResponsables(): void {
-    const set = new Set<string>();
-    this.CategoriasK.forEach(cat => {
-      cat.tasks.forEach(task => task.assignee.forEach(persona => set.add(persona)));
-    });
-    this.responsablesUnicos = Array.from(set);
+
+  // Filtro de tareas usando funciones de Array más eficientes
+  get tareasFiltradas() {
+    return this.CategoriasK.flatMap(cat =>
+      cat.tasks
+        .filter(task => {
+          // Filtrar por responsable
+          const cumpleResp = !this.filtroResponsable || task.assignee?.some(u => u.id === this.filtroResponsable);
+          // Filtrar por texto (título o descripción)
+          const cumpleText =
+            !this.textoFiltro ||
+            (task.title?.toLowerCase().includes(this.textoFiltro.toLowerCase()) ?? false)
+
+          // El task debe cumplir con todos los filtros para ser incluido
+          return cumpleResp && cumpleText;
+        })
+        .map(task => ({ tarea: task, categoria: cat.nombre }))
+    );
   }
 
-  // Getter con filtros
-  public get tareasFiltradas() {
-    const tareasFiltradas: { tarea: Task; categoria: string }[] = [];
-
-    this.CategoriasK.forEach(cat => {
-      cat.tasks.forEach(task => {
-        const cumpleResponsable =
-          !this.filtroResponsable || task.assignee.includes(this.filtroResponsable);
-        const cumplePrioridad = !this.filtroPrioridad || task.priority === this.filtroPrioridad;
-        const cumpleTexto =
-          !this.textoFiltro ||
-          task.title.toLowerCase().includes(this.textoFiltro.toLowerCase()) ||
-          task.description.toLowerCase().includes(this.textoFiltro.toLowerCase());
-
-        if (cumpleResponsable && cumplePrioridad && cumpleTexto) {
-          tareasFiltradas.push({ tarea: task, categoria: cat.nombre });
-        }
-      });
-    });
-
-    return tareasFiltradas;
+  get tareasAsignadasFiltradas() {
+    return this.CategoriasK.flatMap(cat =>
+      cat.tasks
+        .filter(task => task.assignee?.some(u => u.id === this.currentUser)) // Solo tareas asignadas al usuario actual
+        .filter(task => !this.filtroTitulo || (task.title?.toLowerCase().includes(this.filtroTitulo.toLowerCase()) ?? false))
+        .map(task => ({ tarea: task, categoria: cat.nombre }))
+    );
   }
 
   public limpiarFiltros(): void {
-    this.filtroResponsable = '';
+    this.filtroTitulo = '';
     this.filtroPrioridad = '';
-    this.textoFiltro = '';
+    this.filtroResponsable = '';
+    this.filtroEtiquetas = '';
   }
 
-
-
-
-  // FILTRO X TITULO
-  public filtroTituloAsignadas: string = '';
-
-  public get tareasAsignadasFiltradas() {
-    const tareas: { tarea: Task; categoria: Categoria }[] = [];
-
-
-    this.CategoriasK.forEach(categoria => {
-      categoria.tasks.forEach(tarea => {
-        if (tarea.assignee.includes(this.currentUser)) {
-          if (!this.filtroTituloAsignadas || tarea.title.toLowerCase().includes(this.filtroTituloAsignadas.toLowerCase())) {
-            tareas.push({ tarea, categoria });
-          }
-        }
-      });
-    });
-
-    return tareas;
-  }
-
-  public mostrarPanelFiltroTituloAsignadas = false;
-
-
-  // TAREA ASIGNADA
-
-
-  public filtroTitulo: string = '';
-  public mostrarPanelFiltroTitulo: boolean = false;
-
-  @ViewChild('thTitulo') thTitulo!: ElementRef;
-
-  // Alterna mostrar/ocultar filtro
   toggleFiltroTitulo() {
     this.mostrarPanelFiltroTitulo = !this.mostrarPanelFiltroTitulo;
   }
 
-  // Limpia filtro y oculta panel
   limpiarFiltroTitulo() {
     this.filtroTitulo = '';
     this.mostrarPanelFiltroTitulo = false;
   }
 
-  // Aquí iría la lógica para filtrar basado en filtroTitulo si la tienes
-  aplicarFiltroTitulo() {
-    // Puede ser solo binding, o llamada a función de filtrado
+  // Modal de Crear Tarea
+  abrirModal(categoria: Categoria) {
+    this.categoriaSeleccionadaForModal = categoria;
+    this.newTask = {
+      titulo: '',
+      fechaLimite: '',
+      responsablesIds: [],
+      etiquetaIds: [],
+      estadoId: Number(categoria.id),
+      proyectoId: this.proyectoIdActual,
+      bloquesContenido: []
+    };
+
+    const modal = document.getElementById('modalNuevaTarea') as HTMLDialogElement;
+    modal?.showModal();
   }
 
-  // Detectar clicks fuera del filtro para cerrarlo automáticamente
+  cerrarModal() {
+    const modal = document.getElementById('modalNuevaTarea') as HTMLDialogElement;
+    modal?.close();
+    this.newTask = {
+      titulo: '',
+      fechaLimite: '',
+      responsablesIds: [],
+      etiquetaIds: [],
+      estadoId: 0,
+      proyectoId: '',
+      bloquesContenido: []
+    };
+    this.categoriaSeleccionadaForModal = null;
+  }
+
+  crearTarea() {
+    if (!this.categoriaSeleccionadaForModal) {
+      console.error('No hay categoría seleccionada para nueva tarea');
+      return;
+    }
+
+    if (!this.newTask.titulo || !this.newTask.titulo.trim()) {
+      alert('El título es obligatorio');
+      return;
+    }
+
+    const estadoId = Number(this.categoriaSeleccionadaForModal.id);
+
+    // Validamos IDs de responsables seleccionados
+    const responsablesArr = this.newTask.responsablesIds.filter(id => !!id);
+
+    // Obtener proyectoId de contexto o fallback
+    const proyectoId =
+      this.CategoriasK.find(cat => cat.tasks.length > 0)?.tasks[0].proyectoId ?? '123';
+
+    const fechaLimiteISO = this.newTask.fechaLimite && this.newTask.fechaLimite.trim()
+      ? new Date(this.newTask.fechaLimite).toISOString()
+      : undefined;
+
+
+    // Payload alineado con backend, ahora incluye etiquetas
+    const payload = {
+      titulo: this.newTask.titulo,
+      estadoId,
+      posicion: this.categoriaSeleccionadaForModal.tasks.length,
+      proyectoId,
+      responsablesIds: responsablesArr,
+      fechaLimite: fechaLimiteISO,
+      bloquesContenido: [],
+      etiquetaIds: this.newTask.etiquetaIds,
+    };
+
+
+    this.boardService.createTask(payload).subscribe({
+      next: (tareaNueva) => {
+        console.log('AAAAAAAAAAAA', this.newTask)
+        // Mapear responsables para UI
+        const responsablesParaUI = responsablesArr.map(id => {
+          const miembro = this.miembrosDelProyecto.find(m => m.usuario.id === id);
+          return miembro ? miembro.usuario : { id, nombre: 'Desconocido', apellido: '', email: '' };
+        });
+
+        const task: Task = {
+          ...tareaNueva,
+          assignee: responsablesParaUI,  // Responsables completos
+          etiquetas: tareaNueva.etiquetas ?? [], // Etiquetas desde backend
+          bloquesContenido: tareaNueva.bloquesContenido ?? [],
+          title: tareaNueva.titulo ?? '',      // Para UI
+          dueDate: tareaNueva.fechaLimite ?? '', // Para UI
+          // priority removido porque no existe en backend ni UI aquí
+        };
+
+        if (this.categoriaSeleccionadaForModal) {
+          this.categoriaSeleccionadaForModal.tasks.push(task);
+          this.categoriaSeleccionadaForModal.tasks.sort((a, b) => (a.posicion ?? 0) - (b.posicion ?? 0));
+        }
+
+        // Actualizar listas de UI
+        this.generarListaResponsables();
+        this.generarListaPrioridades();
+        this.cdr.detectChanges();
+        this.cerrarModal();
+      },
+      error: err => {
+        console.error('Error creando tarea:', err);
+        alert('Ocurrió un error al crear la tarea');
+      }
+    });
+  }
+
   @HostListener('document:click', ['$event'])
   clickFuera(event: Event) {
     if (!this.mostrarPanelFiltroTitulo) return;
-
-    // Si el click NO está dentro del thTitulo o el panel de filtro, ocultar panel
-    const clickedInsideTitulo = this.thTitulo.nativeElement.contains(event.target);
-    if (!clickedInsideTitulo) {
+    const clickedInside = this.thTitulo.nativeElement.contains(event.target);
+    if (!clickedInside) {
       this.mostrarPanelFiltroTitulo = false;
     }
   }
 
+  isOverdue(dateStr: string | undefined): boolean {
+    if (!dateStr) return false;
 
-  // NUEVO ESTILO, (AUN NO LO APLICO AL HTML)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // poner horas a 00:00:00
 
-  textoBusqueda = '';  // Para el input de búsqueda
+    const taskDate = new Date(dateStr);
+    taskDate.setHours(0, 0, 0, 0); // quitar horas
 
-  buscarTareas() {
-    // Lógica para filtrar tareas globalmente
-    // O simplemente lanzar un filtro de texto en la vista actual
-    console.log('Buscando:', this.textoBusqueda);
+    return taskDate < today;
   }
 
-  abrirModalNuevaTarea() {
-    // Mostrar un modal o panel lateral para crear tarea
-    console.log('Abrir modal de nueva tarea');
+  isDueSoon(dateStr: string | undefined): boolean {
+    if (!dateStr) return false;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const taskDate = new Date(dateStr);
+    taskDate.setHours(0, 0, 0, 0);
+
+    const diffInMs = taskDate.getTime() - today.getTime();
+    const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
+
+    return diffInDays >= 0 && diffInDays <= 1; // hoy o mañana
   }
+
+  formatDate(date: string): string {
+    if (!date) return 'Sin fecha';
+    const newDate = new Date(date);
+    const day = newDate.getDate().toString().padStart(2, '0');
+    const month = (newDate.getMonth() + 1).toString().padStart(2, '0');
+    const year = newDate.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
+
+  filtroEtiquetas: number | string = ''; // Filtro para las etiquetas, ya que se filtra por ID de etiqueta
+
+  // Valores de los filtros
+
+  // Get dinámico del contador de filtros activos
+  get contadorFiltros(): number {
+    let contador = 0;
+
+    if (this.filtroTitulo.trim() !== '') contador++;
+    if (this.filtroPrioridad !== '') contador++;
+    if (this.filtroResponsable !== '') contador++;
+    if (this.filtroEtiquetas !== '') contador++;
+
+    return contador;
+  }
+
+  // En tu componente
+  eliminarTarea(taskId: string): void {
+    if (confirm('¿Estás seguro de que deseas eliminar esta tarea?')) {
+      this.boardService.deleteTask(taskId).subscribe(
+        () => {
+          console.log('Tarea eliminada');
+          // Buscar en todas las categorías y eliminar la tarea
+          this.CategoriasK.forEach(categoria => {
+            categoria.tasks = categoria.tasks.filter(task => task.id !== taskId);
+          });
+          // También es recomendable actualizar las listas de filtros y responsables
+          this.generarListaResponsables();
+          this.generarListaPrioridades();
+          this.cdr.detectChanges();  // Asegura que Angular detecte los cambios
+        },
+        (error) => {
+          alert('Error al eliminar la tarea.');
+          console.error(error);
+        }
+      );
+    }
+  }
+
+  editarTarea(taskId: string) {
+    // Lógica para abrir el modal o ventana de edición
+    console.log('Editar tarea con ID:', taskId);
+    // Puedes agregar aquí la lógica que desees para editar la tarea.
+  }
+
+
 
 
 }

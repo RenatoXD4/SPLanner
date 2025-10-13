@@ -1,10 +1,9 @@
-
 import { Component } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { FormButton } from '../../../shared/ui/buttons/form-button/form-button';
 import { RegistroService } from '../services/register-service';
-
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-registro',
@@ -14,10 +13,13 @@ import { RegistroService } from '../services/register-service';
 })
 export class Registro {
 
-  // Inyectar el servicio
-  constructor(public registroService: RegistroService) {}
+  showPassword: boolean = false;
+  showSuccessPopup: boolean = false;
+  isRedirecting: boolean = false;
 
-  // Métodos que delegan al servicio
+  // Inyectar el servicio
+  constructor(public registroService: RegistroService, private router: Router) {}
+
   get userForm() {
     return this.registroService.userForm;
   }
@@ -63,7 +65,28 @@ export class Registro {
   }
 
   onRegister(): void {
-    console.log("Click en registrarse");
-    this.handleSubmit();
+    this.registroService.registerUser().subscribe({
+      next: (response) => {
+        console.log('Registro exitoso:', response);
+         this.router.navigate(['/Menu']);
+      },
+      error: (error) => {
+        console.error('Error en el registro:', error);
+      }
+    });
+  }
+
+  togglePasswordVisibility() {
+    this.showPassword = !this.showPassword;
+  }
+
+  // Método para verificar si está cargando
+  get isLoading() {
+    return this.registroService.isLoading();
+  }
+
+  // Método para verificar si hay error general
+  get errorMessage() {
+    return this.registroService.errorMessage();
   }
 }

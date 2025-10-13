@@ -1,0 +1,36 @@
+
+services:
+    # Servicio de la Base de Datos Postgres
+  db:
+    image: postgres:17.6-trixie
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: SPlanner
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432" # Opcional: para conectar desde tu máquina local
+  backend:
+    build: ./backend  # Le dice a Compose que construya la imagen desde la carpeta 'backend'
+    restart: always
+    ports:
+      - "9001:9001"
+    depends_on:
+      - db
+    environment:
+      # Aquí inyectamos la URL de la base de datos que Prisma necesita
+      DATABASE_URL: ${DATABASE_URL}
+    
+    command: sh -c "npx prisma migrate deploy && node dist/index.js"
+
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "80:80"      
+    depends_on:
+      - backend      
+volumes:
+  postgres_data:

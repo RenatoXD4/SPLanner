@@ -1,0 +1,514 @@
+<div class="flex h-screen bg-gray-900">
+  <!-- Sidebar -->
+  <app-sidebar></app-sidebar>
+
+  <!-- Contenido principal -->
+  <div class="flex-1 flex flex-col overflow-hidden">
+    <!-- Header -->
+    <header class="bg-gray-800 border-b border-gray-700">
+      <div class="flex items-center justify-between px-6 py-4">
+        <div class="flex items-center space-x-4">
+          <h1 class="text-2xl font-bold text-white">Home</h1>
+          <div class="text-gray-400 text-sm">
+            @if (dashboardData) {
+            Bienvenido de vuelta, {{dashboardData.userInfo.nombre}}
+            } @else {
+            Bienvenido de vuelta
+            }
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-4">
+          <!-- Notificaciones -->
+          <button class="relative p-2 text-gray-400 hover:text-white transition-colors">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M15 17h5l-5 5v-5zM10.24 8.56a5.97 5.97 0 01-4.66-6.24M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span class="absolute top-0 right-0 w-2 h-2 bg-green-500 rounded-full"></span>
+          </button>
+
+          <!-- Perfil del usuario -->
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+              <span class="text-white font-semibold">
+                @if (dashboardData) {
+                {{dashboardData.userInfo.nombre.charAt(0)}}
+                } @else {
+                U
+                }
+              </span>
+            </div>
+            <div class="text-left">
+              @if (dashboardData) {
+              <p class="text-white text-sm font-medium">{{dashboardData.userInfo.nombre}}
+                {{dashboardData.userInfo.apellido}}</p>
+              } @else {
+              <p class="text-white text-sm font-medium">Usuario</p>
+              }
+              <p class="text-gray-400 text-xs">Administrador</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Contenido del dashboard -->
+    <main class="flex-1 overflow-y-auto p-6">
+      @if (loading) {
+      <div class="flex items-center justify-center h-64">
+        <div class="text-white text-lg">Cargando datos del dashboard...</div>
+      </div>
+      } @else if (error) {
+      <div class="flex items-center justify-center h-64">
+        <div class="text-red-400 text-lg">{{error}}</div>
+      </div>
+      } @else if (dashboardData) {
+      <!-- Estadísticas principales -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Total de Proyectos -->
+        <div
+          class="bg-gray-800 rounded-2xl p-6 border border-gray-700 hover:border-green-500 transition-all duration-300">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-400 text-sm">Total Proyectos</p>
+              <p class="text-3xl font-bold text-white mt-2">{{dashboardData.stats.totalProjects}}</p>
+            </div>
+            <div class="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center">
+              <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+              </svg>
+            </div>
+          </div>
+          <div class="flex items-center mt-4">
+            <span class="text-green-500 text-sm flex items-center">
+              <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+              </svg>
+              Activos
+            </span>
+          </div>
+        </div>
+
+        <!-- Total de Tareas -->
+        <div
+          class="bg-gray-800 rounded-2xl p-6 border border-gray-700 hover:border-green-500 transition-all duration-300">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-400 text-sm">Total Tareas</p>
+              <p class="text-3xl font-bold text-white mt-2">{{dashboardData.stats.totalTasks}}</p>
+            </div>
+            <div class="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center">
+              <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+            </div>
+          </div>
+          <div class="flex items-center mt-4">
+            <span class="text-green-500 text-sm flex items-center">
+              <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+              </svg>
+              En el sistema
+            </span>
+          </div>
+        </div>
+
+        <!-- Tareas Pendientes -->
+        <div
+          class="bg-gray-800 rounded-2xl p-6 border border-gray-700 hover:border-green-500 transition-all duration-300">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-400 text-sm">Pendientes</p>
+              <p class="text-3xl font-bold text-white mt-2">{{dashboardData.stats.pendingTasks}}</p>
+            </div>
+            <div class="w-12 h-12 bg-yellow-500/20 rounded-xl flex items-center justify-center">
+              <svg class="w-6 h-6 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+          </div>
+          <div class="flex items-center mt-4">
+            <span class="text-yellow-500 text-sm">Por completar</span>
+          </div>
+        </div>
+
+        <!-- Tareas Completadas -->
+        <div
+          class="bg-gray-800 rounded-2xl p-6 border border-gray-700 hover:border-green-500 transition-all duration-300">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-400 text-sm">Completadas</p>
+              <p class="text-3xl font-bold text-white mt-2">{{dashboardData.stats.completedTasks}}</p>
+            </div>
+            <div class="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center">
+              <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+          </div>
+          <div class="flex items-center mt-4">
+            <span class="text-green-500 text-sm">{{dashboardData.stats.completionPercentage}}% completado</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Información del usuario y proyectos recientes -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Información del usuario -->
+        <div class="lg:col-span-1">
+          <div class="bg-gray-800 rounded-2xl p-6 border border-gray-700">
+            <h2 class="text-xl font-bold text-white mb-6">Mi Información</h2>
+
+            <div class="space-y-4">
+              <div class="flex items-center space-x-4">
+                <div class="w-16 h-16 bg-green-500 rounded-xl flex items-center justify-center">
+                  <span class="text-white text-xl font-bold">{{dashboardData.userInfo.nombre.charAt(0)}}</span>
+                </div>
+                <div>
+                  <h3 class="text-white font-semibold">{{dashboardData.userInfo.nombre}}
+                    {{dashboardData.userInfo.apellido}}</h3>
+                  <p class="text-gray-400 text-sm">{{dashboardData.userInfo.email}}</p>
+                  <p class="text-green-500 text-sm">
+                    Miembro desde {{formatDate(dashboardData.userInfo.createdAt)}}
+                  </p>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-4 pt-4 border-t border-gray-700">
+                <div class="text-center">
+                  <p class="text-gray-400 text-sm">Proyectos Activos</p>
+                  <p class="text-white font-bold text-lg">{{dashboardData.stats.totalProjects}}</p>
+                </div>
+                <div class="text-center">
+                  <p class="text-gray-400 text-sm">Tareas Mías</p>
+                  <p class="text-white font-bold text-lg">{{dashboardData.stats.userResponsibleTasks}}</p>
+                </div>
+              </div>
+
+              <button (click)="openEditModal()"
+                class="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-semibold transition-colors mt-4">
+                Editar Perfil
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Proyectos recientes y actividad -->
+        <div class="lg:col-span-2">
+          <div class="bg-gray-800 rounded-2xl p-6 border border-gray-700">
+            <div class="flex justify-between items-center mb-6">
+              <h2 class="text-xl font-bold text-white">Proyectos Recientes</h2>
+              <button class="text-green-500 hover:text-green-400 text-sm font-semibold transition-colors">
+                Ver todos
+              </button>
+            </div>
+
+            <div class="space-y-4">
+              @for (project of dashboardData.recentProjects; track project.id) {
+              <div
+                class="flex items-center justify-between p-4 bg-gray-700/50 rounded-xl hover:bg-gray-700 transition-colors">
+                <div class="flex items-center space-x-4">
+                  <div class="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
+                    <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 class="text-white font-semibold">{{project.nombre}}</h3>
+                    <p class="text-gray-400 text-sm">{{project.totalTareas}} tareas • {{project.porcentajeCompletado}}%
+                      completado</p>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <p [class]="getProjectStatusClass(project.porcentajeCompletado) + ' text-sm font-semibold'">
+                    {{getProjectStatusText(project.porcentajeCompletado)}}
+                  </p>
+                  <p class="text-gray-400 text-xs">Creado {{project.createdAt | date:'dd/MM/yy'}}</p>
+                </div>
+              </div>
+              } @empty {
+              <div class="text-center py-8">
+                <p class="text-gray-400">No hay proyectos recientes</p>
+              </div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+      }
+    </main>
+  </div>
+  <!-- Modal de Edición de Perfil -->
+  @if (showEditModal) {
+  <div class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div
+      class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl w-full max-w-md border border-gray-700 shadow-2xl">
+      <!-- Header con gradiente -->
+      <div class="bg-gradient-to-r from-gray-800 to-gray-700 rounded-t-2xl p-6 border-b border-gray-600">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <div
+              class="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
+              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            </div>
+            <div>
+              <h2 class="text-xl font-bold text-white">Editar Perfil</h2>
+              <p class="text-gray-400 text-sm">Actualiza tu información personal</p>
+            </div>
+          </div>
+          <button (click)="closeEditModal()"
+            class="w-8 h-8 bg-gray-700 hover:bg-gray-600 rounded-lg flex items-center justify-center transition-all duration-200 hover:scale-110">
+            <svg class="w-4 h-4 text-gray-400 hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Form -->
+      <form (ngSubmit)="updateProfile()" class="p-6 space-y-6">
+        <!-- Campos de Información Personal -->
+        <div class="space-y-4">
+          <h3 class="text-lg font-semibold text-white flex items-center space-x-2">
+            <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            <span>Información Personal</span>
+          </h3>
+
+          <!-- Nombre -->
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-gray-300">Nombre</label>
+            <div class="relative">
+              <input type="text" [(ngModel)]="editFormData.nombre" name="nombre"
+                class="w-full bg-gray-700/50 border border-gray-600 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 backdrop-blur-sm"
+                placeholder="Tu nombre">
+              <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Apellido -->
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-gray-300">Apellido</label>
+            <div class="relative">
+              <input type="text" [(ngModel)]="editFormData.apellido" name="apellido"
+                class="w-full bg-gray-700/50 border border-gray-600 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 backdrop-blur-sm"
+                placeholder="Tu apellido">
+              <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Botón para modificar contraseña -->
+        @if (!showPasswordFields) {
+        <div class="pt-2">
+          <button type="button" (click)="showChangePasswordFields()"
+            class="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-3 rounded-xl font-semibold transition-all duration-200 transform hover:scale-[1.02] shadow-lg flex items-center justify-center space-x-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+            </svg>
+            <span>Modificar Contraseña</span>
+          </button>
+        </div>
+        }
+
+        <!-- Campos de Nueva Contraseña -->
+        @if (showPasswordFields) {
+        <div class="space-y-4 pt-4 border-t border-gray-700">
+          <h3 class="text-lg font-semibold text-white flex items-center space-x-2">
+            <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            <span>Cambiar Contraseña</span>
+          </h3>
+
+          <!-- Nueva Contraseña -->
+          <div class="space-y-3">
+            <label class="block text-sm font-medium text-gray-300">Nueva Contraseña</label>
+            <div class="relative">
+              <input [type]="showNewPassword ? 'text' : 'password'" [(ngModel)]="editFormData.newPassword"
+                name="newPassword" (input)="validatePasswordStrength(editFormData.newPassword || '')"
+                class="w-full bg-gray-700/50 border border-gray-600 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 backdrop-blur-sm pr-12"
+                placeholder="Ingresa tu nueva contraseña">
+              <button type="button" (click)="toggleNewPassword()"
+                class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors p-1 rounded-lg hover:bg-gray-600/50">
+                @if (showNewPassword) {
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                </svg>
+                } @else {
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                }
+              </button>
+            </div>
+
+            <!-- Indicadores de fortaleza de contraseña -->
+            @if (editFormData.newPassword) {
+            <div class="bg-gray-700/30 rounded-xl p-4 space-y-3 backdrop-blur-sm">
+              <h4 class="text-sm font-medium text-gray-300">Requisitos de seguridad:</h4>
+              <div class="grid grid-cols-1 gap-2">
+                <div class="flex items-center space-x-3">
+                  <div class="w-2 h-2 rounded-full transition-all duration-300"
+                    [class]="passwordErrors.minLength ? 'bg-green-500 shadow-lg shadow-green-500/25' : 'bg-gray-500'">
+                  </div>
+                  <span class="text-xs transition-all duration-300"
+                    [class]="passwordErrors.minLength ? 'text-green-400' : 'text-gray-400'">Mínimo 8 caracteres</span>
+                </div>
+                <div class="flex items-center space-x-3">
+                  <div class="w-2 h-2 rounded-full transition-all duration-300"
+                    [class]="passwordErrors.hasUpperCase ? 'bg-green-500 shadow-lg shadow-green-500/25' : 'bg-gray-500'">
+                  </div>
+                  <span class="text-xs transition-all duration-300"
+                    [class]="passwordErrors.hasUpperCase ? 'text-green-400' : 'text-gray-400'">Una letra
+                    mayúscula</span>
+                </div>
+                <div class="flex items-center space-x-3">
+                  <div class="w-2 h-2 rounded-full transition-all duration-300"
+                    [class]="passwordErrors.hasLowerCase ? 'bg-green-500 shadow-lg shadow-green-500/25' : 'bg-gray-500'">
+                  </div>
+                  <span class="text-xs transition-all duration-300"
+                    [class]="passwordErrors.hasLowerCase ? 'text-green-400' : 'text-gray-400'">Una letra
+                    minúscula</span>
+                </div>
+                <div class="flex items-center space-x-3">
+                  <div class="w-2 h-2 rounded-full transition-all duration-300"
+                    [class]="passwordErrors.hasNumber ? 'bg-green-500 shadow-lg shadow-green-500/25' : 'bg-gray-500'">
+                  </div>
+                  <span class="text-xs transition-all duration-300"
+                    [class]="passwordErrors.hasNumber ? 'text-green-400' : 'text-gray-400'">Un número</span>
+                </div>
+                <div class="flex items-center space-x-3">
+                  <div class="w-2 h-2 rounded-full transition-all duration-300"
+                    [class]="passwordErrors.hasSpecialChar ? 'bg-green-500 shadow-lg shadow-green-500/25' : 'bg-gray-500'">
+                  </div>
+                  <span class="text-xs transition-all duration-300"
+                    [class]="passwordErrors.hasSpecialChar ? 'text-green-400' : 'text-gray-400'">Un carácter especial
+                    (@$!%*?&.)</span>
+                </div>
+              </div>
+            </div>
+            }
+          </div>
+
+          <!-- Confirmar Nueva Contraseña -->
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-gray-300">Confirmar Nueva Contraseña</label>
+            <div class="relative">
+              <input [type]="showConfirmPassword ? 'text' : 'password'" [(ngModel)]="confirmNewPassword"
+                name="confirmNewPassword"
+                class="w-full bg-gray-700/50 border border-gray-600 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 backdrop-blur-sm pr-12"
+                placeholder="Confirma tu nueva contraseña">
+              <button type="button" (click)="toggleConfirmPassword()"
+                class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors p-1 rounded-lg hover:bg-gray-600/50">
+                @if (showConfirmPassword) {
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                </svg>
+                } @else {
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                }
+              </button>
+            </div>
+          </div>
+
+          <!-- Botón para cancelar cambio de contraseña -->
+          <button type="button" (click)="cancelPasswordChange()"
+            class="w-full bg-gray-600/50 hover:bg-gray-500/50 text-white py-3 rounded-xl font-semibold transition-all duration-200 border border-gray-500 hover:border-gray-400 backdrop-blur-sm">
+            Cancelar Cambio de Contraseña
+          </button>
+        </div>
+        }
+
+        <!-- Mensajes de Estado -->
+        @if (editErrorMessage) {
+        <div class="bg-red-500/20 border border-red-500/50 rounded-xl p-4 backdrop-blur-sm animate-pulse">
+          <div class="flex items-center space-x-2">
+            <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p class="text-red-400 text-sm">{{ editErrorMessage }}</p>
+          </div>
+        </div>
+        }
+
+        @if (editSuccessMessage) {
+        <div class="bg-green-500/20 border border-green-500/50 rounded-xl p-4 backdrop-blur-sm">
+          <div class="flex items-center space-x-2">
+            <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p class="text-green-400 text-sm">{{ editSuccessMessage }}</p>
+          </div>
+        </div>
+        }
+
+        <!-- Botones principales -->
+        <div class="flex space-x-3 pt-4">
+          <button type="button" (click)="closeEditModal()"
+            class="flex-1 bg-gray-600/50 hover:bg-gray-500/50 text-white py-3 rounded-xl font-semibold transition-all duration-200 border border-gray-500 hover:border-gray-400 backdrop-blur-sm transform hover:scale-[1.02]">
+            Cancelar
+          </button>
+          <button type="submit" [disabled]="editLoading"
+            class="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 disabled:from-gray-600 disabled:to-gray-700 text-white py-3 rounded-xl font-semibold transition-all duration-200 transform hover:scale-[1.02] disabled:transform-none shadow-lg flex items-center justify-center space-x-2 disabled:cursor-not-allowed">
+            @if (!editLoading) {
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            <span>Guardar Cambios</span>
+            }
+            @if (editLoading) {
+            <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
+              viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+              </path>
+            </svg>
+            <span>Guardando...</span>
+            }
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+  }
+
+
+
+</div>

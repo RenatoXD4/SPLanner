@@ -10,7 +10,7 @@ import { CommonModule } from '@angular/common';
   templateUrl: './not-found.html',
   styleUrls: ['./not-found.css']
 })
-export class NotFoundComponent implements OnInit {
+export class NotFound implements OnInit {
   isImageVisible = false;
 
   constructor(

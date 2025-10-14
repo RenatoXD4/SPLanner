@@ -5,14 +5,14 @@ import { provideClientHydration, withEventReplay } from '@angular/platform-brows
 import { provideHttpClient, withFetch } from '@angular/common/http';  // importar withFetch
 
 
-import { APP_ROUTES } from './app.routes'; // ✅ aquí cambias "routes" por "APP_ROUTES"
+import { routes } from './app.routes';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideHttpClient(),
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
-    provideRouter(APP_ROUTES), // ✅ aquí también usas APP_ROUTES
+    provideRouter(routes),
     provideClientHydration(withEventReplay()),
     provideHttpClient(withFetch())  // activar fetch aquí
   ]

@@ -45,6 +45,32 @@ type TipoDeBloque = 'CHECKLIST' | 'CODE' | 'HEADING_1' | 'HEADING_2' | 'IMAGE' |
 
 export class KanbanRepository {
 
+    public async createDefaultEstados(proyectoId: string): Promise<void> {
+        const estadosPorDefecto = [
+            { nombre: "Sin empezar", posicion: 1 },
+            { nombre: "En proceso", posicion: 2 },
+            { nombre: "Finalizado", posicion: 3 }
+        ];
+
+        for (const estado of estadosPorDefecto) {
+            await prisma.estado.upsert({
+                create: {
+                    nombre: estado.nombre,
+                    posicion: estado.posicion,
+                    proyectoId
+                },
+                update: {},
+                where: {
+                    // Esto asume una clave única compuesta (nombre + proyectoId)
+                    nombre_proyectoId: {
+                        nombre: estado.nombre,
+                        proyectoId,
+                    }
+                }
+            });
+        }
+    }
+
     // Crear etiquetas por defecto (prioridades)                                    // RELACIONADO CON ETIQUETAS
     // Ahora necesita un proyectoId para asignar las etiquetas por defecto a un proyecto
     public async createDefaultPriorities(proyectoId: string): Promise<void> {
@@ -114,6 +140,7 @@ export class KanbanRepository {
         });
     }
 
+
     // Obtener estados del proyecto con tareas
     public async getEstadosByProyectoId(proyectoId: string) {
         if (!proyectoId.trim()) {
@@ -134,7 +161,6 @@ export class KanbanRepository {
             where: { proyectoId }
         });
     }
-
 
     // Obtener una etiqueta por ID    // Para evitar que un usuario acceda a etiquetas de otro proyecto, opcionalmente se puede recibir proyectoId y validar
     public async getEtiquetaById(id: number, proyectoId?: string): Promise<Etiqueta | null> {
@@ -237,7 +263,7 @@ export class KanbanRepository {
     }): Promise<TareaConRelaciones> {
         return prisma.tarea.create({
             data: {
-                BloqueContenido: data.bloquesContenido && data.bloquesContenido.length > 0
+                BloqueContenido: data.bloquesContenido?.length
                     ? {
                         create: data.bloquesContenido.map(bloque => ({
                             contenido: bloque.contenido,
@@ -246,21 +272,25 @@ export class KanbanRepository {
                         })),
                     }
                     : undefined,
+
                 estadoId: data.estadoId,
-                etiquetas: data.etiquetaIds && data.etiquetaIds.length > 0
+
+                etiquetas: data.etiquetaIds?.length
                     ? {
                         create: data.etiquetaIds.map(etiquetaId => ({
-                            etiquetaId: etiquetaId,
+                            etiquetaId, // correcto según tu modelo de TareasEtiquetas
                         })),
                     }
                     : undefined,
+
                 fechaLimite: data.fechaLimite,
+
                 posicion: data.posicion ?? 0,
                 proyectoId: data.proyectoId,
-                responsables: data.responsablesIds && data.responsablesIds.length > 0
+                responsables: data.responsablesIds?.length
                     ? {
                         create: data.responsablesIds.map(usuarioId => ({
-                            usuarioId: usuarioId,
+                            usuarioId, // correcto según tu modelo de Responsable
                         })),
                     }
                     : undefined,
@@ -284,7 +314,6 @@ export class KanbanRepository {
             where: { id },
         });
     }
-
 
     public async updateTaskPartial(params: {
         data?: Partial<Tarea>;

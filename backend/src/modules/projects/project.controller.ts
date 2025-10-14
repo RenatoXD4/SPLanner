@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 
+import { kanbanSer } from "../kanban/kanban.service.js";
 import { ProjectService } from "./projects.service.js";
 
 // Interfaces para los requests
@@ -34,13 +35,13 @@ export class ProjectController {
 
   // Crear proyecto
   public async requestCreateProject(
-    req: Request<object, unknown, CreateProjectRequest>, 
-    res: Response, 
+    req: Request<object, unknown, CreateProjectRequest>,
+    res: Response,
     next: NextFunction
   ): Promise<void> {
     try {
       const data = req.body;
-      
+
       if (!data.nombre || !data.creadoPorId) {
         res.status(400).json({ message: "Faltan datos requeridos (nombre, creadoPorId)" });
         return;
@@ -59,7 +60,13 @@ export class ProjectController {
         descripcion: data.descripcion ?? null,
         nombre: data.nombre
       });
-      
+
+      //Crear estados x defecto
+      await kanbanSer.createDefaultEstados(newProject.id);
+
+      // Crear etiquetas por defecto después de crear proyecto
+      await kanbanSer.createDefaultPriorities(newProject.id);
+
       res.status(201).json(newProject);
     } catch (error: unknown) {
       next(error);
@@ -68,8 +75,8 @@ export class ProjectController {
 
   // Borrar proyecto
   public async requestDeleteProject(
-    req: Request<{ id: string }, unknown, DeleteProjectRequest>, 
-    res: Response<ProjectResponse>, 
+    req: Request<{ id: string }, unknown, DeleteProjectRequest>,
+    res: Response<ProjectResponse>,
     next: NextFunction
   ): Promise<void> {
     try {
@@ -106,8 +113,8 @@ export class ProjectController {
 
   // Listar proyectos del usuario
   public async requestListProjects(
-    req: Request<object, unknown, unknown, { userId: string }>, 
-    res: Response, 
+    req: Request<object, unknown, unknown, { userId: string }>,
+    res: Response,
     next: NextFunction
   ): Promise<void> {
     try {
@@ -127,8 +134,8 @@ export class ProjectController {
 
   // Actualizar proyecto
   public async requestUpdateProject(
-    req: Request<{ id: string }, unknown, UpdateProjectRequest>, 
-    res: Response<ProjectResponse>, 
+    req: Request<{ id: string }, unknown, UpdateProjectRequest>,
+    res: Response<ProjectResponse>,
     next: NextFunction
   ): Promise<void> {
     try {

@@ -3,7 +3,7 @@ import { NextFunction, Request, Response } from "express";
 import { UserService } from "./user.service.js";
 
 const port = process.env.PORT ?? "9001";
-const frontendPort = "80";
+const frontendPort = "4200"; // 80 para Docker, 4200 para localhost de angular
 
 // Interfaces para Google OAuth
 interface GoogleTokens {

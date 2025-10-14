@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 import { GoogleCallbackComponent } from './core/services/Api/google-callback.component';
 
-export const routes: Routes = [
+export const APP_ROUTES: Routes = [
   {
     path: '',
     loadChildren: () => import("./core/features/Home/home.routes").then((m) => m.HOME_ROUTES),
@@ -18,10 +18,10 @@ export const routes: Routes = [
     path: '',
     loadChildren: () => import("./core/features/menu-principal/Menu.routes").then((m) => m.MENU_ROUTES),
   },
-
-
-
-
+  {
+    path: '',
+    loadChildren: () => import('./core/features/vistas/vistas.routes').then(m => m.VISTAS_ROUTE),
+  },
   { path: 'auth/google/callback', component: GoogleCallbackComponent },
 
 ];

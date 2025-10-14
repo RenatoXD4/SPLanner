@@ -153,7 +153,7 @@ export class Board implements OnInit {
     this.proyectoIdActual = proyectoId;
 
     */
-    const proyectoId = this.route.snapshot.paramMap.get('id') || 'd59fcc8c-2fd0-41a0-b26d-552eab448be9';
+    const proyectoId = this.route.snapshot.paramMap.get('id') || 'ec28a523-ea73-4114-bc49-7164df2e4718'; //Cambiar por el id del localStorage del usuarioo
     this.proyectoIdActual = proyectoId;
 
     this.boardService.getEstadosDelProyecto(proyectoId).subscribe({
@@ -165,6 +165,7 @@ export class Board implements OnInit {
           posicion: (est as any).posicion ?? 0,
           tasks: []
         }));
+
         //console.log('ESTADOS', this.CategoriasK)
         this.boardService.getTareasPorProyecto(proyectoId).subscribe({
           next: (tareas: RawTask[]) => {

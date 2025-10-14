@@ -213,6 +213,11 @@ export class MenuPrincipal implements OnInit {
     this.showCurrentPassword = !this.showCurrentPassword;
   }
 
+    verTodosProyectos(): void {
+    if (this.isBrowser) {
+      this.router.navigate(['/proyectos']);
+    }
+  }
   toggleNewPassword() {
     this.showNewPassword = !this.showNewPassword;
   }

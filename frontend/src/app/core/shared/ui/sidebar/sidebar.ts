@@ -12,6 +12,7 @@ import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../services/auth-service';
 import { Router } from '@angular/router';
 import { isPlatformBrowser } from '@angular/common';
+import { ProyectoGuard } from '../../../../guards/proyecto.guard';
 
 @Component({
   selector: 'app-sidebar',
@@ -23,7 +24,6 @@ export class Sidebar {
   menuItems = [
     { label: 'Home', icon: 'home' },
     { label: 'Mis Proyectos', icon: 'project' },
-    //{ label: 'Dashboard', icon: 'dashboard' },
     { label: 'Ajustes', icon: 'settings' },
   ];
 
@@ -36,6 +36,7 @@ export class Sidebar {
   constructor(
     private authService: AuthService,
     private router: Router,
+    private proyectoGuard: ProyectoGuard, // Inyectar el guard
     @Inject(PLATFORM_ID) platformId: Object
   ) {
     this.isBrowser = isPlatformBrowser(platformId);
@@ -87,7 +88,6 @@ export class Sidebar {
     // Navegación según el item seleccionado
     switch(label) {
       case 'Dashboard':
-
         break;
       case 'Mis Proyectos':
         this.router.navigate(['/proyectos']);
@@ -112,12 +112,14 @@ export class Sidebar {
 
   logout() {
     if (this.isBrowser) {
-      console.log('Cerrando sesión...');
+
+
+      // LIMPIAR EL PROYECTO ACTUAL ANTES DE HACER LOGOUT
+      this.proyectoGuard.clearProyectoActual();
 
       // Limpia todo el localStorage (token y userData)
       this.authService.logout();
 
-      console.log('Sesión cerrada correctamente');
 
       // Redirige al login
       this.router.navigate(['/login']);
@@ -133,7 +135,7 @@ export class Sidebar {
           const user = JSON.parse(userData);
           return user.nombre || 'Usuario';
         } catch (error) {
-          console.error('Error parsing user data:', error);
+
         }
       }
     }

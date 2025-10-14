@@ -8,11 +8,13 @@ import {
 } from '@angular/cdk/drag-drop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 
 import { Sidebar } from '../../../../shared/ui/sidebar/sidebar';
 import { BoardService } from '../../services/kanban-service';
 import { ActivatedRoute } from '@angular/router';
-import { identity } from 'rxjs';
+import { AuthService } from '../../../../services/auth-service';
+import { ProyectoGuard } from '../../../../../guards/proyecto.guard';
 
 export interface User {
   id: string;
@@ -33,7 +35,6 @@ export interface ResponsableTarea {
   id: number;
   usuarioId: string;
 }
-
 
 export interface Categoria {
   id: string;
@@ -56,12 +57,10 @@ interface Task {
   etiquetas?: any[];
   bloquesContenido?: any[];
 
-
   // Campos frontend (para UI)
   title?: string;
   dueDate?: string;
 }
-
 
 interface RawTask {
   id: string;
@@ -75,14 +74,12 @@ interface RawTask {
   responsables?: { usuario: User }[]; // ← NUEVO
   etiquetas?: any[];
   bloquesContenido?: any[];
-
 }
 
 export interface Etiqueta {
   id: number;       // ID único de la etiqueta
   nombre: string;   // Nombre de la etiqueta
 }
-
 
 @Component({
   selector: 'app-board',
@@ -96,7 +93,7 @@ export class Board implements OnInit {
   @ViewChild('assignedContainer') assignedContainer?: ElementRef;
   @ViewChild('thTitulo') thTitulo!: ElementRef;
 
-  currentUser: string = 'b5d6f7e8-4c12-4f6e-9a6b-abcdef123456';
+  currentUser: string = '';
   sidebarOpen = false;
   modalVisible = false;
 
@@ -104,7 +101,6 @@ export class Board implements OnInit {
 
   CategoriasK: Categoria[] = [];
   miembrosDelProyecto: ResponsableTarea[] = [];
-
 
   etiquetasUnicas: any[] = [];
 
@@ -135,106 +131,161 @@ export class Board implements OnInit {
     bloquesContenido: []
   };
 
-  constructor(private cdr: ChangeDetectorRef, private boardService: BoardService, private route: ActivatedRoute) { }
+  constructor(
+    private cdr: ChangeDetectorRef,
+    private boardService: BoardService,
+    private route: ActivatedRoute,
+    private router: Router,
+    private authService: AuthService,
+    private proyectoGuard: ProyectoGuard
+  ) { }
+
+  async ngOnInit() {
 
 
-  ngOnInit() {
+    // Obtener el ID del usuario actual
+    const userId = this.authService.getCurrentUserId();
+    if (!userId) {
 
-    /*
-    const proyectoId = this.route.snapshot.paramMap.get('id');
+      this.router.navigate(['/login']);
+      return;
+    }
+    this.currentUser = userId;
+
+    // Obtener proyecto ID del guard
+    const proyectoId = this.proyectoGuard.getProyectoActual();
 
     if (!proyectoId) {
-      console.error('No se encontró el ID del proyecto en la URL.');
-      alert('No se encontró el proyecto. Redirigiendo al panel principal...');
-      this.router.navigate(['/dashboard']); // o la ruta que corresponda
+
+      this.mostrarErrorYRedirigir('No hay proyecto seleccionado');
       return;
     }
 
-    this.proyectoIdActual = proyectoId;
+    // Validación adicional: verificar que el proyecto existe y es accesible
+    try {
+      await this.validarAccesoProyecto(proyectoId);
+      this.proyectoIdActual = proyectoId;
+      this.cargarDatosProyecto(proyectoId);
+    } catch (error) {
 
-    */
-    const proyectoId = this.route.snapshot.paramMap.get('id') || 'd59fcc8c-2fd0-41a0-b26d-552eab448be9';
-    this.proyectoIdActual = proyectoId;
+      this.mostrarErrorYRedirigir('No tienes acceso a este proyecto');
+    }
+  }
 
+
+
+
+
+
+
+
+  ///////////////////////////////////////////////////
+  private async validarAccesoProyecto(proyectoId: string): Promise<void> {
+    // Intentar cargar los estados del proyecto
+    // Si falla, significa que no tiene acceso
+    await this.boardService.getEstadosDelProyecto(proyectoId).toPromise();
+  }
+
+  private mostrarErrorYRedirigir(mensaje: string): void {
+    alert(mensaje);
+    this.proyectoGuard.clearProyectoActual();
+    this.router.navigate(['/proyectos']);
+
+  }
+
+  // Cargar todos los datos del proyecto
+  private cargarDatosProyecto(proyectoId: string): void {
     this.boardService.getEstadosDelProyecto(proyectoId).subscribe({
       next: (estados) => {
-
         this.CategoriasK = estados.map(est => ({
           id: est.id.toString(),
           nombre: est.nombre,
           posicion: (est as any).posicion ?? 0,
           tasks: []
         }));
-        //console.log('ESTADOS', this.CategoriasK)
-        this.boardService.getTareasPorProyecto(proyectoId).subscribe({
-          next: (tareas: RawTask[]) => {
-            this.CategoriasK.forEach(cat => cat.tasks = []);
 
-            tareas.forEach(t => {
-              const categoria = this.CategoriasK.find(c => c.id === t.estadoId.toString());
-              if (categoria) {
-                const task: Task = {
-                  ...t,
-                  assignee: Array.isArray(t.responsables)
-                    ? t.responsables.map(r => r.usuario)
-                    : [],
-                  etiquetas: Array.isArray(t.etiquetas) ? t.etiquetas : [],
-                  bloquesContenido: Array.isArray(t.bloquesContenido) ? t.bloquesContenido : [],
-                  title: t.titulo ?? '',
-                  dueDate: t.fechaLimite ?? '',
-
-                };
-                categoria.tasks.push(task);
-              }
-            });
-
-            this.CategoriasK.forEach(cat => {
-              cat.tasks.sort((a, b) => (a.posicion ?? 0) - (b.posicion ?? 0));
-            });
-
-            this.generarListaResponsables();
-            this.generarListaPrioridades();
-            this.cdr.detectChanges();
-          },
-          error: (err) => {
-            console.error('Error al cargar tareas:', err);
-          }
-        });
-
-        this.boardService.getAllEtiquetas(proyectoId).subscribe({
-          next: (etiquetas) => {
-            this.etiquetasUnicas = etiquetas.map(e => ({
-              id: e.id,        // ID de la etiqueta
-              nombre: e.nombre,  // Nombre de la etiqueta
-            }));
-          },
-          error: (err) => console.error('Error al cargar etiquetas:', err),
-        });
-
-
-
-        this.boardService.getEquipoProyecto(proyectoId).subscribe({
-          next: (miembros: MiembroProyecto[]) => {
-            setTimeout(() => {
-              this.miembrosDelProyecto = miembros.map((m, index) => ({
-                usuario: m.usuario,
-                tareaId: '',
-                id: index,
-                usuarioId: m.usuario.id
-              }));
-              this.cdr.detectChanges();
-            });
-          },
-          error: (err) => console.error('Error al cargar miembros:', err)
-        });
-
+        this.cargarTareasProyecto(proyectoId);
+        this.cargarEtiquetasProyecto(proyectoId);
+        this.cargarMiembrosProyecto(proyectoId);
       },
       error: (err) => {
-        console.error('Error al cargar estados:', err);
+
+        this.mostrarMensajeError('Error al cargar el proyecto');
       }
     });
   }
 
+  //Cargar tareas del proyecto
+  private cargarTareasProyecto(proyectoId: string): void {
+    this.boardService.getTareasPorProyecto(proyectoId).subscribe({
+      next: (tareas: RawTask[]) => {
+        this.CategoriasK.forEach(cat => cat.tasks = []);
+
+        tareas.forEach(t => {
+          const categoria = this.CategoriasK.find(c => c.id === t.estadoId.toString());
+          if (categoria) {
+            const task: Task = {
+              ...t,
+              assignee: Array.isArray(t.responsables)
+                ? t.responsables.map(r => r.usuario)
+                : [],
+              etiquetas: Array.isArray(t.etiquetas) ? t.etiquetas : [],
+              bloquesContenido: Array.isArray(t.bloquesContenido) ? t.bloquesContenido : [],
+              title: t.titulo ?? '',
+              dueDate: t.fechaLimite ?? '',
+            };
+            categoria.tasks.push(task);
+          }
+        });
+
+        this.CategoriasK.forEach(cat => {
+          cat.tasks.sort((a, b) => (a.posicion ?? 0) - (b.posicion ?? 0));
+        });
+
+        this.generarListaResponsables();
+        this.generarListaPrioridades();
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+
+      }
+    });
+  }
+
+  // Cargar etiquetas del proyecto
+  private cargarEtiquetasProyecto(proyectoId: string): void {
+    this.boardService.getAllEtiquetas(proyectoId).subscribe({
+      next: (etiquetas) => {
+        this.etiquetasUnicas = etiquetas.map(e => ({
+          id: e.id,        // ID de la etiqueta
+          nombre: e.nombre,  // Nombre de la etiqueta
+        }));
+      },
+      error: (err) => console.error('Error al cargar etiquetas:', err),
+    });
+  }
+
+  //Cargar miembros del proyecto
+  private cargarMiembrosProyecto(proyectoId: string): void {
+    this.boardService.getEquipoProyecto(proyectoId).subscribe({
+      next: (miembros: MiembroProyecto[]) => {
+        this.miembrosDelProyecto = miembros.map((m, index) => ({
+          usuario: m.usuario,
+          tareaId: '',
+          id: index,
+          usuarioId: m.usuario.id
+        }));
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error('Error al cargar miembros:', err)
+    });
+  }
+
+  //Mostrar mensaje de error
+  private mostrarMensajeError(mensaje: string): void {
+    // Puedes implementar un sistema de notificaciones más elaborado aquí
+    alert(mensaje);
+  }
 
   private estilosPorColumna: Record<string, {
     fondoColumna: string;
@@ -298,7 +349,6 @@ export class Board implements OnInit {
       'border-primary text-primary font-semibold ring-2 ring-primary/30': this.viewMode === view,
     };
   }
-
 
   getEtiquetaNombre(id: number): string {
     return this.etiquetasUnicas.find(e => e.id === id)?.nombre ?? 'Sin nombre';
@@ -401,7 +451,6 @@ export class Board implements OnInit {
     return this.CategoriasK.map(cat => cat.id);
   }
 
-
   setViewMode(mode: 'kanban' | 'list' | 'assigned') {
     if (this.viewMode === mode) return;
     this.viewMode = mode;
@@ -467,7 +516,6 @@ export class Board implements OnInit {
     this.prioridadesUnicas = Array.from(set);
   }
 
-
   // Filtro de tareas usando funciones de Array más eficientes
   get tareasFiltradas() {
     return this.CategoriasK.flatMap(cat =>
@@ -518,8 +566,8 @@ export class Board implements OnInit {
     this.newTask = {
       titulo: '',
       fechaLimite: '',
-      responsablesIds: [],
-      etiquetaIds: [],
+      responsablesIds: [] as string[],
+      etiquetaIds: [] as number[],
       estadoId: Number(categoria.id),
       proyectoId: this.proyectoIdActual,
       bloquesContenido: []
@@ -565,13 +613,10 @@ export class Board implements OnInit {
 
     // Obtener proyectoId de contexto o fallback
     const proyectoId = this.proyectoIdActual;
-    //const proyectoId =
-    //  this.CategoriasK.find(cat => cat.tasks.length > 0)?.tasks[0].proyectoId ?? '123';
 
     const fechaLimiteISO = this.newTask.fechaLimite && this.newTask.fechaLimite.trim()
       ? new Date(this.newTask.fechaLimite).toISOString()
       : undefined;
-
 
     // Payload alineado con backend, ahora incluye etiquetas
     const payload = {
@@ -585,11 +630,9 @@ export class Board implements OnInit {
       etiquetaIds: this.newTask.etiquetaIds.length ? this.newTask.etiquetaIds : undefined,
     };
 
-
-
     this.boardService.createTask(payload).subscribe({
       next: (tareaNueva) => {
-        console.log('AAAAAAAAAAAA', this.newTask)
+
         // Mapear responsables para UI
         const responsablesParaUI = responsablesArr.map(id => {
           const miembro = this.miembrosDelProyecto.find(m => m.usuario.id === id);
@@ -714,7 +757,5 @@ export class Board implements OnInit {
     // Puedes agregar aquí la lógica que desees para editar la tarea.
   }
 
-
-
-
+  
 }

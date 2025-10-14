@@ -71,7 +71,6 @@ export class VistasService {
       params
     }).pipe(
       tap((proyectos) => {
-        console.log('🔄 Actualizando BehaviorSubject con proyectos:', proyectos.length);
         this.proyectosSubject.next(proyectos);
       })
     );
@@ -82,7 +81,6 @@ export class VistasService {
       headers: this.getHeaders()
     }).pipe(
       tap((nuevoProyecto) => {
-        console.log('➕ Proyecto creado, actualizando lista');
         const actual = this.proyectosSubject.value;
         this.proyectosSubject.next([...actual, nuevoProyecto]);
       })
@@ -99,7 +97,7 @@ export class VistasService {
       headers: this.getHeaders()
     }).pipe(
       tap((proyectoEditado) => {
-        console.log('✏️ Proyecto editado, actualizando lista:', proyectoEditado);
+
         const actualizados = this.proyectosSubject.value.map(p =>
           p.id === proyectoEditado.id ? proyectoEditado : p
         );
@@ -119,7 +117,7 @@ export class VistasService {
       body: deleteData
     }).pipe(
       tap(() => {
-        console.log('🗑️ Proyecto eliminado, actualizando lista');
+
         const restantes = this.proyectosSubject.value.filter(p => p.id !== id);
         this.proyectosSubject.next(restantes);
       })
@@ -132,7 +130,7 @@ export class VistasService {
 
   // Método para forzar actualización desde el componente si es necesario
   actualizarProyectosManualmente(proyectos: ProyectoConUsuario[]): void {
-    console.log('🔄 Actualización manual de proyectos');
+
     this.proyectosSubject.next(proyectos);
   }
 }

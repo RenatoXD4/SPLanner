@@ -169,11 +169,13 @@
               class="bg-gray-800 text-white px-3 py-2 rounded border border-gray-600 focus:outline-none focus:border-blue-500"
               placeholder="Buscar por título" />
 
-            <select [(ngModel)]="filtroPrioridad"
-              class="bg-gray-800 text-white px-3 py-2 rounded border border-gray-600 focus:outline-none focus:border-blue-500">
-              <option value="">Todas las prioridades</option>
-              @for (prioridad of prioridadesUnicas; track prioridad) {
-              <option [value]="prioridad">{{ prioridad }}</option>
+            <select
+              [(ngModel)]="filtroCategoria"
+              class="bg-gray-800 text-white px-3 py-2 rounded border border-gray-600 focus:outline-none focus:border-blue-500"
+            >
+              <option value="">Todas las categorías</option>
+              @for (categoria of CategoriasK; track categoria.id) {
+              <option [value]="categoria.id">{{ categoria.nombre }}</option>
               }
             </select>
 
@@ -311,8 +313,10 @@
     <!-- VISTA TAREAS ASIGNADAS   @for (item of tareasAsignadasFiltradas; track item.tarea.id) { -->
     @if (viewMode === 'assigned') {
 
-    <div #listContainer class="flex flex-col w-full gap-6 animate-fadeIn transition-opacity duration-500 ease-in-out">
-
+    <div
+      #listContainer
+      class="flex flex-col w-full gap-6 animate-fadeIn transition-opacity duration-500 ease-in-out"
+    >
       <!-- Tabla de tareas -->
       <div class="w-full overflow-x-auto rounded-xl shadow border border-base-300">
         <table class="table table-zebra bg-base-200 rounded-xl text-sm animate-fadeIn">

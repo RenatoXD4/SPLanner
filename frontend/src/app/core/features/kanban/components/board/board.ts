@@ -109,15 +109,17 @@ export class Board implements OnInit {
   hoveredTaskId: string | null = null;
   timeoutId?: ReturnType<typeof setTimeout>;
 
+  filtroTitulo = '';
   textoFiltro = '';
   filtroResponsable = '';
-  filtroPrioridad = '';
+  filtroCategoria = '';
+  filtroEtiquetas: number | string = ''; // Filtro para las etiquetas, ya que se filtra por ID de etiqueta
   prioridadesUnicas: string[] = [];
   responsablesUnicos: string[] = [];
 
+
   mostrarPanelFiltros = false;
   mostrarPanelFiltroTitulo = false;
-  filtroTitulo = '';
 
   categoriaSeleccionadaForModal: Categoria | null = null;
 
@@ -516,25 +518,61 @@ export class Board implements OnInit {
     this.prioridadesUnicas = Array.from(set);
   }
 
-  // Filtro de tareas usando funciones de Array más eficientes
+  // === FILTRO PRINCIPAL DE TAREAS EN VISTA LISTA ===
   get tareasFiltradas() {
     return this.CategoriasK.flatMap(cat =>
       cat.tasks
         .filter(task => {
-          // Filtrar por responsable
-          const cumpleResp = !this.filtroResponsable || task.assignee?.some(u => u.id === this.filtroResponsable);
-          // Filtrar por texto (título o descripción)
-          const cumpleText =
-            !this.textoFiltro ||
-            (task.title?.toLowerCase().includes(this.textoFiltro.toLowerCase()) ?? false)
+          // --- Filtro por título ---
+          const coincideTitulo =
+            !this.filtroTitulo ||
+            (task.title?.toLowerCase().includes(this.filtroTitulo.toLowerCase()) ?? false);
 
-          // El task debe cumplir con todos los filtros para ser incluido
-          return cumpleResp && cumpleText;
+          // --- Filtro por responsable ---
+          const coincideResponsable =
+            !this.filtroResponsable ||
+            task.assignee?.some(u => u.id === this.filtroResponsable);
+
+          // --- Filtro por categoría (estado del proyecto) ---
+          const coincideCategoria =
+            !this.filtroCategoria || cat.id === this.filtroCategoria;
+
+          // --- Filtro por etiqueta ---
+          const coincideEtiqueta =
+            !this.filtroEtiquetas ||
+            (task.etiquetas &&
+              task.etiquetas.some(
+                e =>
+                  e.etiqueta?.id?.toString() === this.filtroEtiquetas.toString() ||
+                  e.id?.toString() === this.filtroEtiquetas.toString()
+              ));
+
+          // Cumple todos los filtros activos
+          return coincideTitulo && coincideResponsable && coincideCategoria && coincideEtiqueta;
         })
-        .map(task => ({ tarea: task, categoria: cat.nombre }))
+        .map(task => ({
+          tarea: task,
+          categoria: cat.nombre
+        }))
     );
   }
 
+
+  get contadorFiltros(): number {
+    let count = 0;
+    if (this.filtroTitulo.trim()) count++;
+    if (this.filtroResponsable) count++;
+    if (this.filtroCategoria) count++;
+    if (this.filtroEtiquetas) count++;
+    return count;
+  }
+  public limpiarFiltros(): void {
+    this.filtroTitulo = '';
+    this.filtroCategoria = '';
+    this.filtroResponsable = '';
+    this.filtroEtiquetas = '';
+  }
+  
   get tareasAsignadasFiltradas() {
     return this.CategoriasK.flatMap(cat =>
       cat.tasks
@@ -544,12 +582,6 @@ export class Board implements OnInit {
     );
   }
 
-  public limpiarFiltros(): void {
-    this.filtroTitulo = '';
-    this.filtroPrioridad = '';
-    this.filtroResponsable = '';
-    this.filtroEtiquetas = '';
-  }
 
   toggleFiltroTitulo() {
     this.mostrarPanelFiltroTitulo = !this.mostrarPanelFiltroTitulo;
@@ -712,22 +744,6 @@ export class Board implements OnInit {
     return `${day}/${month}/${year}`;
   }
 
-  filtroEtiquetas: number | string = ''; // Filtro para las etiquetas, ya que se filtra por ID de etiqueta
-
-  // Valores de los filtros
-
-  // Get dinámico del contador de filtros activos
-  get contadorFiltros(): number {
-    let contador = 0;
-
-    if (this.filtroTitulo.trim() !== '') contador++;
-    if (this.filtroPrioridad !== '') contador++;
-    if (this.filtroResponsable !== '') contador++;
-    if (this.filtroEtiquetas !== '') contador++;
-
-    return contador;
-  }
-
   // En tu componente
   eliminarTarea(taskId: string): void {
     if (confirm('¿Estás seguro de que deseas eliminar esta tarea?')) {
@@ -757,5 +773,5 @@ export class Board implements OnInit {
     // Puedes agregar aquí la lógica que desees para editar la tarea.
   }
 
-  
+
 }

@@ -1,0 +1,197 @@
+<!-- Contenido principal -->
+<div class="relative isolate px-4 sm:px-6 lg:px-8 min-h-screen flex items-center bg-gray-900 overflow-hidden">
+  <!-- Patrón de fondo con efecto blur -->
+  <div aria-hidden="true" class="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80">
+    <div
+      style="clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)"
+      class="relative left-[calc(50%-11rem)] aspect-1155/678 w-144.5 -translate-x-1/2 rotate-30 bg-linear-to-tr from-[#0a7a10] to-[#0a7a10] opacity-20 sm:left-[calc(50%-30rem)] sm:w-288.75">
+    </div>
+  </div>
+
+  <!-- Patrón de puntos sutiles -->
+  <div class="absolute inset-0 opacity-[0.02] -z-10"
+    style="background-image: radial-gradient(circle at 1px 1px, #1edf28 1px, transparent 0); background-size: 20px 20px;">
+  </div>
+
+  <div class="mx-auto max-w-7xl w-full">
+    <!-- Ajusté los paddings verticales para subir el contenido -->
+    <div class="py-8 sm:py-12 lg:py-16 xl:py-20">
+
+      <!-- Logo centrado con animación -->
+      <div class="flex justify-center mb-6 sm:mb-8 lg:mb-10">
+        <svg width="280" height="70" viewBox="0 0 180 80" class="h-16 sm:h-20 w-auto animate-logo-appear">
+          <defs>
+            <linearGradient id="mainGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#1edf28" />
+              <stop offset="100%" stop-color="#1edf28" />
+            </linearGradient>
+          </defs>
+
+          <!-- Icono Kanban simplificado -->
+          <rect x="5" y="10" width="45" height="45" rx="6" fill="url(#mainGradient)" />
+
+          <!-- Columnas -->
+          <rect x="12" y="20" width="6" height="25" fill="#fbbf24" rx="1.5" />
+          <rect x="22" y="16" width="6" height="29" fill="#10b981" rx="1.5" />
+          <rect x="32" y="22" width="6" height="23" fill="#ef4444" rx="1.5" />
+
+          <!-- Texto -->
+          <text x="55" y="38" font-family="Arial, sans-serif" font-size="24" font-weight="bold"
+            fill="url(#mainGradient)">
+            SPlanner
+          </text>
+        </svg>
+      </div>
+
+      <!-- Layout de dos columnas -->
+      <div class="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
+        <!-- Columna izquierda - Texto con animación desde izquierda -->
+        <div class="text-center lg:text-left animate-text-slide-in">
+          <!-- Número 404 destacado -->
+          <div class="mb-6 sm:mb-8">
+            <h1 class="text-8xl sm:text-9xl lg:text-10xl font-bold text-[#1edf28] tracking-tighter">
+              404
+            </h1>
+            <div class="w-24 h-1 bg-gradient-to-r from-[#1edf28] to-transparent mx-auto lg:mx-0 mt-4"></div>
+          </div>
+
+          <h2 class="text-2xl sm:text-3xl lg:text-4xl font-semibold tracking-tight text-balance text-white mb-4">
+            ¡Página <span class="text-[#1edf28]">No Encontrada</span>!
+          </h2>
+
+          <p
+            class="mt-4 sm:mt-6 text-sm sm:text-base lg:text-lg font-medium text-pretty text-gray-400 leading-relaxed animate-delay-200">
+            Lo sentimos, la ruta que estás buscando no existe en nuestro sistema.
+            Parece que esta tarea se escapó del tablero Kanban.
+          </p>
+
+          <!-- Características del error -->
+          <div class="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-left animate-delay-400">
+            <div class="flex items-center gap-2 sm:gap-3 animate-stagger-1">
+              <div class="w-2 h-2 bg-red-500 rounded-full flex-shrink-0"></div>
+              <span class="text-gray-300 text-xs sm:text-sm">Ruta no encontrada</span>
+            </div>
+            <div class="flex items-center gap-2 sm:gap-3 animate-stagger-2">
+              <div class="w-2 h-2 bg-yellow-500 rounded-full flex-shrink-0"></div>
+              <span class="text-gray-300 text-xs sm:text-sm">Página movida o eliminada</span>
+            </div>
+            <div class="flex items-center gap-2 sm:gap-3 animate-stagger-3">
+              <div class="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>
+              <span class="text-gray-300 text-xs sm:text-sm">Error de navegación</span>
+            </div>
+            <div class="flex items-center gap-2 sm:gap-3 animate-stagger-4">
+              <div class="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
+              <span class="text-gray-300 text-xs sm:text-sm">Soluciones disponibles</span>
+            </div>
+          </div>
+
+          <!-- Botones de acción -->
+          <div class="mt-8 sm:mt-10 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start animate-delay-600">
+            <button (click)="redirectToHome()"
+              class="rounded-md bg-[#1edf28] px-6 sm:px-8 py-3 sm:py-4 text-sm font-semibold text-white shadow-xs hover:bg-green-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-500 transition-all duration-300 hover:scale-105 transform flex items-center justify-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6">
+                </path>
+              </svg>
+              <span>Volver al Inicio</span>
+            </button>
+
+            <button (click)="goBack()"
+              class="rounded-md px-6 sm:px-8 py-3 sm:py-4 text-sm font-semibold text-white hover:text-gray-300 transition-all duration-300 border border-gray-600 hover:border-gray-500 text-center hover:scale-105 transform flex items-center justify-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18">
+                </path>
+              </svg>
+              <span>Regresar Atrás</span>
+            </button>
+          </div>
+
+          <!-- Información de contacto -->
+          <div class="mt-8 text-center lg:text-left">
+            <p class="text-gray-500 text-sm">
+              ¿Necesitas ayuda?
+              <a href="#" class="text-[#1edf28] hover:text-green-400 transition-colors duration-200 underline">
+                Contacta al soporte técnico
+              </a>
+            </p>
+          </div>
+        </div>
+
+        <!-- Columna derecha - Ilustración del error con animación -->
+        <div class="relative mt-8 lg:mt-0">
+          <div class="animate-image-slide-in" [class.reveal-active]="isImageVisible">
+            <!-- Tarjeta de error estilo Kanban -->
+            <div
+              class="relative rounded-xl lg:rounded-2xl overflow-hidden shadow-xl lg:shadow-2xl border border-gray-700/50 bg-gray-800/20 backdrop-blur-sm transform hover:scale-[1.02] transition-transform duration-300">
+
+              <!-- Barra superior simulada -->
+              <div
+                class="absolute top-0 left-0 right-0 h-8 bg-gray-900/90 border-b border-gray-700/50 z-10 flex items-center px-4">
+                <div class="flex space-x-2">
+                  <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                  <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                  <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                </div>
+                <div class="flex-1 text-center">
+                  <span class="text-gray-300 text-sm font-medium">Error 404 - Página No Encontrada</span>
+                </div>
+              </div>
+
+              <!-- Contenido del error -->
+              <div class="pt-10 pb-6 px-6 text-center">
+                <!-- Icono de error -->
+                <div
+                  class="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-red-500/20 to-pink-600/20 rounded-full flex items-center justify-center border border-red-500/30">
+                  <svg class="w-12 h-12 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z">
+                    </path>
+                  </svg>
+                </div>
+
+                <!-- Mensaje de error -->
+                <h3 class="text-xl font-bold text-white mb-2">Tarea Perdida</h3>
+                <p class="text-gray-400 text-sm mb-4">
+                  Esta página parece haberse movido a otra columna o haber sido archivada
+                </p>
+
+                <!-- Columnas Kanban simuladas -->
+                <div class="flex justify-center space-x-3 mb-4">
+                  <div class="w-16 h-2 bg-blue-500 rounded-full"></div>
+                  <div class="w-16 h-2 bg-yellow-500 rounded-full"></div>
+                  <div class="w-16 h-2 bg-red-500 rounded-full opacity-50"></div>
+                  <div class="w-16 h-2 bg-green-500 rounded-full"></div>
+                </div>
+
+                <!-- Estado del sistema -->
+                <div class="bg-gray-900/50 rounded-lg p-3 border border-gray-700/50">
+                  <div class="flex items-center justify-between text-xs">
+                    <span class="text-gray-400">Estado del sistema:</span>
+                    <span class="text-green-400 font-medium">Operativo</span>
+                  </div>
+                  <div class="flex items-center justify-between text-xs mt-1">
+                    <span class="text-gray-400">Última verificación:</span>
+                    <span class="text-gray-400">Ahora mismo</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Efectos decorativos -->
+            <div
+              class="absolute -inset-3 lg:-inset-4 bg-gradient-to-r from-red-500/10 to-pink-500/10 rounded-2xl lg:rounded-3xl blur-xl -z-10">
+            </div>
+
+            <!-- Elementos flotantes decorativos -->
+            <div
+              class="absolute -top-3 lg:-top-4 -right-3 lg:-right-4 w-6 lg:w-8 h-6 lg:h-8 bg-red-500/20 rounded-full blur-sm">
+            </div>
+            <div
+              class="absolute -bottom-3 lg:-bottom-4 -left-3 lg:-left-4 w-5 lg:w-6 h-5 lg:h-6 bg-red-500/30 rounded-full blur-sm">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>

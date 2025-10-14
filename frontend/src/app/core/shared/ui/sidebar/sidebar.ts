@@ -1,8 +1,8 @@
 import { Component, Inject, PLATFORM_ID } from '@angular/core';
 import {
   CdkDragDrop,
-  moveItemInArray,    // Filtro de columnas
-  transferArrayItem,  // Filtro de columnas
+  moveItemInArray,
+  transferArrayItem,
   CdkDrag,
   CdkDropList,
 } from '@angular/cdk/drag-drop';
@@ -21,12 +21,9 @@ import { isPlatformBrowser } from '@angular/common';
 })
 export class Sidebar {
   menuItems = [
-    { label: 'Dashboard', icon: 'dashboard' },
-    { label: 'Proyecto', icon: 'project' },
-    { label: 'Equipo', icon: 'team' },
-    { label: 'Recientes', icon: 'recent' },
     { label: 'Home', icon: 'home' },
-    { label: 'Calendario', icon: 'calendar' },
+    { label: 'Mis Proyectos', icon: 'project' },
+    //{ label: 'Dashboard', icon: 'dashboard' },
     { label: 'Ajustes', icon: 'settings' },
   ];
 
@@ -42,10 +39,24 @@ export class Sidebar {
     @Inject(PLATFORM_ID) platformId: Object
   ) {
     this.isBrowser = isPlatformBrowser(platformId);
+    // Establecer el item activo basado en la ruta actual
+    this.setActiveItemFromRoute();
+  }
+
+  private setActiveItemFromRoute(): void {
+    if (!this.isBrowser) return;
+
+    const currentRoute = this.router.url;
+    if (currentRoute.includes('/Menu') || currentRoute === '/') {
+      this.activeItem = 'Home';
+    } else if (currentRoute.includes('/proyectos')) {
+      this.activeItem = 'Mis Proyectos';
+    }
+    // Puedes agregar más rutas según necesites
   }
 
   toggleAjustes() {
-
+    // Tu lógica existente
   }
 
   openSidebarMobile() {
@@ -64,8 +75,9 @@ export class Sidebar {
       this.sidebarMobileVisible = false;
     }
   }
+
   selectItemMobile(label: string) {
-    this.activeItem = label;
+    this.selectItem(label);
     this.closeSidebarMobile();
   }
 
@@ -75,21 +87,32 @@ export class Sidebar {
     // Navegación según el item seleccionado
     switch(label) {
       case 'Dashboard':
-        this.router.navigate(['/Menu']);
+
         break;
-      case 'Proyecto':
-        // Navegar a proyectos
+      case 'Mis Proyectos':
+        this.router.navigate(['/proyectos']);
         break;
       case 'Home':
-        this.router.navigate(['/']);
+        this.router.navigate(['/Menu']); // Home redirige a Menu
         break;
-      // Agrega más casos según necesites
+      case 'Equipo':
+        // this.router.navigate(['/equipo']);
+        break;
+      case 'Recientes':
+        // this.router.navigate(['/recientes']);
+        break;
+      case 'Calendario':
+        // this.router.navigate(['/calendario']);
+        break;
+      case 'Ajustes':
+        // this.router.navigate(['/ajustes']);
+        break;
     }
   }
 
   logout() {
     if (this.isBrowser) {
-      console.log('errando sesión...');
+      console.log('Cerrando sesión...');
 
       // Limpia todo el localStorage (token y userData)
       this.authService.logout();

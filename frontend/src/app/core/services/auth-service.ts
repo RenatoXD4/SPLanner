@@ -1,10 +1,9 @@
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, BehaviorSubject } from 'rxjs';
+import { Observable, BehaviorSubject, throwError } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
-import { environment } from '../../../environments/environment';
 import { Router } from '@angular/router';
-import { throwError } from 'rxjs';
+import { environment } from '../../../environments/environment';
 import { isPlatformBrowser } from '@angular/common';
 
 export interface LoginResponse {
@@ -50,6 +49,12 @@ export class AuthService {
     }
   }
 
+
+  get currentUser$() {
+    return this.currentUserSubject.asObservable();
+  }
+
+  // Cargar usuario al iniciar
   private loadUserFromStorage() {
     if (!this.isBrowser) return;
 
@@ -63,17 +68,15 @@ export class AuthService {
     }
   }
 
+  // --- AUTENTICACIÓN ---
+
   login(credentials: LoginCredentials): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.API_URL}/usuarios/login`, credentials)
       .pipe(
         tap(response => {
           this.setUser(response.user);
-          if (response.token) {
-            this.setToken(response.token);
-          }
-          if (this.isBrowser) {
-            this.router.navigate(['/Menu']);
-          }
+          if (response.token) this.setToken(response.token);
+          if (this.isBrowser) this.router.navigate(['/Menu']);
         }),
         catchError(error => {
           console.error('Error en login:', error);
@@ -86,14 +89,9 @@ export class AuthService {
     return this.http.post<LoginResponse>(`${this.API_URL}/usuarios/register`, userData)
       .pipe(
         tap(response => {
-
           this.setUser(response.user);
-          if (response.token) {
-            this.setToken(response.token);
-          }
-          if (this.isBrowser) {
-            this.router.navigate(['/Menu']);
-          }
+          if (response.token) this.setToken(response.token);
+          if (this.isBrowser) this.router.navigate(['/Menu']);
         }),
         catchError(error => {
           console.error('Error en registro:', error);
@@ -112,112 +110,70 @@ export class AuthService {
     if (token && this.isBrowser) {
       console.log('Procesando callback de Google...');
 
-      // Validar que userData sea un objeto válido
       if (userData && typeof userData === 'object' && userData.id) {
-
-
-        // Asegurar que el usuario tenga la estructura correcta
         const processedUser = this.processGoogleUser(userData);
-
-        // Guardar primero el usuario, luego el token
         this.setUser(processedUser);
         this.setToken(token);
-
-
-
-        // Redirigir después de un pequeño delay para asegurar que se guardó
-        setTimeout(() => {
-          this.router.navigate(['/Menu']);
-        }, 100);
-
+        setTimeout(() => this.router.navigate(['/Menu']), 100);
       } else {
-
-        // Si no hay userData válido, usar el flujo con token
         this.setToken(token);
         this.fetchUserFromBackend(token);
       }
     } else {
-
       this.router.navigate(['/login']);
     }
   }
 
-  // Método para procesar y estandarizar el usuario de Google
   private processGoogleUser(googleUser: any): any {
-
-
-    // Mapear campos de Google a tu estructura de usuario
-    const processedUser = {
+    return {
       id: googleUser.id || googleUser.sub || this.generateTempId(),
       nombre: googleUser.nombre || googleUser.given_name || googleUser.name || 'Usuario',
       apellido: googleUser.apellido || googleUser.family_name || '',
       email: googleUser.email,
       createdAt: googleUser.createdAt || new Date().toISOString(),
-      isGoogleUser: true // Marcar como usuario de Google
+      isGoogleUser: true
     };
-
-
-    return processedUser;
   }
 
-  // Método para crear usuario temporal cuando Google no envía datos
   private fetchUserFromBackend(token: string): void {
-
     const tempUser = {
       id: this.generateTempId(),
       nombre: 'Usuario Google',
       apellido: '',
       email: 'google@user.com',
       createdAt: new Date().toISOString(),
-      isTemp: true // Marcar como temporal
+      isTemp: true
     };
 
     this.setUser(tempUser);
 
-
-    // Intentar obtener datos reales del backend
     this.http.get<any>(`${this.API_URL}/usuarios/me`, {
       headers: { Authorization: `Bearer ${token}` }
     }).subscribe({
       next: (realUserData) => {
-        // Reemplazar el usuario temporal con el real
         this.setUser(realUserData);
       },
-      error: (error) => {
-
-        // Mantener el usuario temporal pero redirigir
-        setTimeout(() => {
-          this.router.navigate(['/Menu']);
-        }, 100);
+      error: () => {
+        setTimeout(() => this.router.navigate(['/Menu']), 100);
       }
     });
   }
 
-  // Generar ID temporal único
   private generateTempId(): string {
     return 'google-temp-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
   }
 
-  private setUser(user: any): void {
-    if (!this.isBrowser) return;
+  // --- MÉTODOS DE USUARIO ---
+
+
+  setUser(user: any): void {
+    if (!this.isBrowser || !user) return;
 
     try {
-      // Validación más flexible para usuarios de Google
-      if (!user) {
-        return;
-      }
-
-      // Para usuarios de Google, podemos ser más flexibles con la validación
-      const isValidUser = user.id && user.email;
-
-      if (!isValidUser) {
-        console.warn('Usuario con estructura no estándar, pero intentando guardar:', user);
-        // Pero intentamos guardarlo de todos modos para usuarios de Google
-      }
-
       localStorage.setItem('userData', JSON.stringify(user));
       this.currentUserSubject.next(user);
     } catch (error) {
+      console.error('Error guardando usuario:', error);
     }
   }
 
@@ -227,44 +183,32 @@ export class AuthService {
 
   getCurrentUserId(): string | null {
     const user = this.getCurrentUser();
-
-    if (!user) {
-      return null;
-    }
-
-    // Buscar el ID en diferentes propiedades posibles
+    if (!user) return null;
     const userId = user.id || user.userId || user.sub;
-
-    if (!userId) {
-      return null;
-    }
-
-    const userIdString = userId.toString();
-    return userIdString;
+    return userId ? userId.toString() : null;
   }
+
+  // --- TOKEN ---
 
   setToken(token: string): void {
     if (!this.isBrowser) return;
-
     try {
       localStorage.setItem('authToken', token);
-
     } catch (error) {
-      console.error('Error saving token to storage:', error);
+      console.error('Error saving token:', error);
     }
   }
 
   getToken(): string | null {
     if (!this.isBrowser) return null;
-
     try {
-      const token = localStorage.getItem('authToken');
-      return token;
-    } catch (error) {
-      console.error('Error getting token from storage:', error);
+      return localStorage.getItem('authToken');
+    } catch {
       return null;
     }
   }
+
+  // --- LOGOUT ---
 
   logout(): void {
     if (!this.isBrowser) return;
@@ -275,8 +219,11 @@ export class AuthService {
       this.currentUserSubject.next(null);
       this.router.navigate(['/login']);
     } catch (error) {
+      console.error('Error al cerrar sesión:', error);
     }
   }
+
+  // --- ESTADO DE AUTENTICACIÓN ---
 
   isAuthenticated(): boolean {
     const hasToken = !!this.getToken();
@@ -285,41 +232,28 @@ export class AuthService {
     console.log('Verificando autenticación:', {
       hasToken,
       hasUser,
-      token: this.getToken() ? 'ok' : 'error',
-      user: this.getCurrentUser() ? 'ok' : 'error'
+      token: hasToken ? 'ok' : 'error',
+      user: hasUser ? 'ok' : 'error'
     });
 
     return hasToken && hasUser;
   }
 
   checkAuthentication(): boolean {
+    if (!this.isBrowser) return true;
 
-
-    if (!this.isBrowser) {
-
-      return true;
-    }
-
-    const isAuthenticated = this.isAuthenticated();
-
-    if (!isAuthenticated) {
+    if (!this.isAuthenticated()) {
       this.router.navigate(['/login']);
       return false;
     }
-
-
     return true;
   }
 
-
-
-  // Método para verificar si el usuario actual es de Google
   isGoogleUser(): boolean {
     const user = this.getCurrentUser();
     return !!(user && user.isGoogleUser);
   }
 
-  // Método para verificar si es usuario temporal
   isTempUser(): boolean {
     const user = this.getCurrentUser();
     return !!(user && user.isTemp);

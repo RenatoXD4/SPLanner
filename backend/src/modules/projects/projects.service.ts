@@ -1,5 +1,6 @@
+import { Prisma, Proyectos } from "@prisma/client";
+
 import { ProjectRepository } from "./projects.repository.js";
-import { Proyectos, Prisma } from "@prisma/client";
 
 export class ProjectService {
   private projectRepository: ProjectRepository;
@@ -8,23 +9,39 @@ export class ProjectService {
     this.projectRepository = new ProjectRepository();
   }
 
+  async checkUserExists(userId: string): Promise<boolean> {
+    return this.projectRepository.userExists(userId);
+  }
+
   async createProject(data: Prisma.ProyectosCreateInput): Promise<Proyectos> {
     return this.projectRepository.insertProject(data);
   }
 
-  async removeProject(id: string): Promise<Proyectos> {
-    return this.projectRepository.deleteProject(id);
-  }
-
-  async listProjects(): Promise<Proyectos[]> {
+  // Mantener este método si lo necesitas para admin
+  async listAllProjects(): Promise<Proyectos[]> {
     return this.projectRepository.getAllProjects();
   }
 
-  async modifyProject(id: string, data: Prisma.ProyectosUpdateInput): Promise<Proyectos> {
+  // Nuevo método para obtener proyectos por usuario
+  async listProjectsByUser(userId: string): Promise<Proyectos[]> {
+    return this.projectRepository.getProjectsByUser(userId);
+  }
+
+  async modifyProject(id: string, data: Prisma.ProyectosUpdateInput, userId: string): Promise<Proyectos> {
+    // Verificar que el proyecto pertenezca al usuario
+    const isOwner = await this.projectRepository.isProjectOwner(id, userId);
+    if (!isOwner) {
+      throw new Error("No tienes permisos para editar este proyecto");
+    }
     return this.projectRepository.updateProject(id, data);
   }
 
-  async checkUserExists(userId: string): Promise<boolean> {
-    return this.projectRepository.userExists(userId);
+  async removeProject(id: string, userId: string): Promise<Proyectos> {
+    // Verificar que el proyecto pertenezca al usuario
+    const isOwner = await this.projectRepository.isProjectOwner(id, userId);
+    if (!isOwner) {
+      throw new Error("No tienes permisos para eliminar este proyecto");
+    }
+    return this.projectRepository.deleteProject(id);
   }
 }

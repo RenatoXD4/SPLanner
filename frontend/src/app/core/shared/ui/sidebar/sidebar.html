@@ -45,22 +45,22 @@
             <div class="flex-shrink-0 w-6 h-6 flex items-center justify-center">
               @if (item.icon === 'home') {
               <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                stroke="currentColor" [class.text-green-400]="activeItem === item.label"
-                [class.text-green-400]="activeItem !== item.label">
+                stroke="currentColor" [class.text-green-500]="activeItem === item.label"
+                [class.text-white]="activeItem !== item.label">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M3 12l2-2m0 0l7-7 7 7M13 5v6h6m-6 0v6m-7 4h14a2 2 0 002-2v-7a2 2 0 00-2-2h-1.586a1 1 0 00-.707.293l-7.414 7.414a1 1 0 01-1.414 0L5 12.586a1 1 0 00-.707-.293H3a2 2 0 00-2 2v7a2 2 0 002 2z" />
               </svg>
               } @if (item.icon === 'calendar') {
               <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                stroke="currentColor" [class.text-green-400]="activeItem === item.label"
-                [class.text-green-400]="activeItem !== item.label">
+                stroke="currentColor" [class.text-green-500]="activeItem === item.label"
+                [class.text-white]="activeItem !== item.label">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
               } @if (item.icon === 'settings') {
               <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                stroke="currentColor" [class.text-green-400]="activeItem === item.label"
-                [class.text-green-400]="activeItem !== item.label">
+                stroke="currentColor" [class.text-green-500]="activeItem === item.label"
+                [class.text-white]="activeItem !== item.label">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M11.049 2.927c.3-.921 1.603-.921 1.902 0a1.75 1.75 0 002.516 1.07c.96-.52 2.068.144 2.068 1.299v2.292c0 1.155-1.108 1.819-2.068 1.298a1.75 1.75 0 00-2.516 1.07c-.299.921-1.602.921-1.902 0a1.75 1.75 0 00-2.516-1.07c-.96.521-2.068-.143-2.068-1.298V5.296c0-1.154 1.108-1.819 2.068-1.299a1.75 1.75 0 002.516-1.07z" />
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01" />
@@ -75,14 +75,14 @@
               } @if (item.icon === 'project') {
               <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
                 stroke="currentColor" [class.text-green-400]="activeItem === item.label"
-                [class.text-green-400]="activeItem !== item.label">
+                [class.text-white]="activeItem !== item.label">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V7a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
               </svg>
               } @if (item.icon === 'team') {
               <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                stroke="currentColor" [class.text-green-400]="activeItem === item.label"
-                [class.text-green-400]="activeItem !== item.label">
+                stroke="currentColor" [class.text-green-500]="activeItem === item.label"
+                [class.text-white]="activeItem !== item.label">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87M12 7a4 4 0 100-8 4 4 0 000 8z" />
               </svg>
@@ -110,7 +110,7 @@
         class="w-full flex items-center gap-3 p-3 rounded-lg cursor-pointer text-gray-300 hover:bg-red-600 hover:text-white transition-colors duration-200">
         <!-- Ícono visible siempre -->
         @if (true) {
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-400" fill="none" viewBox="0 0 24 24"
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24"
           stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
             d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H7a2 2 0 01-2-2V7a2 2 0 012-2h4a2 2 0 012 2v1" />

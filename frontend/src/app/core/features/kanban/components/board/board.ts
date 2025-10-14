@@ -139,7 +139,21 @@ export class Board implements OnInit {
 
 
   ngOnInit() {
-    const proyectoId = this.route.snapshot.paramMap.get('id') || '1fc2cb1f-7580-47dd-b28e-49f139dbfb44';
+
+    /*
+    const proyectoId = this.route.snapshot.paramMap.get('id');
+
+    if (!proyectoId) {
+      console.error('No se encontró el ID del proyecto en la URL.');
+      alert('No se encontró el proyecto. Redirigiendo al panel principal...');
+      this.router.navigate(['/dashboard']); // o la ruta que corresponda
+      return;
+    }
+
+    this.proyectoIdActual = proyectoId;
+
+    */
+    const proyectoId = this.route.snapshot.paramMap.get('id') || 'd59fcc8c-2fd0-41a0-b26d-552eab448be9';
     this.proyectoIdActual = proyectoId;
 
     this.boardService.getEstadosDelProyecto(proyectoId).subscribe({
@@ -151,7 +165,7 @@ export class Board implements OnInit {
           posicion: (est as any).posicion ?? 0,
           tasks: []
         }));
-
+        //console.log('ESTADOS', this.CategoriasK)
         this.boardService.getTareasPorProyecto(proyectoId).subscribe({
           next: (tareas: RawTask[]) => {
             this.CategoriasK.forEach(cat => cat.tasks = []);
@@ -518,6 +532,7 @@ export class Board implements OnInit {
   cerrarModal() {
     const modal = document.getElementById('modalNuevaTarea') as HTMLDialogElement;
     modal?.close();
+
     this.newTask = {
       titulo: '',
       fechaLimite: '',
@@ -528,6 +543,8 @@ export class Board implements OnInit {
       bloquesContenido: []
     };
     this.categoriaSeleccionadaForModal = null;
+
+    this.cdr.detectChanges();
   }
 
   crearTarea() {
@@ -547,8 +564,9 @@ export class Board implements OnInit {
     const responsablesArr = this.newTask.responsablesIds.filter(id => !!id);
 
     // Obtener proyectoId de contexto o fallback
-    const proyectoId =
-      this.CategoriasK.find(cat => cat.tasks.length > 0)?.tasks[0].proyectoId ?? '123';
+    const proyectoId = this.proyectoIdActual;
+    //const proyectoId =
+    //  this.CategoriasK.find(cat => cat.tasks.length > 0)?.tasks[0].proyectoId ?? '123';
 
     const fechaLimiteISO = this.newTask.fechaLimite && this.newTask.fechaLimite.trim()
       ? new Date(this.newTask.fechaLimite).toISOString()
@@ -561,11 +579,12 @@ export class Board implements OnInit {
       estadoId,
       posicion: this.categoriaSeleccionadaForModal.tasks.length,
       proyectoId,
-      responsablesIds: responsablesArr,
+      responsablesIds: responsablesArr.length ? responsablesArr : undefined,
       fechaLimite: fechaLimiteISO,
       bloquesContenido: [],
-      etiquetaIds: this.newTask.etiquetaIds,
+      etiquetaIds: this.newTask.etiquetaIds.length ? this.newTask.etiquetaIds : undefined,
     };
+
 
 
     this.boardService.createTask(payload).subscribe({

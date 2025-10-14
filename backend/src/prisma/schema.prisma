@@ -172,6 +172,7 @@ model Estado {
   // Relación: Un estado puede contener muchas tareas.
   tareas Tarea[]
 
+  @@unique([nombre, proyectoId], map: "nombre_proyectoId")
   @@schema("public")
 }
 

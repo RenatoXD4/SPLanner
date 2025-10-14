@@ -59,6 +59,7 @@ export class KanbanController {
     }
   }
 
+
   public async requestCreateEtiqueta(
     req: Request<Record<string, never>, unknown, CreateEtiquetaBody & { proyectoId: string }>,
     res: Response,
@@ -83,7 +84,6 @@ export class KanbanController {
     }
   }
 
-
   public async requestCreateTask(
     req: Request,
     res: Response,
@@ -92,20 +92,37 @@ export class KanbanController {
     try {
       const tareaData = req.body as CreateTareaInput;
 
-      if (!tareaData.titulo || !tareaData.estadoId || !tareaData.proyectoId) {
+      const { estadoId, fechaLimite, proyectoId, titulo } = tareaData;
+
+      if (!titulo || !estadoId || !proyectoId) {
         res.status(400).json({ message: "Título, estadoId y proyectoId son obligatorios." });
         return;
       }
 
-      // Convertir fechaLimite string a Date si viene
-      if (tareaData.fechaLimite && typeof tareaData.fechaLimite === 'string') {
-        tareaData.fechaLimite = new Date(tareaData.fechaLimite);
+      // Convertir fechaLimite a Date si viene como string
+      if (fechaLimite && typeof fechaLimite === "string") {
+        tareaData.fechaLimite = new Date(fechaLimite);
       }
 
       const nuevaTarea = await this.KanbanSer.createTask(tareaData);
       res.status(201).json(nuevaTarea);
     } catch (error) {
-      next(error);
+      const err = error as Error;
+
+      if (
+        typeof err.message === "string" &&
+        (
+          err.message.includes("responsables") ||
+          err.message.includes("etiquetas") ||
+          err.message.includes("título") ||
+          err.message.includes("proyectoId") ||
+          err.message.includes("estadoId")
+        )
+      ) {
+        res.status(400).json({ message: err.message });
+      } else {
+        next(error);
+      }
     }
   }
 
@@ -223,11 +240,12 @@ export class KanbanController {
     }
   }
 
+
   public async requestGetEtiquetaById(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const id = Number(req.params.id);
       const proyectoId = req.query.proyectoId as string | undefined;
-      console.log('ProyectoId recibido = ' ,proyectoId)
+      console.log('ProyectoId recibido = ', proyectoId)
 
       if (!id || isNaN(id)) {
         res.status(400).json({ message: "ID de etiqueta inválido." });
@@ -241,7 +259,6 @@ export class KanbanController {
       next(error);
     }
   }
-
 
   // Relacionados a 1 tarea
   public async requestGetMiembrosDelProyecto(
@@ -400,5 +417,8 @@ export class KanbanController {
       next(e);
     }
   }
+
+
+
 
 }

@@ -1,12 +1,14 @@
-import { Router } from 'express';
+import { Router } from "express";
 
-import { ProjectController } from './project.controller.js';
-import { projectService } from './projects.service.js';
+import { ProjectController } from "./project.controller.js";
 
 const routerProject = Router();
+const projectController = new ProjectController();
 
-const projectController = new ProjectController(projectService)
-
-routerProject.delete('/:projectId/:ownerId', projectController.requestDeleteProject.bind(projectController));
+// Definir las rutas directamente en el router de proyectos
+routerProject.get('/', projectController.requestListProjects.bind(projectController));
+routerProject.post('/', projectController.requestCreateProject.bind(projectController));
+routerProject.patch('/:id', projectController.requestUpdateProject.bind(projectController));
+routerProject.delete('/:id', projectController.requestDeleteProject.bind(projectController));
 
 export default routerProject;

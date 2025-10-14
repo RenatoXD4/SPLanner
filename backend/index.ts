@@ -14,7 +14,7 @@ const api = "api-v1";
 
 //app.use(cors({ credentials: true, origin: true }));   DESCOMENTAR ESTO EN CASO DE FALLO DEL CORS (NO RECOMENDADO EN PRODUCCION)
 
-const allowedOrigins = ["http://localhost:4200/", "http://localhost/"];
+const allowedOrigins = ["http://localhost:4200", "http://localhost"]; // ANTES DEL CAMBIO --> const allowedOrigins = ["http://localhost:4200/", "http://localhost/"];
 
 // Middleware de CORS (debe ir antes de las rutas)
 app.use(cors({
@@ -39,7 +39,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Rutas
+// Rutas  
 app.use(`/${api}/kanban`, routerKanbantask);
 app.use(`/${api}/projects`, routerProject);
 //Ruta de login y google auth 

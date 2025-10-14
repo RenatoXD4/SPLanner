@@ -1,32 +1,48 @@
-import { Proyectos } from "@prisma/client";
+import { Prisma, PrismaClient, Proyectos } from "@prisma/client";
 
-import { prisma } from "../../lib/prisma.js";
+const prisma = new PrismaClient();
 
 export class ProjectRepository {
-  public async deleteProject(id: string): Promise<null | Proyectos> {
-    return await prisma.proyectos.delete({
-      where: {
-        id: id,
-      },
-    });
+  public async deleteProject(id: string): Promise<Proyectos> {
+    return await prisma.proyectos.delete({ where: { id } });
   }
 
-  // Esta se debe modificar, por temas de reglas de negocio.Debería devolver todos los proyectos en los que esté el usuario. 
-  public async getAllProjects(): Promise<Proyectos[]> { 
+  // Método para obtener todos los proyectos (si aún lo necesitas)
+  public async getAllProjects(): Promise<Proyectos[]> {
     return await prisma.proyectos.findMany();
   }
 
-  public async getProject(id: string): Promise<null | Proyectos> {
-    return await prisma.proyectos.findUnique({
-      where: {
-        id: id,
-      },
+  // Método actualizado para filtrar por usuario
+  public async getProjectsByUser(creadoPorId: string): Promise<Proyectos[]> {
+    return await prisma.proyectos.findMany({
+      where: { creadoPorId }
     });
   }
 
-  public async insertProject(data: Proyectos): Promise<Proyectos> {
-    return await prisma.proyectos.create({
-      data
+  public async insertProject(data: Prisma.ProyectosCreateInput): Promise<Proyectos> {
+    return await prisma.proyectos.create({ data });
+  }
+
+  // Método para verificar si el proyecto pertenece al usuario
+  public async isProjectOwner(projectId: string, userId: string): Promise<boolean> {
+    const project = await prisma.proyectos.findFirst({
+      where: { 
+        creadoPorId: userId,
+        id: projectId 
+      }
     });
+    return !!project;
+  }
+
+  public async updateProject(id: string, data: Prisma.ProyectosUpdateInput): Promise<Proyectos> {
+    return await prisma.proyectos.update({
+      data,
+      where: { id },
+    });
+  }
+
+  public async userExists(id: string): Promise<boolean> {
+    const user = await prisma.usuario.findUnique({ where: { id } });
+    return !!user;
   }
 }

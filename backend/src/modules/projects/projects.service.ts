@@ -1,4 +1,4 @@
-import { Proyectos } from "@prisma/client";
+import { Prisma, Proyectos } from "@prisma/client";
 
 import { ProjectRepository } from "./projects.repository.js";
 
@@ -9,46 +9,39 @@ export class ProjectService {
     this.projectRepository = new ProjectRepository();
   }
 
-  async deleteOneProject(
-    id: string,
-    currentUserId: string
-  ): Promise<Proyectos> {
-    const project = await this.projectRepository.deleteProject(id);
-
-    if (!project) {
-      throw new Error(`El proyecto con ID ${id} no fue encontrado.`);
-    }
-
-    if (project.creadoPorId !== currentUserId) {
-      throw new Error(
-        "Permiso denegado. No tienes autorización para borrar este proyecto."
-      );
-    }
-    return project;
+  async checkUserExists(userId: string): Promise<boolean> {
+    return this.projectRepository.userExists(userId);
   }
 
-  async getOneProject(id: string): Promise<Proyectos> {
-    const project = await this.projectRepository.getProject(id);
-
-    if (!project) {
-      throw new Error("El proyecto no fue encontrado");
-    }
-
-    return project;
+  async createProject(data: Prisma.ProyectosCreateInput): Promise<Proyectos> {
+    return this.projectRepository.insertProject(data);
   }
 
-  async getProjects(): Promise<Proyectos[]> {
-   
-    const proyectos = await this.projectRepository.getAllProjects();
-    
-    return proyectos.map(p => ({
-          ...p,
-          esOno: p.id == "Cancelado" ? true : false, // Esto es un ejemplo para manipular consultas y devolver propiedades personalizadas
-    }));
+  // Mantener este método si lo necesitas para admin
+  async listAllProjects(): Promise<Proyectos[]> {
+    return this.projectRepository.getAllProjects();
+  }
+
+  // Nuevo método para obtener proyectos por usuario
+  async listProjectsByUser(userId: string): Promise<Proyectos[]> {
+    return this.projectRepository.getProjectsByUser(userId);
+  }
+
+  async modifyProject(id: string, data: Prisma.ProyectosUpdateInput, userId: string): Promise<Proyectos> {
+    // Verificar que el proyecto pertenezca al usuario
+    const isOwner = await this.projectRepository.isProjectOwner(id, userId);
+    if (!isOwner) {
+      throw new Error("No tienes permisos para editar este proyecto");
+    }
+    return this.projectRepository.updateProject(id, data);
+  }
+
+  async removeProject(id: string, userId: string): Promise<Proyectos> {
+    // Verificar que el proyecto pertenezca al usuario
+    const isOwner = await this.projectRepository.isProjectOwner(id, userId);
+    if (!isOwner) {
+      throw new Error("No tienes permisos para eliminar este proyecto");
+    }
+    return this.projectRepository.deleteProject(id);
   }
 }
-
-const projectService = new ProjectService();
-
-
-export { projectService };

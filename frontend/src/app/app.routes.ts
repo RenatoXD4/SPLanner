@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { GoogleCallbackComponent } from './core/services/Api/google-callback.component';
+import { NotFoundComponent } from './core/features/not-found/not-found';
 
 export const APP_ROUTES: Routes = [
   {
@@ -24,5 +25,10 @@ export const APP_ROUTES: Routes = [
   },
   { path: 'auth/google/callback', component: GoogleCallbackComponent },
 
+  //404
+{
+    path: '**',
+    component: NotFoundComponent
+  }
 ];
 

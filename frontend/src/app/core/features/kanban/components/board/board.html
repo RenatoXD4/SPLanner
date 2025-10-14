@@ -6,32 +6,22 @@
     <!-- Filtro de vistas -->
     <div class="flex flex-wrap justify-start gap-4 mb-6">
       <!-- Botón Vista Kanban -->
-      <button
-        title="Cambiar a la vista Kanban"
-        (click)="setViewMode('kanban')"
-        [ngClass]="getButtonClasses('kanban')"
-        class="btn btn-outline border-gray-300 text-gray-700 hover:bg-primary hover:text-white hover:border-primary focus:outline-none w-full sm:w-auto transform transition-all duration-300 ease-in-out hover:scale-105"
-      >
+      <button title="Cambiar a la vista Kanban" (click)="setViewMode('kanban')" [ngClass]="getButtonClasses('kanban')"
+        class="btn btn-outline border-gray-300 text-gray-700 hover:bg-primary hover:text-white hover:border-primary focus:outline-none w-full sm:w-auto transform transition-all duration-300 ease-in-out hover:scale-105">
         <span class="text-lg font-semibold">Vista Kanban</span>
       </button>
 
       <!-- Botón Vista Lista -->
-      <button
-        title="Cambiar a la vista en forma de lista"
-        (click)="setViewMode('list')"
+      <button title="Cambiar a la vista en forma de lista" (click)="setViewMode('list')"
         [ngClass]="getButtonClasses('list')"
-        class="btn btn-outline border-gray-300 text-gray-700 hover:bg-primary hover:text-white hover:border-primary focus:outline-none w-full sm:w-auto transform transition-all duration-300 ease-in-out hover:scale-105"
-      >
+        class="btn btn-outline border-gray-300 text-gray-700 hover:bg-primary hover:text-white hover:border-primary focus:outline-none w-full sm:w-auto transform transition-all duration-300 ease-in-out hover:scale-105">
         Vista Lista
       </button>
 
       <!-- Botón Tareas Asignadas -->
-      <button
-        title="Aquí puedes ver tus tareas asignadas"
-        (click)="setViewMode('assigned')"
+      <button title="Aquí puedes ver tus tareas asignadas" (click)="setViewMode('assigned')"
         [ngClass]="getButtonClasses('assigned')"
-        class="btn btn-outline border-gray-300 text-gray-700 hover:bg-primary hover:text-white hover:border-primary focus:outline-none w-full sm:w-auto transform transition-all duration-300 ease-in-out hover:scale-105"
-      >
+        class="btn btn-outline border-gray-300 text-gray-700 hover:bg-primary hover:text-white hover:border-primary focus:outline-none w-full sm:w-auto transform transition-all duration-300 ease-in-out hover:scale-105">
         Tareas Asignadas
       </button>
     </div>
@@ -40,10 +30,8 @@
     @if (viewMode === 'kanban') {
     <div #kanbanContainer class="flex flex-col w-full gap-6 md:flex-row">
       @for (item of CategoriasK; track item.id) {
-      <div
-        class="w-full md:w-[300px] flex-shrink-0 rounded-lg shadow-md p-4 space-y-4"
-        [ngClass]="getColumnColorClass(item.nombre)"
-      >
+      <div class="w-full md:w-[300px] flex-shrink-0 rounded-lg shadow-md p-4 space-y-4"
+        [ngClass]="getColumnColorClass(item.nombre)">
         <!-- Título -->
         <div class="flex items-center justify-between">
           <h2 class="text-lg font-semibold" [ngClass]="getTextColorClass(item.nombre)">
@@ -55,21 +43,12 @@
         </div>
 
         <!-- Lista de tareas -->
-        <div
-          cdkDropList
-          [id]="item.id"
-          [cdkDropListData]="item.tasks"
-          [cdkDropListConnectedTo]="categoriasIds"
+        <div cdkDropList [id]="item.id" [cdkDropListData]="item.tasks" [cdkDropListConnectedTo]="categoriasIds"
           (cdkDropListDropped)="drop($event)"
-          class="space-y-3 min-h-[50px] max-h-[450px] overflow-y-auto rounded-lg p-1"
-        >
+          class="space-y-3 min-h-[50px] max-h-[450px] overflow-y-auto rounded-lg p-1">
           @for (A of item.tasks; track A.id) {
-          <div
-            cdkDrag
-            (cdkDragStarted)="onDragStarted()"
-            (cdkDragEnded)="onDragEnded()"
-            (mouseenter)="onTaskHover(A.id.toString())"
-            (mouseleave)="onTaskHoverLeave(A.id.toString())"
+          <div cdkDrag (cdkDragStarted)="onDragStarted()" (cdkDragEnded)="onDragEnded()"
+            (mouseenter)="onTaskHover(A.id.toString())" (mouseleave)="onTaskHoverLeave(A.id.toString())"
             class="relative rounded-lg p-3 flex flex-col gap-1 cursor-move border group hover:shadow-md hover:ring hover:ring-primary"
             [ngClass]="[
               getCardColorClass(item.nombre),
@@ -77,54 +56,30 @@
               hoveredTaskId === A.id.toString()
                 ? 'ring ring-primary ring-offset-2 scale-[1.01] bg-base-100 shadow-md'
                 : ''
-            ]"
-          >
+            ]">
             <!-- Contenedor de botones (editar y eliminar) -->
             @if (hoveredTaskId === A.id.toString()) {
             <div class="absolute top-2 right-2 flex gap-2">
               <!-- Botón editar tarea (ícono de lápiz) -->
               <button
                 class="p-2 rounded-full bg-opacity-60 bg-gray-800 text-white hover:bg-opacity-80 hover:bg-blue-600 transition-opacity duration-200 ease-in-out"
-                (click)="editarTarea(A.id)"
-                aria-label="Editar tarea"
-                style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15)"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke-width="1.5"
-                  stroke="currentColor"
-                  class="h-5 w-5"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M13.125 6.375l4.5 4.5m0 0l-7.5 7.5h-4.5v-4.5l7.5-7.5m0 0l2.25-2.25a1.125 1.125 0 0 1 1.594 1.594L13.125 6.375z"
-                  />
+                (click)="editarTarea(A.id)" aria-label="Editar tarea" style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15)">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                  stroke="currentColor" class="h-5 w-5">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M13.125 6.375l4.5 4.5m0 0l-7.5 7.5h-4.5v-4.5l7.5-7.5m0 0l2.25-2.25a1.125 1.125 0 0 1 1.594 1.594L13.125 6.375z" />
                 </svg>
               </button>
 
               <!-- Botón eliminar tarea (ícono de basurero) -->
               <button
                 class="p-2 rounded-full bg-opacity-60 bg-gray-800 text-white hover:bg-opacity-80 hover:bg-red-600 transition-opacity duration-200 ease-in-out"
-                (click)="eliminarTarea(A.id)"
-                aria-label="Eliminar tarea"
-                style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15)"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke-width="1.5"
-                  stroke="currentColor"
-                  class="h-5 w-5"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
-                  />
+                (click)="eliminarTarea(A.id)" aria-label="Eliminar tarea"
+                style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15)">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                  stroke="currentColor" class="h-5 w-5">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
                 </svg>
               </button>
             </div>
@@ -158,14 +113,11 @@
             @if (A.etiquetas && A.etiquetas.length > 0) {
             <div>
               @for (nombreEtiqueta of getNombresEtiquetas(A.etiquetas); track nombreEtiqueta) {
-              <span
-                class="badge"
-                [ngClass]="{
+              <span class="badge" [ngClass]="{
                   Alta: nombreEtiqueta === 'Alta',
                   Media: nombreEtiqueta === 'Media',
                   Baja: nombreEtiqueta === 'Baja'
-                }"
-              >
+                }">
                 {{ nombreEtiqueta }}
               </span>
               }
@@ -176,11 +128,8 @@
         </div>
 
         <!-- Botón Nueva Tarea -->
-        <button
-          class="btn btn-sm w-full font-medium transition hover:scale-105"
-          [ngClass]="getButtonColorClass(item.nombre)"
-          (click)="abrirModal(item)"
-        >
+        <button class="btn btn-sm w-full font-medium transition hover:scale-105"
+          [ngClass]="getButtonColorClass(item.nombre)" (click)="abrirModal(item)">
           + Nueva Tarea
         </button>
       </div>
@@ -190,28 +139,16 @@
 
     <!-- VISTA LISTA -->
     @if (viewMode === 'list') {
-    <div
-      #listContainer
-      class="flex flex-col w-full gap-6 animate-fadeIn transition-opacity duration-500 ease-in-out"
-    >
+    <div #listContainer class="flex flex-col w-full gap-6 animate-fadeIn transition-opacity duration-500 ease-in-out">
       <!-- Encabezado y botón de filtros -->
       <div class="mb-4 flex justify-start items-center gap-4">
         <!-- Botón toggle de filtros (fijo a la izquierda) -->
         <div class="relative">
-          <button
-            (click)="mostrarPanelFiltros = !mostrarPanelFiltros"
-            [attr.aria-pressed]="mostrarPanelFiltros"
-            class="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition"
-          >
+          <button (click)="mostrarPanelFiltros = !mostrarPanelFiltros" [attr.aria-pressed]="mostrarPanelFiltros"
+            class="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition">
             <!-- Heroicon: Bars-3 -->
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              stroke-width="2"
-            >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
 
@@ -227,15 +164,10 @@
 
           <!-- Panel de filtros -->
           @if (mostrarPanelFiltros) {
-          <div
-            class="mt-4 flex flex-wrap gap-4 p-4 rounded-lg bg-gray-900 shadow-md animate-fade-in"
-          >
-            <input
-              type="text"
-              [(ngModel)]="filtroTitulo"
+          <div class="mt-4 flex flex-wrap gap-4 p-4 rounded-lg bg-gray-900 shadow-md animate-fade-in">
+            <input type="text" [(ngModel)]="filtroTitulo"
               class="bg-gray-800 text-white px-3 py-2 rounded border border-gray-600 focus:outline-none focus:border-blue-500"
-              placeholder="Buscar por título"
-            />
+              placeholder="Buscar por título" />
 
             <select
               [(ngModel)]="filtroCategoria"
@@ -247,10 +179,8 @@
               }
             </select>
 
-            <select
-              [(ngModel)]="filtroResponsable"
-              class="bg-gray-800 text-white px-3 py-2 rounded border border-gray-600 focus:outline-none focus:border-blue-500"
-            >
+            <select [(ngModel)]="filtroResponsable"
+              class="bg-gray-800 text-white px-3 py-2 rounded border border-gray-600 focus:outline-none focus:border-blue-500">
               <option value="">Todos los responsables</option>
               @for (responsable of miembrosDelProyecto; track responsable.usuario.id) {
               <option [value]="responsable.usuario.id">
@@ -259,20 +189,16 @@
               }
             </select>
 
-            <select
-              [(ngModel)]="filtroEtiquetas"
-              class="bg-gray-800 text-white px-3 py-2 rounded border border-gray-600 focus:outline-none focus:border-blue-500"
-            >
+            <select [(ngModel)]="filtroEtiquetas"
+              class="bg-gray-800 text-white px-3 py-2 rounded border border-gray-600 focus:outline-none focus:border-blue-500">
               <option value="">Todas las etiquetas</option>
               @for (etiqueta of etiquetasUnicas; track etiqueta.id) {
               <option [value]="etiqueta.id">{{ etiqueta.nombre }}</option>
               }
             </select>
 
-            <button
-              (click)="limpiarFiltros()"
-              class="ml-auto text-red-400 border border-red-400 px-3 py-2 rounded hover:bg-red-500 hover:text-white transition"
-            >
+            <button (click)="limpiarFiltros()"
+              class="ml-auto text-red-400 border border-red-400 px-3 py-2 rounded hover:bg-red-500 hover:text-white transition">
               Limpiar filtros
             </button>
           </div>
@@ -309,19 +235,10 @@
                 } @else {
                 <span class="text-sm text-gray-400 italic flex items-center gap-1">
                   <!-- Heroicon: User Minus -->
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      d="M15 12H9m6-6a6 6 0 11-12 0 6 6 0 0112 0zM21 12a9 9 0 10-18 0 9 9 0 0018 0z"
-                    />
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M15 12H9m6-6a6 6 0 11-12 0 6 6 0 0112 0zM21 12a9 9 0 10-18 0 9 9 0 0018 0z" />
                   </svg>
                   Sin responsables
                 </span>
@@ -333,14 +250,11 @@
                 @if (item.tarea.etiquetas && item.tarea.etiquetas.length > 0) {
                 <div>
                   @for (etiqueta of getNombresEtiquetas(item.tarea.etiquetas); track etiqueta) {
-                  <span
-                    class="badge"
-                    [ngClass]="{
+                  <span class="badge" [ngClass]="{
                       Alta: etiqueta === 'Alta',
                       Media: etiqueta === 'Media',
                       Baja: etiqueta === 'Baja'
-                    }"
-                  >
+                    }">
                     {{ etiqueta }}
                   </span>
                   }
@@ -366,46 +280,24 @@
                   <!-- Botón editar tarea (ícono de lápiz) -->
                   <button
                     class="p-2 rounded-full bg-opacity-60 bg-gray-800 text-white hover:bg-opacity-80 hover:bg-blue-600 transition-opacity duration-200 ease-in-out"
-                    (click)="editarTarea(item.tarea.id)"
-                    aria-label="Editar tarea"
-                    style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15)"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke-width="1.5"
-                      stroke="currentColor"
-                      class="h-5 w-5"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M13.125 6.375l4.5 4.5m0 0l-7.5 7.5h-4.5v-4.5l7.5-7.5m0 0l2.25-2.25a1.125 1.125 0 0 1 1.594 1.594L13.125 6.375z"
-                      />
+                    (click)="editarTarea(item.tarea.id)" aria-label="Editar tarea"
+                    style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15)">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                      stroke="currentColor" class="h-5 w-5">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M13.125 6.375l4.5 4.5m0 0l-7.5 7.5h-4.5v-4.5l7.5-7.5m0 0l2.25-2.25a1.125 1.125 0 0 1 1.594 1.594L13.125 6.375z" />
                     </svg>
                   </button>
                   -
                   <!-- Botón eliminar tarea (ícono de basurero) -->
                   <button
                     class="p-2 rounded-full bg-opacity-60 bg-gray-800 text-white hover:bg-opacity-80 hover:bg-red-600 transition-opacity duration-200 ease-in-out"
-                    (click)="eliminarTarea(item.tarea.id)"
-                    aria-label="Eliminar tarea"
-                    style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15)"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke-width="1.5"
-                      stroke="currentColor"
-                      class="h-5 w-5"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
-                      />
+                    (click)="eliminarTarea(item.tarea.id)" aria-label="Eliminar tarea"
+                    style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15)">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                      stroke="currentColor" class="h-5 w-5">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                        d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
                     </svg>
                   </button>
                 </div>
@@ -454,19 +346,10 @@
                 } @else {
                 <span class="text-sm text-gray-400 italic flex items-center gap-1">
                   <!-- Heroicon: User Minus -->
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      d="M15 12H9m6-6a6 6 0 11-12 0 6 6 0 0112 0zM21 12a9 9 0 10-18 0 9 9 0 0018 0z"
-                    />
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M15 12H9m6-6a6 6 0 11-12 0 6 6 0 0112 0zM21 12a9 9 0 10-18 0 9 9 0 0018 0z" />
                   </svg>
                   Sin responsables
                 </span>
@@ -478,14 +361,11 @@
                 @if (item.tarea.etiquetas && item.tarea.etiquetas.length > 0) {
                 <div>
                   @for (etiqueta of getNombresEtiquetas(item.tarea.etiquetas); track etiqueta) {
-                  <span
-                    class="badge"
-                    [ngClass]="{
+                  <span class="badge" [ngClass]="{
                       Alta: etiqueta === 'Alta',
                       Media: etiqueta === 'Media',
                       Baja: etiqueta === 'Baja'
-                    }"
-                  >
+                    }">
                     {{ etiqueta }}
                   </span>
                   }
@@ -510,46 +390,24 @@
                   <!-- Botón editar tarea (ícono de lápiz) -->
                   <button
                     class="p-2 rounded-full bg-opacity-60 bg-gray-800 text-white hover:bg-opacity-80 hover:bg-blue-600 transition-opacity duration-200 ease-in-out"
-                    (click)="editarTarea(item.tarea.id)"
-                    aria-label="Editar tarea"
-                    style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15)"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke-width="1.5"
-                      stroke="currentColor"
-                      class="h-5 w-5"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M13.125 6.375l4.5 4.5m0 0l-7.5 7.5h-4.5v-4.5l7.5-7.5m0 0l2.25-2.25a1.125 1.125 0 0 1 1.594 1.594L13.125 6.375z"
-                      />
+                    (click)="editarTarea(item.tarea.id)" aria-label="Editar tarea"
+                    style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15)">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                      stroke="currentColor" class="h-5 w-5">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M13.125 6.375l4.5 4.5m0 0l-7.5 7.5h-4.5v-4.5l7.5-7.5m0 0l2.25-2.25a1.125 1.125 0 0 1 1.594 1.594L13.125 6.375z" />
                     </svg>
                   </button>
                   -
                   <!-- Botón eliminar tarea (ícono de basurero) -->
                   <button
                     class="p-2 rounded-full bg-opacity-60 bg-gray-800 text-white hover:bg-opacity-80 hover:bg-red-600 transition-opacity duration-200 ease-in-out"
-                    (click)="eliminarTarea(item.tarea.id)"
-                    aria-label="Eliminar tarea"
-                    style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15)"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke-width="1.5"
-                      stroke="currentColor"
-                      class="h-5 w-5"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
-                      />
+                    (click)="eliminarTarea(item.tarea.id)" aria-label="Eliminar tarea"
+                    style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15)">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                      stroke="currentColor" class="h-5 w-5">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                        d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
                     </svg>
                   </button>
                 </div>
@@ -564,52 +422,32 @@
   </main>
 
   <!-- Modal Nueva Tarea -->
-  <dialog
-    id="modalNuevaTarea"
-    class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
-    [open]="modalVisible"
-  >
-    <form
-      method="dialog"
-      (submit)="crearTarea()"
-      class="modal-box max-w-lg w-full p-6 bg-base-100 rounded-lg shadow-lg"
-    >
+  <dialog id="modalNuevaTarea" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
+    [open]="modalVisible">
+    <form method="dialog" (submit)="crearTarea()"
+      class="modal-box max-w-lg w-full p-6 bg-base-100 rounded-lg shadow-lg">
       <h3 class="font-bold text-lg mb-4">Crear Nueva Tarea</h3>
 
       <!-- Título -->
       <label class="label">
         <span class="label-text font-semibold">Título *</span>
       </label>
-      <input
-        type="text"
-        placeholder="Ej: Redactar propuesta comercial"
-        [(ngModel)]="newTask.titulo"
-        name="titulo"
-        class="input input-bordered w-full mb-4"
-        required
-      />
+      <input type="text" placeholder="Ej: Redactar propuesta comercial" [(ngModel)]="newTask.titulo" name="titulo"
+        class="input input-bordered w-full mb-4" required />
 
       <!-- Fecha límite -->
       <label class="label">
         <span class="label-text font-semibold">Fecha límite</span>
       </label>
-      <input
-        type="date"
-        [(ngModel)]="newTask.fechaLimite"
-        name="fechaLimite"
-        class="input input-bordered w-full mb-4"
-      />
+      <input type="date" [(ngModel)]="newTask.fechaLimite" name="fechaLimite"
+        class="input input-bordered w-full mb-4" />
 
       <!-- Responsables -->
       <label class="label">
         <span class="label-text font-semibold">Responsables</span>
       </label>
-      <select
-        multiple
-        [(ngModel)]="newTask.responsablesIds"
-        name="responsables"
-        class="select select-bordered w-full mb-4"
-      >
+      <select multiple [(ngModel)]="newTask.responsablesIds" name="responsables"
+        class="select select-bordered w-full mb-4">
         @for (miembro of miembrosDelProyecto; track miembro.usuario.id) {
         <option [value]="miembro.usuario.id">
           {{ miembro.usuario.nombre }} {{ miembro.usuario.apellido }}
@@ -621,12 +459,7 @@
       <label class="label">
         <span class="label-text font-semibold">Etiquetas</span>
       </label>
-      <select
-        multiple
-        [(ngModel)]="newTask.etiquetaIds"
-        name="etiquetas"
-        class="select select-bordered w-full mb-4"
-      >
+      <select multiple [(ngModel)]="newTask.etiquetaIds" name="etiquetas" class="select select-bordered w-full mb-4">
         @for (etiqueta of etiquetasUnicas; track etiqueta.id) {
         <option [value]="etiqueta.id">
           {{ etiqueta.nombre }}

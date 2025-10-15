@@ -62,6 +62,7 @@ export class MenuPrincipal implements OnInit {
 
   // Variables para el modal de edición
   showEditModal: boolean = false;
+  activeTab: string = 'profile'; // 'profile' o 'password'
   editFormData: {
     nombre?: string;
     apellido?: string;
@@ -175,6 +176,7 @@ export class MenuPrincipal implements OnInit {
       this.showNewPassword = false;
       this.showConfirmPassword = false;
       this.showPasswordFields = false;
+      this.activeTab = 'profile'; // Establecer pestaña por defecto
       // Resetear errores de contraseña
       this.passwordErrors = {
         minLength: false,
@@ -198,6 +200,7 @@ export class MenuPrincipal implements OnInit {
     this.showNewPassword = false;
     this.showConfirmPassword = false;
     this.showPasswordFields = false;
+    this.activeTab = 'profile'; // Resetear a pestaña por defecto
     // Resetear errores de contraseña
     this.passwordErrors = {
       minLength: false,
@@ -213,11 +216,12 @@ export class MenuPrincipal implements OnInit {
     this.showCurrentPassword = !this.showCurrentPassword;
   }
 
-    verTodosProyectos(): void {
+  verTodosProyectos(): void {
     if (this.isBrowser) {
       this.router.navigate(['/proyectos']);
     }
   }
+
   toggleNewPassword() {
     this.showNewPassword = !this.showNewPassword;
   }
@@ -289,14 +293,17 @@ export class MenuPrincipal implements OnInit {
   validateEditForm(): boolean {
     this.editErrorMessage = '';
 
-    // Validar que al menos un campo esté lleno
-    if (!this.editFormData.nombre && !this.editFormData.apellido && !this.showPasswordFields) {
-      this.editErrorMessage = 'Debes completar al menos un campo para actualizar';
-      return false;
+    // Validar según la pestaña activa
+    if (this.activeTab === 'profile') {
+      // Para información personal, validar que al menos un campo esté lleno
+      if ((!this.editFormData.nombre || this.editFormData.nombre.trim() === '') &&
+          (!this.editFormData.apellido || this.editFormData.apellido.trim() === '')) {
+        this.editErrorMessage = 'Debes completar al menos un campo para actualizar';
+        return false;
+      }
     }
-
-    // Validar contraseñas si se quiere cambiar la contraseña
-    if (this.showPasswordFields) {
+    else if (this.activeTab === 'password') {
+      // Para contraseña, validar todos los campos de contraseña
       if (!this.editFormData.newPassword) {
         this.editErrorMessage = 'La nueva contraseña es requerida';
         return false;
@@ -336,23 +343,24 @@ export class MenuPrincipal implements OnInit {
     console.log('Enviando datos de actualización:', {
       userId,
       formData: this.editFormData,
-      showPasswordFields: this.showPasswordFields
+      activeTab: this.activeTab
     });
 
-    // Preparar datos para enviar
+    // Preparar datos para enviar -
     const updateData: UpdateProfileRequest = {};
 
-    // Siempre enviar nombre y apellido si tienen valor
-    if (this.editFormData.nombre && this.editFormData.nombre.trim() !== '') {
-      updateData.nombre = this.editFormData.nombre.trim();
+    // Si estamos en la pestaña de perfil, enviar nombre y apellido si tienen valor
+    if (this.activeTab === 'profile') {
+      if (this.editFormData.nombre && this.editFormData.nombre.trim() !== '') {
+        updateData.nombre = this.editFormData.nombre.trim();
+      }
+      if (this.editFormData.apellido && this.editFormData.apellido.trim() !== '') {
+        updateData.apellido = this.editFormData.apellido.trim();
+      }
     }
 
-    if (this.editFormData.apellido && this.editFormData.apellido.trim() !== '') {
-      updateData.apellido = this.editFormData.apellido.trim();
-    }
-
-    // Solo enviar nueva contraseña si se está cambiando la contraseña
-    if (this.showPasswordFields) {
+    // Si estamos en la pestaña de contraseña, enviar la nueva contraseña
+    if (this.activeTab === 'password') {
       if (this.editFormData.newPassword && this.editFormData.newPassword.trim() !== '') {
         updateData.newPassword = this.editFormData.newPassword;
       }

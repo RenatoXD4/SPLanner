@@ -5,11 +5,14 @@
   <!-- Contenido principal -->
   <div class="flex-1 flex flex-col overflow-hidden">
     <!-- Header -->
-    <header class="bg-gray-800 border-b border-gray-700">
+    <header class="bg-gray-800 border-b border-gray-700 transition-all duration-500 ease-out"
+      [class]="!loading && dashboardData ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'">
       <div class="flex items-center justify-between px-6 py-4">
         <div class="flex items-center space-x-4">
-          <h1 class="text-2xl font-bold text-white">Home</h1>
-          <div class="text-gray-400 text-sm">
+          <h1 class="text-2xl font-bold text-white transition-all duration-500 ease-out delay-100"
+            [class]="!loading && dashboardData ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'">Home</h1>
+          <div class="text-gray-400 text-sm transition-all duration-500 ease-out delay-200"
+            [class]="!loading && dashboardData ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'">
             @if (dashboardData) {
             Bienvenido de vuelta, {{dashboardData.userInfo.nombre}}
             } @else {
@@ -20,7 +23,9 @@
 
         <div class="flex items-center space-x-4">
           <!-- Notificaciones -->
-          <button class="relative p-2 text-gray-400 hover:text-white transition-colors">
+          <button
+            class="relative p-2 text-gray-400 hover:text-white transition-all duration-300 transform hover:scale-110 transition-all duration-500 ease-out delay-300"
+            [class]="!loading && dashboardData ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4'">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M15 17h5l-5 5v-5zM10.24 8.56a5.97 5.97 0 01-4.66-6.24M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -29,8 +34,10 @@
           </button>
 
           <!-- Perfil del usuario -->
-          <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+          <div class="flex items-center space-x-3 transition-all duration-500 ease-out delay-400"
+            [class]="!loading && dashboardData ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4'">
+            <div
+              class="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-green-500/25">
               <span class="text-white font-semibold">
                 @if (dashboardData) {
                 {{dashboardData.userInfo.nombre.charAt(0)}}
@@ -57,7 +64,7 @@
     <main class="flex-1 overflow-y-auto p-6">
       @if (loading) {
       <div class="flex items-center justify-center h-64">
-        <div class="text-white text-lg">Cargando datos del dashboard...</div>
+        <div class="text-white text-lg transition-all duration-300">Cargando datos del dashboard...</div>
       </div>
       } @else if (error) {
       <div class="flex items-center justify-center h-64">
@@ -68,13 +75,18 @@
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <!-- Total de Proyectos -->
         <div
-          class="bg-gray-800 rounded-2xl p-6 border border-gray-700 hover:border-green-500 transition-all duration-300">
+          class="bg-gray-800 rounded-2xl p-6 border border-gray-700 hover:border-green-500 transition-all duration-500 transform hover:-translate-y-2 hover:shadow-2xl hover:shadow-green-500/10"
+          [class]="!loading && dashboardData ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'"
+          style="transition-delay: 100ms">
           <div class="flex items-center justify-between">
             <div>
               <p class="text-gray-400 text-sm">Total Proyectos</p>
-              <p class="text-3xl font-bold text-white mt-2">{{dashboardData.stats.totalProjects}}</p>
+              <p class="text-3xl font-bold text-white mt-2 transition-all duration-1000 ease-out"
+                [class]="!loading && dashboardData ? 'opacity-100 scale-100' : 'opacity-0 scale-75'">
+                {{dashboardData.stats.totalProjects}}</p>
             </div>
-            <div class="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center">
+            <div
+              class="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-110 hover:bg-green-500/30">
               <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
@@ -93,13 +105,18 @@
 
         <!-- Total de Tareas -->
         <div
-          class="bg-gray-800 rounded-2xl p-6 border border-gray-700 hover:border-green-500 transition-all duration-300">
+          class="bg-gray-800 rounded-2xl p-6 border border-gray-700 hover:border-blue-500 transition-all duration-500 transform hover:-translate-y-2 hover:shadow-2xl hover:shadow-blue-500/10"
+          [class]="!loading && dashboardData ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'"
+          style="transition-delay: 200ms">
           <div class="flex items-center justify-between">
             <div>
               <p class="text-gray-400 text-sm">Total Tareas</p>
-              <p class="text-3xl font-bold text-white mt-2">{{dashboardData.stats.totalTasks}}</p>
+              <p class="text-3xl font-bold text-white mt-2 transition-all duration-1000 ease-out"
+                [class]="!loading && dashboardData ? 'opacity-100 scale-100' : 'opacity-0 scale-75'">
+                {{dashboardData.stats.totalTasks}}</p>
             </div>
-            <div class="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center">
+            <div
+              class="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-110 hover:bg-blue-500/30">
               <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
@@ -118,13 +135,18 @@
 
         <!-- Tareas Pendientes -->
         <div
-          class="bg-gray-800 rounded-2xl p-6 border border-gray-700 hover:border-green-500 transition-all duration-300">
+          class="bg-gray-800 rounded-2xl p-6 border border-gray-700 hover:border-yellow-500 transition-all duration-500 transform hover:-translate-y-2 hover:shadow-2xl hover:shadow-yellow-500/10"
+          [class]="!loading && dashboardData ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'"
+          style="transition-delay: 300ms">
           <div class="flex items-center justify-between">
             <div>
               <p class="text-gray-400 text-sm">Pendientes</p>
-              <p class="text-3xl font-bold text-white mt-2">{{dashboardData.stats.pendingTasks}}</p>
+              <p class="text-3xl font-bold text-white mt-2 transition-all duration-1000 ease-out"
+                [class]="!loading && dashboardData ? 'opacity-100 scale-100' : 'opacity-0 scale-75'">
+                {{dashboardData.stats.pendingTasks}}</p>
             </div>
-            <div class="w-12 h-12 bg-yellow-500/20 rounded-xl flex items-center justify-center">
+            <div
+              class="w-12 h-12 bg-yellow-500/20 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-110 hover:bg-yellow-500/30">
               <svg class="w-6 h-6 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -138,13 +160,18 @@
 
         <!-- Tareas Completadas -->
         <div
-          class="bg-gray-800 rounded-2xl p-6 border border-gray-700 hover:border-green-500 transition-all duration-300">
+          class="bg-gray-800 rounded-2xl p-6 border border-gray-700 hover:border-green-500 transition-all duration-500 transform hover:-translate-y-2 hover:shadow-2xl hover:shadow-green-500/10"
+          [class]="!loading && dashboardData ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'"
+          style="transition-delay: 400ms">
           <div class="flex items-center justify-between">
             <div>
               <p class="text-gray-400 text-sm">Completadas</p>
-              <p class="text-3xl font-bold text-white mt-2">{{dashboardData.stats.completedTasks}}</p>
+              <p class="text-3xl font-bold text-white mt-2 transition-all duration-1000 ease-out"
+                [class]="!loading && dashboardData ? 'opacity-100 scale-100' : 'opacity-0 scale-75'">
+                {{dashboardData.stats.completedTasks}}</p>
             </div>
-            <div class="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center">
+            <div
+              class="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-110 hover:bg-green-500/30">
               <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -160,13 +187,17 @@
       <!-- Información del usuario y proyectos recientes -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Información del usuario -->
-        <div class="lg:col-span-1">
-          <div class="bg-gray-800 rounded-2xl p-6 border border-gray-700">
+        <div class="lg:col-span-1 transition-all duration-700 ease-out"
+          [class]="!loading && dashboardData ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-8'"
+          style="transition-delay: 500ms">
+          <div
+            class="bg-gray-800 rounded-2xl p-6 border border-gray-700 transition-all duration-300 hover:shadow-xl hover:border-green-500/50">
             <h2 class="text-xl font-bold text-white mb-6">Mi Información</h2>
 
             <div class="space-y-4">
               <div class="flex items-center space-x-4">
-                <div class="w-16 h-16 bg-green-500 rounded-xl flex items-center justify-center">
+                <div
+                  class="w-16 h-16 bg-green-500 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-green-500/25">
                   <span class="text-white text-xl font-bold">{{dashboardData.userInfo.nombre.charAt(0)}}</span>
                 </div>
                 <div>
@@ -180,18 +211,22 @@
               </div>
 
               <div class="grid grid-cols-2 gap-4 pt-4 border-t border-gray-700">
-                <div class="text-center">
+                <div class="text-center transition-all duration-300 hover:scale-105">
                   <p class="text-gray-400 text-sm">Proyectos Activos</p>
-                  <p class="text-white font-bold text-lg">{{dashboardData.stats.totalProjects}}</p>
+                  <p class="text-white font-bold text-lg transition-all duration-1000 ease-out"
+                    [class]="!loading && dashboardData ? 'opacity-100 scale-100' : 'opacity-0 scale-75'">
+                    {{dashboardData.stats.totalProjects}}</p>
                 </div>
-                <div class="text-center">
+                <div class="text-center transition-all duration-300 hover:scale-105">
                   <p class="text-gray-400 text-sm">Tareas Mías</p>
-                  <p class="text-white font-bold text-lg">{{dashboardData.stats.userResponsibleTasks}}</p>
+                  <p class="text-white font-bold text-lg transition-all duration-1000 ease-out"
+                    [class]="!loading && dashboardData ? 'opacity-100 scale-100' : 'opacity-0 scale-75'">
+                    {{dashboardData.stats.userResponsibleTasks}}</p>
                 </div>
               </div>
 
               <button (click)="openEditModal()"
-                class="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-semibold transition-colors mt-4">
+                class="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-green-500/25 active:scale-95">
                 Editar Perfil
               </button>
             </div>
@@ -199,22 +234,28 @@
         </div>
 
         <!-- Proyectos recientes y actividad -->
-        <div class="lg:col-span-2">
-          <div class="bg-gray-800 rounded-2xl p-6 border border-gray-700">
+        <div class="lg:col-span-2 transition-all duration-700 ease-out"
+          [class]="!loading && dashboardData ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'"
+          style="transition-delay: 600ms">
+          <div
+            class="bg-gray-800 rounded-2xl p-6 border border-gray-700 transition-all duration-300 hover:shadow-xl hover:border-green-500/50">
             <div class="flex justify-between items-center mb-6">
               <h2 class="text-xl font-bold text-white">Proyectos Recientes</h2>
               <button (click)="verTodosProyectos()"
-                class="text-green-500 hover:text-green-400 text-sm font-semibold transition-colors">
+                class="text-green-500 hover:text-green-400 text-sm font-semibold transition-all duration-300 transform hover:scale-105 hover:translate-x-1">
                 Ver todos
               </button>
             </div>
 
             <div class="space-y-4">
-              @for (project of dashboardData.recentProjects; track project.id) {
+              @for (project of dashboardData.recentProjects; track project.id; let i = $index) {
               <div
-                class="flex items-center justify-between p-4 bg-gray-700/50 rounded-xl hover:bg-gray-700 transition-colors">
+                class="flex items-center justify-between p-4 bg-gray-700/50 rounded-xl hover:bg-gray-700 transition-all duration-500 transform hover:translate-x-2 hover:shadow-lg"
+                [class]="!loading && dashboardData ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'"
+                [style.transition-delay]="(700 + (i * 100)) + 'ms'">
                 <div class="flex items-center space-x-4">
-                  <div class="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
+                  <div
+                    class="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center transition-all duration-300 hover:scale-110 hover:bg-green-500/30">
                     <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
@@ -245,17 +286,22 @@
       }
     </main>
   </div>
+
   <!-- Modal de Edición de Perfil -->
   @if (showEditModal) {
-  <div class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+  <div
+    class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 transition-all duration-300"
+    [class]="showEditModal ? 'opacity-100' : 'opacity-0'">
     <div
-      class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl w-full max-w-md border border-gray-700 shadow-2xl">
+      class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl w-full max-w-md border border-gray-700 shadow-2xl transition-all duration-300 transform"
+      [class]="showEditModal ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-4'">
+      <!-- Resto del modal permanece igual... -->
       <!-- Header con gradiente -->
       <div class="bg-gradient-to-r from-gray-800 to-gray-700 rounded-t-2xl p-6 border-b border-gray-600">
         <div class="flex items-center justify-between">
           <div class="flex items-center space-x-3">
             <div
-              class="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
+              class="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-110">
               <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -267,7 +313,7 @@
             </div>
           </div>
           <button (click)="closeEditModal()"
-            class="w-8 h-8 bg-gray-700 hover:bg-gray-600 rounded-lg flex items-center justify-center transition-all duration-200 hover:scale-110">
+            class="w-8 h-8 bg-gray-700 hover:bg-gray-600 rounded-lg flex items-center justify-center transition-all duration-200 hover:scale-110 hover:rotate-90">
             <svg class="w-4 h-4 text-gray-400 hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -275,10 +321,31 @@
         </div>
       </div>
 
+      <!-- Navegación por pestañas -->
+      <div class="border-b border-gray-700">
+        <div class="flex">
+          <button (click)="activeTab = 'profile'" [class]="activeTab === 'profile'
+            ? 'border-b-2 border-green-500 text-white bg-gray-700/50'
+            : 'text-gray-400 hover:text-white hover:bg-gray-700/30'"
+            class="flex-1 py-3 px-4 text-sm font-medium transition-all duration-200">
+            Información Personal
+          </button>
+          <button (click)="activeTab = 'password'" [class]="activeTab === 'password'
+            ? 'border-b-2 border-blue-500 text-white bg-gray-700/50'
+            : 'text-gray-400 hover:text-white hover:bg-gray-700/30'"
+            class="flex-1 py-3 px-4 text-sm font-medium transition-all duration-200">
+            Contraseña
+          </button>
+        </div>
+      </div>
+
       <!-- Form -->
-      <form (ngSubmit)="updateProfile()" class="p-6 space-y-6">
-        <!-- Campos de Información Personal -->
-        <div class="space-y-4">
+      <form (ngSubmit)="updateProfile()" class="p-6 space-y-6 max-h-96 overflow-y-auto">
+
+        <!-- Pestaña de Información Personal -->
+        @if (activeTab === 'profile') {
+        <div class="space-y-4 transition-all duration-300"
+          [class]="activeTab === 'profile' ? 'opacity-100' : 'opacity-0'">
           <h3 class="text-lg font-semibold text-white flex items-center space-x-2">
             <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -294,12 +361,6 @@
               <input type="text" [(ngModel)]="editFormData.nombre" name="nombre"
                 class="w-full bg-gray-700/50 border border-gray-600 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 backdrop-blur-sm"
                 placeholder="Tu nombre">
-              <div class="absolute inset-y-0 right-0 flex items-center pr-3">
-                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-              </div>
             </div>
           </div>
 
@@ -310,33 +371,15 @@
               <input type="text" [(ngModel)]="editFormData.apellido" name="apellido"
                 class="w-full bg-gray-700/50 border border-gray-600 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 backdrop-blur-sm"
                 placeholder="Tu apellido">
-              <div class="absolute inset-y-0 right-0 flex items-center pr-3">
-                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-              </div>
             </div>
           </div>
         </div>
-
-        <!-- Botón para modificar contraseña -->
-        @if (!showPasswordFields) {
-        <div class="pt-2">
-          <button type="button" (click)="showChangePasswordFields()"
-            class="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-3 rounded-xl font-semibold transition-all duration-200 transform hover:scale-[1.02] shadow-lg flex items-center justify-center space-x-2">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-            </svg>
-            <span>Modificar Contraseña</span>
-          </button>
-        </div>
         }
 
-        <!-- Campos de Nueva Contraseña -->
-        @if (showPasswordFields) {
-        <div class="space-y-4 pt-4 border-t border-gray-700">
+        <!-- Pestaña de Contraseña -->
+        @if (activeTab === 'password') {
+        <div class="space-y-4 transition-all duration-300"
+          [class]="activeTab === 'password' ? 'opacity-100' : 'opacity-0'">
           <h3 class="text-lg font-semibold text-white flex items-center space-x-2">
             <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -373,7 +416,7 @@
 
             <!-- Indicadores de fortaleza de contraseña -->
             @if (editFormData.newPassword) {
-            <div class="bg-gray-700/30 rounded-xl p-4 space-y-3 backdrop-blur-sm">
+            <div class="bg-gray-700/30 rounded-xl p-4 space-y-3 backdrop-blur-sm transition-all duration-300">
               <h4 class="text-sm font-medium text-gray-300">Requisitos de seguridad:</h4>
               <div class="grid grid-cols-1 gap-2">
                 <div class="flex items-center space-x-3">
@@ -445,18 +488,12 @@
               </button>
             </div>
           </div>
-
-          <!-- Botón para cancelar cambio de contraseña -->
-          <button type="button" (click)="cancelPasswordChange()"
-            class="w-full bg-gray-600/50 hover:bg-gray-500/50 text-white py-3 rounded-xl font-semibold transition-all duration-200 border border-gray-500 hover:border-gray-400 backdrop-blur-sm">
-            Cancelar Cambio de Contraseña
-          </button>
         </div>
         }
 
         <!-- Mensajes de Estado -->
         @if (editErrorMessage) {
-        <div class="bg-red-500/20 border border-red-500/50 rounded-xl p-4 backdrop-blur-sm animate-pulse">
+        <div class="bg-red-500/20 border border-red-500/50 rounded-xl p-4 backdrop-blur-sm transition-all duration-300">
           <div class="flex items-center space-x-2">
             <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -468,7 +505,8 @@
         }
 
         @if (editSuccessMessage) {
-        <div class="bg-green-500/20 border border-green-500/50 rounded-xl p-4 backdrop-blur-sm">
+        <div
+          class="bg-green-500/20 border border-green-500/50 rounded-xl p-4 backdrop-blur-sm transition-all duration-300">
           <div class="flex items-center space-x-2">
             <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -509,7 +547,4 @@
     </div>
   </div>
   }
-
-
-
 </div>

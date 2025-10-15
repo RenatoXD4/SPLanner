@@ -1,5 +1,10 @@
 <div class="flex min-h-screen">
   <app-sidebar></app-sidebar>
+  <app-task-detail
+    [task]="selectedTask" 
+    [isHidden]="isDetailPanelHidden"
+    (closePanel)="hideTaskDetails()">
+  </app-task-detail>
 
   <!-- CONTENIDO PRINCIPAL -->
   <main class="flex-1 p-4">
@@ -47,20 +52,21 @@
           (cdkDropListDropped)="drop($event)"
           class="space-y-3 min-h-[50px] max-h-[450px] overflow-y-auto rounded-lg p-1">
           @for (A of item.tasks; track A.id) {
-          <div cdkDrag (cdkDragStarted)="onDragStarted()" (cdkDragEnded)="onDragEnded()"
-            (mouseenter)="onTaskHover(A.id.toString())" (mouseleave)="onTaskHoverLeave(A.id.toString())"
-            class="relative rounded-lg p-3 flex flex-col gap-1 cursor-move border group hover:shadow-md hover:ring hover:ring-primary"
-            [ngClass]="[
-              getCardColorClass(item.nombre),
-              'border-base-300',
-              hoveredTaskId === A.id.toString()
-                ? 'ring ring-primary ring-offset-2 scale-[1.01] bg-base-100 shadow-md'
-                : ''
-            ]">
-            <!-- Contenedor de botones (editar y eliminar) -->
+          <div cdkDrag 
+                (cdkDragStarted)="onDragStarted()" 
+                (cdkDragEnded)="onDragEnded()"
+                (mouseenter)="onTaskHover(A.id.toString())" 
+                (mouseleave)="onTaskHoverLeave(A.id.toString())"
+                class="relative rounded-lg p-3 flex flex-col gap-1 border group hover:shadow-md hover:ring hover:ring-primary"
+                [ngClass]="[
+                  getCardColorClass(item.nombre),
+                  'border-base-300',
+                  hoveredTaskId === A.id.toString()
+                    ? 'ring ring-primary ring-offset-2 scale-[1.01] bg-base-100 shadow-md'
+                    : ''
+                ]">
             @if (hoveredTaskId === A.id.toString()) {
             <div class="absolute top-2 right-2 flex gap-2">
-              <!-- Botón editar tarea (ícono de lápiz) -->
               <button
                 class="p-2 rounded-full bg-opacity-60 bg-gray-800 text-white hover:bg-opacity-80 hover:bg-blue-600 transition-opacity duration-200 ease-in-out"
                 (click)="editarTarea(A.id)" aria-label="Editar tarea" style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15)">
@@ -70,9 +76,8 @@
                     d="M13.125 6.375l4.5 4.5m0 0l-7.5 7.5h-4.5v-4.5l7.5-7.5m0 0l2.25-2.25a1.125 1.125 0 0 1 1.594 1.594L13.125 6.375z" />
                 </svg>
               </button>
-
-              <!-- Botón eliminar tarea (ícono de basurero) -->
-              <button
+    
+              <button 
                 class="p-2 rounded-full bg-opacity-60 bg-gray-800 text-white hover:bg-opacity-80 hover:bg-red-600 transition-opacity duration-200 ease-in-out"
                 (click)="eliminarTarea(A.id)" aria-label="Eliminar tarea"
                 style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15)">
@@ -83,8 +88,10 @@
                 </svg>
               </button>
             </div>
-            }
-
+          }
+          <div cdkDragHandle 
+             (click)="showTaskDetails(A)" 
+             class="cursor-move flex flex-col gap-1">
             <!-- Badge flotante en esquina superior derecha -->
             @if (isOverdue(A.dueDate)) {
             <div class="absolute top-2 right-2">
@@ -124,6 +131,7 @@
             </div>
             }
           </div>
+        </div>
           }
         </div>
 

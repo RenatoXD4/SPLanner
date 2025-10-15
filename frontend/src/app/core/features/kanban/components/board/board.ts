@@ -4,7 +4,8 @@ import {
   moveItemInArray,
   transferArrayItem,
   CdkDrag,
-  CdkDropList
+  CdkDropList,
+  DragDropModule
 } from '@angular/cdk/drag-drop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -15,6 +16,7 @@ import { BoardService } from '../../services/kanban-service';
 import { ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../../../services/auth-service';
 import { ProyectoGuard } from '../../../../../guards/proyecto.guard';
+import { TaskDetail } from "../task-detail/task-detail";
 
 export interface User {
   id: string;
@@ -49,7 +51,7 @@ interface Task {
   fechaLimite?: string;
   posicion: number;
   createdAt: string;
-  estadoId: number | string;
+  estadoId: number;
   proyectoId: string;
 
   // Campos backend opcionales que pueden venir
@@ -68,7 +70,7 @@ interface RawTask {
   fechaLimite?: string;
   posicion: number;
   createdAt: string;
-  estadoId: number | string;
+  estadoId: number;
   proyectoId: string;
 
   responsables?: { usuario: User }[]; // ← NUEVO
@@ -83,11 +85,25 @@ export interface Etiqueta {
 
 @Component({
   selector: 'app-board',
-  imports: [CdkDropList, CdkDrag, CommonModule, FormsModule, Sidebar],
+  imports: [CdkDropList, CdkDrag, CommonModule, FormsModule, Sidebar, TaskDetail, DragDropModule],
   templateUrl: './board.html',
   styleUrl: './board.css',
 })
 export class Board implements OnInit {
+
+  public selectedTask: Task | null = null;
+  public isDetailPanelHidden: boolean = true;
+
+  showTaskDetails(task: Task) {
+    this.selectedTask = task;
+    this.isDetailPanelHidden = false;
+  }
+
+  hideTaskDetails() {
+    this.isDetailPanelHidden = true;
+    this.selectedTask = null; // Opcional: limpia la tarea seleccionada
+  }
+
   @ViewChild('kanbanContainer') kanbanContainer?: ElementRef;
   @ViewChild('listContainer') listContainer?: ElementRef;
   @ViewChild('assignedContainer') assignedContainer?: ElementRef;

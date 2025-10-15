@@ -1,0 +1,77 @@
+/* Estilos para Editor.js
+  Copia y pega este contenido en tu archivo 'task-detail.css'
+*/
+
+/* Contenedor principal del editor */
+:host ::ng-deep .codex-editor {
+  font-family: 'Inter', sans-serif; 
+}
+
+:host ::ng-deep .codex-editor [data-placeholder-active]:empty:before,
+:host ::ng-deep .codex-editor [data-placeholder-active][data-empty=true]:before {
+  color: #b3b3b3 !important; 
+  font-weight: 400 !important;
+  font-style: normal !important;
+  transition: color 0.2s ease-in-out;
+  pointer-events: none; 
+  cursor: text; 
+}
+
+/* Estilos para los párrafos */
+:host ::ng-deep .ce-paragraph {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #ffffff; 
+}
+
+:host ::ng-deep .ce-header {
+  color: #ffffff;
+  font-weight: 600;
+  margin: 0;
+  padding: 1.25em 0 0.5em 0;
+}
+
+:host ::ng-deep .ce-header[data-level="2"] {
+  font-size: 1.5rem;
+}
+
+:host ::ng-deep .ce-header[data-level="3"] {
+  font-size: 1.25rem;
+}
+
+:host ::ng-deep .ce-header[data-level="4"] {
+  font-size: 1.1rem;
+}
+
+/* Estilos para las listas */
+:host ::ng-deep .ce-list__item {
+  padding: 0.3em 0;
+  color: #e2e8f0;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+/* Color de los puntos/números de la lista */
+:host ::ng-deep .ce-list__item-marker {
+  color: #94a3b8;
+}
+
+/* Estilos para la barra de herramientas en línea (negrita, cursiva, etc.) */
+:host ::ng-deep .ce-inline-toolbar {
+  background-color: #1e293b;
+  border-radius: 6px;
+  border: 1px solid #334155;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+:host ::ng-deep .ce-inline-tool {
+  color: #cbd5e1;
+}
+
+:host ::ng-deep .ce-inline-tool:hover {
+  background-color: #334155;
+}
+
+:host ::ng-deep .ce-inline-tool--active {
+  background-color: #475569;
+}

@@ -199,4 +199,8 @@ select[multiple] {
 
 
 
-
+/* Estilo adicional para evitar que se rompa el texto largo */
+h2 {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}

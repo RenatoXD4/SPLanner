@@ -125,11 +125,22 @@ export class Board implements OnInit {
   hoveredTaskId: string | null = null;
   timeoutId?: ReturnType<typeof setTimeout>;
 
+  //Filtros
   filtroTitulo = '';
   textoFiltro = '';
-  filtroResponsable = '';
-  filtroCategoria = '';
-  filtroEtiquetas: number | string = ''; // Filtro para las etiquetas, ya que se filtra por ID de etiqueta
+  mostrarListadoFiltros = false;
+  filtrosSeleccionados: string[] = [];
+  filtroActivo: string | null = null;
+  filtroResponsable: string[] = [];
+  filtroCategoria: (string | number)[] = [];
+  filtroEtiquetas: number[] = [];
+  filtroModo: { [key: string]: 'incluir' | 'excluir' } = {
+    responsable: 'incluir',
+    categoria: 'incluir',
+    etiquetas: 'incluir',
+  };
+
+
   prioridadesUnicas: string[] = [];
   responsablesUnicos: string[] = [];
 
@@ -147,6 +158,10 @@ export class Board implements OnInit {
     estadoId: 0,
     proyectoId: '',
     bloquesContenido: []
+  };
+
+  errores = {
+    titulo: false,
   };
 
   constructor(
@@ -189,8 +204,6 @@ export class Board implements OnInit {
       this.mostrarErrorYRedirigir('No tienes acceso a este proyecto');
     }
   }
-
-
 
 
 
@@ -534,80 +547,6 @@ export class Board implements OnInit {
     this.prioridadesUnicas = Array.from(set);
   }
 
-  // === FILTRO PRINCIPAL DE TAREAS EN VISTA LISTA ===
-  get tareasFiltradas() {
-    return this.CategoriasK.flatMap(cat =>
-      cat.tasks
-        .filter(task => {
-          // --- Filtro por título ---
-          const coincideTitulo =
-            !this.filtroTitulo ||
-            (task.title?.toLowerCase().includes(this.filtroTitulo.toLowerCase()) ?? false);
-
-          // --- Filtro por responsable ---
-          const coincideResponsable =
-            !this.filtroResponsable ||
-            task.assignee?.some(u => u.id === this.filtroResponsable);
-
-          // --- Filtro por categoría (estado del proyecto) ---
-          const coincideCategoria =
-            !this.filtroCategoria || cat.id === this.filtroCategoria;
-
-          // --- Filtro por etiqueta ---
-          const coincideEtiqueta =
-            !this.filtroEtiquetas ||
-            (task.etiquetas &&
-              task.etiquetas.some(
-                e =>
-                  e.etiqueta?.id?.toString() === this.filtroEtiquetas.toString() ||
-                  e.id?.toString() === this.filtroEtiquetas.toString()
-              ));
-
-          // Cumple todos los filtros activos
-          return coincideTitulo && coincideResponsable && coincideCategoria && coincideEtiqueta;
-        })
-        .map(task => ({
-          tarea: task,
-          categoria: cat.nombre
-        }))
-    );
-  }
-
-
-  get contadorFiltros(): number {
-    let count = 0;
-    if (this.filtroTitulo.trim()) count++;
-    if (this.filtroResponsable) count++;
-    if (this.filtroCategoria) count++;
-    if (this.filtroEtiquetas) count++;
-    return count;
-  }
-  public limpiarFiltros(): void {
-    this.filtroTitulo = '';
-    this.filtroCategoria = '';
-    this.filtroResponsable = '';
-    this.filtroEtiquetas = '';
-  }
-  
-  get tareasAsignadasFiltradas() {
-    return this.CategoriasK.flatMap(cat =>
-      cat.tasks
-        .filter(task => task.assignee?.some(u => u.id === this.currentUser)) // Solo tareas asignadas al usuario actual
-        .filter(task => !this.filtroTitulo || (task.title?.toLowerCase().includes(this.filtroTitulo.toLowerCase()) ?? false))
-        .map(task => ({ tarea: task, categoria: cat.nombre }))
-    );
-  }
-
-
-  toggleFiltroTitulo() {
-    this.mostrarPanelFiltroTitulo = !this.mostrarPanelFiltroTitulo;
-  }
-
-  limpiarFiltroTitulo() {
-    this.filtroTitulo = '';
-    this.mostrarPanelFiltroTitulo = false;
-  }
-
   // Modal de Crear Tarea
   abrirModal(categoria: Categoria) {
     this.categoriaSeleccionadaForModal = categoria;
@@ -643,34 +582,30 @@ export class Board implements OnInit {
     this.cdr.detectChanges();
   }
 
-  crearTarea() {
-    if (!this.categoriaSeleccionadaForModal) {
-      console.error('No hay categoría seleccionada para nueva tarea');
-      return;
-    }
+  crearTarea(event: Event) {
+    // Resetear el estado de los errores
+    event.preventDefault();
 
+    // Validación del título
     if (!this.newTask.titulo || !this.newTask.titulo.trim()) {
-      alert('El título es obligatorio');
-      return;
+      this.errores.titulo = true; // Establecer el error en el título
+      return; // Detener la ejecución si el título es inválido
     }
 
-    const estadoId = Number(this.categoriaSeleccionadaForModal.id);
+    // Limpiar errores si la validación es exitosa
+    this.errores.titulo = false;
 
-    // Validamos IDs de responsables seleccionados
+    const estadoId = Number(this.categoriaSeleccionadaForModal?.id);
     const responsablesArr = this.newTask.responsablesIds.filter(id => !!id);
 
-    // Obtener proyectoId de contexto o fallback
     const proyectoId = this.proyectoIdActual;
 
-    const fechaLimiteISO = this.newTask.fechaLimite && this.newTask.fechaLimite.trim()
-      ? new Date(this.newTask.fechaLimite).toISOString()
-      : undefined;
+    const fechaLimiteISO = this.newTask.fechaLimite ? new Date(this.newTask.fechaLimite).toISOString() : undefined;
 
-    // Payload alineado con backend, ahora incluye etiquetas
     const payload = {
       titulo: this.newTask.titulo,
       estadoId,
-      posicion: this.categoriaSeleccionadaForModal.tasks.length,
+      posicion: this.categoriaSeleccionadaForModal?.tasks.length || 0,
       proyectoId,
       responsablesIds: responsablesArr.length ? responsablesArr : undefined,
       fechaLimite: fechaLimiteISO,
@@ -678,9 +613,9 @@ export class Board implements OnInit {
       etiquetaIds: this.newTask.etiquetaIds.length ? this.newTask.etiquetaIds : undefined,
     };
 
+    // Enviar la solicitud al backend
     this.boardService.createTask(payload).subscribe({
       next: (tareaNueva) => {
-
         // Mapear responsables para UI
         const responsablesParaUI = responsablesArr.map(id => {
           const miembro = this.miembrosDelProyecto.find(m => m.usuario.id === id);
@@ -689,40 +624,32 @@ export class Board implements OnInit {
 
         const task: Task = {
           ...tareaNueva,
-          assignee: responsablesParaUI,  // Responsables completos
-          etiquetas: tareaNueva.etiquetas ?? [], // Etiquetas desde backend
+          assignee: responsablesParaUI,
+          etiquetas: tareaNueva.etiquetas ?? [],
           bloquesContenido: tareaNueva.bloquesContenido ?? [],
-          title: tareaNueva.titulo ?? '',      // Para UI
-          dueDate: tareaNueva.fechaLimite ?? '', // Para UI
-          // priority removido porque no existe en backend ni UI aquí
+          title: tareaNueva.titulo ?? '',
+          dueDate: tareaNueva.fechaLimite ?? '',
         };
 
+        // Actualizar la vista
         if (this.categoriaSeleccionadaForModal) {
           this.categoriaSeleccionadaForModal.tasks.push(task);
           this.categoriaSeleccionadaForModal.tasks.sort((a, b) => (a.posicion ?? 0) - (b.posicion ?? 0));
         }
 
-        // Actualizar listas de UI
+        // Actualizar UI
         this.generarListaResponsables();
         this.generarListaPrioridades();
         this.cdr.detectChanges();
         this.cerrarModal();
       },
-      error: err => {
+      error: (err) => {
         console.error('Error creando tarea:', err);
         alert('Ocurrió un error al crear la tarea');
       }
     });
   }
 
-  @HostListener('document:click', ['$event'])
-  clickFuera(event: Event) {
-    if (!this.mostrarPanelFiltroTitulo) return;
-    const clickedInside = this.thTitulo.nativeElement.contains(event.target);
-    if (!clickedInside) {
-      this.mostrarPanelFiltroTitulo = false;
-    }
-  }
 
   isOverdue(dateStr: string | undefined): boolean {
     if (!dateStr) return false;
@@ -759,8 +686,7 @@ export class Board implements OnInit {
     const year = newDate.getFullYear();
     return `${day}/${month}/${year}`;
   }
-
-  // En tu componente
+  
   eliminarTarea(taskId: string): void {
     if (confirm('¿Estás seguro de que deseas eliminar esta tarea?')) {
       this.boardService.deleteTask(taskId).subscribe(
@@ -770,14 +696,17 @@ export class Board implements OnInit {
           this.CategoriasK.forEach(categoria => {
             categoria.tasks = categoria.tasks.filter(task => task.id !== taskId);
           });
-          // También es recomendable actualizar las listas de filtros y responsables
           this.generarListaResponsables();
           this.generarListaPrioridades();
           this.cdr.detectChanges();  // Asegura que Angular detecte los cambios
         },
         (error) => {
-          alert('Error al eliminar la tarea.');
-          console.error(error);
+          console.error('Error al eliminar la tarea:', error);  // Detalle completo del error
+          if (error.message.includes("La tarea con ID")) {
+            alert(`Error: ${error.message}`);  // Mostrar mensaje amigable
+          } else {
+            alert('Error al eliminar la tarea. Por favor, intente nuevamente.');
+          }
         }
       );
     }
@@ -788,6 +717,289 @@ export class Board implements OnInit {
     console.log('Editar tarea con ID:', taskId);
     // Puedes agregar aquí la lógica que desees para editar la tarea.
   }
+
+  // ESTO Viene siendo como el Id de la etiqueta del html
+  @ViewChild('tarjetaFiltro') tarjetaFiltro!: ElementRef;
+  buscadorFiltros: { [key: string]: string } = {};
+
+  // esto escucha cambios y realiza la accion
+  @HostListener('document:click', ['$event'])
+  onClickOutside(event: MouseEvent) {
+    if (this.filtroActivo && this.tarjetaFiltro) {
+      const clickedInside = this.tarjetaFiltro.nativeElement.contains(event.target);
+      if (!clickedInside) {
+        this.filtroActivo = null;
+      }
+    }
+  }
+
+  // === FILTRO PRINCIPAL DE TAREAS EN VISTA LISTA ===
+  get tareasFiltradas() {
+    return this.CategoriasK.flatMap(cat =>
+      cat.tasks
+        .filter(task => {
+          const coincideTitulo = !this.filtroTitulo ||
+            (task.title?.toLowerCase().includes(this.filtroTitulo.toLowerCase()) ?? false);
+
+          const modoResp = this.filtroModo['responsable'];
+          const modoCat = this.filtroModo['categoria'];
+          const modoEtiq = this.filtroModo['etiquetas'];
+
+          const responsables = task.assignee?.map(u => u.id) ?? [];
+          const etiquetas = task.etiquetas?.map(e => e.etiqueta?.id ?? e.id) ?? [];
+
+          const coincideResponsable = this.filtroResponsable.length === 0 || (
+            modoResp === 'incluir'
+              ? this.filtroResponsable.some(id => responsables.includes(id))
+              : !this.filtroResponsable.some(id => responsables.includes(id))
+          );
+
+          const coincideCategoria = this.filtroCategoria.length === 0 || (
+            modoCat === 'incluir'
+              ? this.filtroCategoria.includes(cat.id)
+              : !this.filtroCategoria.includes(cat.id)
+          );
+
+          const coincideEtiqueta = this.filtroEtiquetas.length === 0 || (
+            modoEtiq === 'incluir'
+              ? this.filtroEtiquetas.some(id => etiquetas.includes(id))
+              : !this.filtroEtiquetas.some(id => etiquetas.includes(id))
+          );
+
+          return coincideTitulo && coincideResponsable && coincideCategoria && coincideEtiqueta;
+        })
+        .map(task => ({
+          tarea: task,
+          categoria: cat.nombre
+        }))
+    );
+  }
+
+  get tareasAsignadasFiltradas() {
+    return this.CategoriasK.flatMap(cat =>
+      cat.tasks
+        .filter(task => task.assignee?.some(u => u.id === this.currentUser)) // Solo tareas asignadas al usuario actual
+        .filter(task => !this.filtroTitulo || (task.title?.toLowerCase().includes(this.filtroTitulo.toLowerCase()) ?? false))
+        .map(task => ({ tarea: task, categoria: cat.nombre }))
+    );
+  }
+  // Devuelve cantidad de filtros activos
+  get contadorFiltros(): number {
+    let count = 0;
+    if (this.filtroTitulo.trim()) count++;
+    if (this.filtroResponsable.length) count++;
+    if (this.filtroCategoria.length) count++;
+    if (this.filtroEtiquetas.length) count++;
+    return count;
+  }
+  // Agrega filtro si no existe
+  agregarFiltro(filtro: string) {
+    if (!this.filtrosSeleccionados.includes(filtro)) {
+      this.filtrosSeleccionados.push(filtro);
+      this.mostrarListadoFiltros = false;
+      this.textoFiltro = '';
+      this.buscadorFiltros[filtro] = '';
+    }
+  }
+  // Quita filtro y limpia su valor
+  quitarFiltro(filtro: string) {
+    const idx = this.filtrosSeleccionados.indexOf(filtro);
+    if (idx > -1) {
+      this.filtrosSeleccionados.splice(idx, 1);
+    }
+
+    if (this.filtroActivo === filtro) {
+      this.filtroActivo = null;
+    }
+
+    switch (filtro) {
+      case 'responsable':
+        this.filtroResponsable = [];
+        break;
+      case 'categoria':
+        this.filtroCategoria = [];
+        break;
+      case 'etiquetas':
+        this.filtroEtiquetas = [];
+        break;
+    }
+
+    delete this.buscadorFiltros[filtro];
+
+    // También reiniciar modo si lo quitás
+    delete this.filtroModo[filtro];
+  }
+  toggleTarjetaFiltro(filtro: string) {
+    if (this.filtroActivo === filtro) {
+      this.filtroActivo = null; // Cierra si se vuelve a hacer clic en el mismo
+    } else {
+      this.filtroActivo = filtro; // Abre uno y cierra cualquier otro
+    }
+  }
+  // Devuelve cantidad de items filtrados para un filtro dado (usado en badges)
+  getContadorFiltro(filtro: string): number {
+    switch (filtro) {
+      case 'responsable':
+        return this.filtroResponsable.length;
+      case 'categoria':
+        return this.filtroCategoria.length;
+      case 'etiquetas':
+        return this.filtroEtiquetas.length;
+      default:
+        return 0;
+    }
+  }
+  seleccionarResponsable(r: ResponsableTarea) {
+    const id = r.usuario.id;
+    const index = this.filtroResponsable.indexOf(id);
+
+    if (index > -1) {
+      // Ya estaba seleccionado, lo quitamos
+      this.filtroResponsable.splice(index, 1);
+    } else {
+      // No estaba, lo agregamos
+      this.filtroResponsable.push(id);
+    }
+  }
+  seleccionarCategoria(id: number | string) {
+    const idStr = String(id);
+    const index = this.filtroCategoria.indexOf(idStr);
+
+    if (index > -1) {
+      this.filtroCategoria = this.filtroCategoria.filter(i => String(i) !== idStr);
+    } else {
+      this.filtroCategoria = [...this.filtroCategoria, idStr];
+    }
+  }
+
+  seleccionarEtiqueta(e: any) {
+    const id = e?.id;
+
+    if (id === undefined) {
+      console.error('Se intentó seleccionar una etiqueta con id undefined');
+      return;
+    }
+
+    const index = this.filtroEtiquetas.indexOf(id);
+
+    if (index === -1) {
+      this.filtroEtiquetas.push(id);
+    } else {
+      this.filtroEtiquetas.splice(index, 1);
+    }
+
+    console.log('Estado de filtroEtiquetas después de seleccionar: ', this.filtroEtiquetas);
+  }
+  quitarResponsable(id: string) {
+    this.filtroResponsable = this.filtroResponsable.filter(rid => rid !== id);
+  }
+  quitarCategoria(id: number | string) {
+    const idStr = String(id);
+    this.filtroCategoria = this.filtroCategoria.filter(i => String(i) !== idStr);
+  }
+  quitarEtiqueta(id: number) {
+    this.filtroEtiquetas = this.filtroEtiquetas.filter(eid => eid !== id);
+  }
+  // Limpiar todos los filtros
+  limpiarFiltros() {
+    this.filtroTitulo = '';
+    this.filtroResponsable = [];
+    this.filtroCategoria = [];
+    this.filtroEtiquetas = [];
+
+    this.filtrosSeleccionados = [];
+    this.textoFiltro = '';
+    this.buscadorFiltros = {};
+
+    this.filtroActivo = null;
+
+    // Reiniciar modos de inclusión/exclusión
+    this.filtroModo = {
+      responsable: 'incluir',
+      categoria: 'incluir',
+      etiquetas: 'incluir',
+    };
+  }
+  get responsablesFiltrados() {
+    if (!this.miembrosDelProyecto || this.miembrosDelProyecto.length === 0) return [];
+    const texto = (this.buscadorFiltros['responsable'] || '').toLowerCase();
+    return this.miembrosDelProyecto.filter(r =>
+      `${r.usuario.nombre} ${r.usuario.apellido}`.toLowerCase().includes(texto)
+    );
+  }
+  get categoriasFiltradas() {
+    if (!this.CategoriasK || this.CategoriasK.length === 0) return [];
+    const texto = (this.buscadorFiltros['categoria'] || '').toLowerCase();
+    return this.CategoriasK.filter(c =>
+      c.nombre.toLowerCase().includes(texto)
+    );
+  }
+  get etiquetasFiltradas() {
+    if (!this.etiquetasUnicas || this.etiquetasUnicas.length === 0) return [];
+
+    return this.etiquetasUnicas.filter(e => {
+      if (e.id === undefined || e.id === null) {
+        console.error('Etiqueta sin ID detectada:', e);
+        return false;  // Excluir elementos sin ID
+      }
+      const texto = (this.buscadorFiltros['etiquetas'] || '').toLowerCase();
+      return e.nombre.toLowerCase().includes(texto);
+    });
+  }
+  getNombreResponsable(id: string): string {
+    const res = this.miembrosDelProyecto.find(m => m.usuario.id === id);
+    return res?.usuario.nombre ?? 'Desconocido';
+  }
+  getNombreCategoria(id: string | number): string {
+    const cat = this.CategoriasK.find(c => String(c.id) === String(id));
+    return cat?.nombre ?? 'Desconocida';
+  }
+  getNombreEtiqueta(id: number): string {
+    const etiqueta = this.etiquetasUnicas.find(e => e.id === id);
+    return etiqueta?.nombre ?? 'Desconocida';
+  }
+
+  toggleResponsable(id: string) {
+    const idx = this.filtroResponsable.indexOf(id);
+    if (idx > -1) {
+      this.filtroResponsable.splice(idx, 1);
+    } else {
+      this.filtroResponsable.push(id);
+    }
+  }
+
+  toggleCategoria(id: number | string) {
+    const idStr = String(id);
+    const index = this.filtroCategoria.map(String).indexOf(idStr);
+
+    if (index > -1) {
+      this.filtroCategoria = this.filtroCategoria.filter(i => String(i) !== idStr);
+    } else {
+      this.filtroCategoria = [...this.filtroCategoria, id];
+    }
+  }
+
+  toggleEtiqueta(id: number) {
+    if (id === undefined || id === null) {
+      console.error('Intento de agregar una etiqueta con id inválido:', id);
+      return;
+    }
+
+    const idx = this.filtroEtiquetas.indexOf(id);
+
+    if (idx === -1) {
+      //console.log(`Agregando etiqueta con id: ${id}`);
+      this.filtroEtiquetas.push(id);
+    } else {
+      //console.log(`Eliminando etiqueta con id: ${id}`);
+      this.filtroEtiquetas.splice(idx, 1);
+    }
+
+    //console.log('Estado de filtroEtiquetas después de toggle: ', this.filtroEtiquetas);
+  }
+
+
+
 
 
 }

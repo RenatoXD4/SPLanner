@@ -145,7 +145,6 @@ export class UserController {
         return;
       }
 
-      // TYPE CASTING para evitar errores de TypeScript
       const googleUser = await userInfoResponse.json() as {
         email: string;
         family_name: string;
@@ -423,7 +422,6 @@ export class UserController {
     }
   }
 
-  // 🔥 MÉTODO RESET PASSWORD CORREGIDO
   public async resetPassword(
     req: Request<unknown, unknown, ResetPasswordRequestBody>,
     res: Response
@@ -447,7 +445,7 @@ export class UserController {
         return;
       }
 
-      console.log('🔑 Reset password solicitado para:', email);
+      console.log('Reset password solicitado para:', email);
 
       // Buscar usuario por email usando el servicio
       const user = await this.userService.findUserByEmail(email);
@@ -465,7 +463,7 @@ export class UserController {
         newPassword: newPassword
       });
 
-      console.log('✅ Contraseña actualizada para usuario:', user.id);
+      console.log('Contraseña actualizada para usuario:', user.id);
 
       res.status(200).json({
         message: "Contraseña actualizada exitosamente",
@@ -473,7 +471,7 @@ export class UserController {
       });
 
     } catch (error) {
-      console.error('❌ Error en resetPassword:', error);
+      console.error(' Error en resetPassword:', error);
       res.status(500).json({
         message: "Error interno del servidor al actualizar la contraseña",
         success: false

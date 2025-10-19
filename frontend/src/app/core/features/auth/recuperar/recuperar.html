@@ -28,28 +28,35 @@
         </div>
 
         <!-- Mensajes de éxito/error -->
-        <div *ngIf="successMessage"
-             class="mb-4 p-3 bg-green-500/90 border border-green-400 rounded-lg text-white">
+        @if (successMessage) {
+        <div class="mb-4 p-3 bg-green-500/90 border border-green-400 rounded-lg text-white">
           <div class="flex items-center gap-2">
             <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+              <path fill-rule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                clip-rule="evenodd" />
             </svg>
             <span class="text-sm">{{ successMessage }}</span>
           </div>
         </div>
+        }
 
-        <div *ngIf="errorMessage"
-             class="mb-4 p-3 bg-red-500/90 border border-red-400 rounded-lg text-white">
+        @if (errorMessage) {
+        <div class="mb-4 p-3 bg-red-500/90 border border-red-400 rounded-lg text-white">
           <div class="flex items-center gap-2">
             <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+              <path fill-rule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                clip-rule="evenodd" />
             </svg>
             <span class="text-sm">{{ errorMessage }}</span>
           </div>
         </div>
+        }
 
         <!-- Paso 1: Email -->
-        <div *ngIf="currentStep === 'email'" class="animate-smooth-fade-in">
+        @if (currentStep === 'email') {
+        <div class="animate-smooth-fade-in">
           <h1 class="text-2xl font-bold text-white mb-2 text-center">Recuperar Cuenta</h1>
 
           <div class="relative my-4">
@@ -61,38 +68,68 @@
           <p class="text-gray-400 mb-6 text-center text-sm">Ingresa tu correo para recibir un código de verificación</p>
 
           <form class="space-y-5" [formGroup]="emailForm" (submit)="handleEmailSubmit()">
-            <div>
-              <label for="email" class="block text-sm font-medium text-white mb-2">Correo Electrónico</label>
-              <input id="email" type="email" placeholder="correo@gmail.com"
-                class="w-full px-4 py-3 bg-black border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all form-input-transition"
-                formControlName="email">
-
-              <div *ngIf="showEmailError()" class="mt-2 bg-red-500/90 text-white p-3 rounded-lg border border-red-400">
-                <div class="flex items-center gap-2">
-                  <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-                  </svg>
-                  <span class="text-sm" *ngIf="emailForm.get('email')?.hasError('required')">El correo es requerido</span>
-                  <span class="text-sm" *ngIf="emailForm.get('email')?.hasError('email')">Ingresa un correo válido</span>
+            <div class="relative transition-all duration-300 ease-in-out" [class.mb-8]="showEmailError()">
+              <div class="flex items-center justify-between mb-2">
+                <label for="email" class="block text-sm font-medium text-white">Correo Electrónico</label>
+                <!-- Botón de información para email -->
+                <div class="relative group">
+                  <button type="button" class="text-gray-400 hover:text-white transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                        clip-rule="evenodd" />
+                    </svg>
+                  </button>
+                  <!-- Tooltip para email -->
+                  <div
+                    class="absolute right-0 bottom-8 mt-2 w-64 p-3 bg-gray-800 text-white text-sm rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
+                    <p>Debe ser una dirección de correo válida con formato: usuario@dominio.com</p>
+                    <div class="absolute -bottom-1 right-3 w-3 h-3 bg-gray-800 transform rotate-45"></div>
+                  </div>
                 </div>
               </div>
+              <input id="email" type="email" placeholder="correo@gmail.com"
+                class="w-full px-4 py-3 bg-black border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
+                formControlName="email">
+
+              @if (showEmailError()) {
+              <div class="absolute top-full left-0 right-0 mt-1 animate-fade-in-down">
+                <div class="bg-red-500/90 text-white p-3 rounded-lg border border-red-400">
+                  <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                        clip-rule="evenodd" />
+                    </svg>
+                    <span class="text-sm">{{ getEmailErrorText() }}</span>
+                  </div>
+                </div>
+              </div>
+              }
             </div>
 
             <button [disabled]="emailForm.invalid || isLoading" type="submit"
-              class="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-3 px-4 rounded-lg font-medium hover:from-green-600 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed form-input-transition">
-              <span *ngIf="!isLoading" class="flex items-center justify-center gap-2">
+              class="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-3 px-4 rounded-lg font-medium hover:from-green-600 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
+              @if (!isLoading) {
+              <span class="flex items-center justify-center gap-2">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
                 Enviar Código
               </span>
-              <span *ngIf="isLoading" class="flex items-center justify-center gap-2">
+              }
+              @if (isLoading) {
+              <span class="flex items-center justify-center gap-2">
                 <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <path class="opacity-75" fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                  </path>
                 </svg>
                 Enviando...
               </span>
+              }
             </button>
           </form>
 
@@ -102,9 +139,11 @@
             </a>
           </div>
         </div>
+        }
 
         <!-- Paso 2: Código de verificación -->
-        <div *ngIf="currentStep === 'code'" class="animate-smooth-fade-in">
+        @if (currentStep === 'code') {
+        <div class="animate-smooth-fade-in">
           <h1 class="text-2xl font-bold text-white mb-2 text-center">Verificar Código</h1>
 
           <div class="relative my-4">
@@ -119,44 +158,76 @@
           </p>
 
           <form class="space-y-5" [formGroup]="codeForm" (submit)="handleCodeSubmit()">
-            <div>
-              <label for="code" class="block text-sm font-medium text-white mb-2">Código de Verificación</label>
-              <input id="code" type="text" placeholder="123456" maxlength="6"
-                class="w-full px-4 py-3 bg-black border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all text-center text-xl tracking-widest form-input-transition"
-                formControlName="code">
-
-              <div *ngIf="showCodeError()" class="mt-2 bg-red-500/90 text-white p-3 rounded-lg border border-red-400">
-                <div class="flex items-center gap-2">
-                  <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-                  </svg>
-                  <span class="text-sm">El código debe tener 6 dígitos</span>
+            <div class="relative transition-all duration-300 ease-in-out" [class.mb-8]="showCodeError()">
+              <div class="flex items-center justify-between mb-2">
+                <label for="code" class="block text-sm font-medium text-white">Código de Verificación</label>
+                <!-- Botón de información para código -->
+                <div class="relative group">
+                  <button type="button" class="text-gray-400 hover:text-white transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                        clip-rule="evenodd" />
+                    </svg>
+                  </button>
+                  <!-- Tooltip para código -->
+                  <div
+                    class="absolute right-0 bottom-8 mt-2 w-64 p-3 bg-gray-800 text-white text-sm rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
+                    <p>Ingresa el código de 6 dígitos que recibiste en tu correo electrónico</p>
+                    <div class="absolute -bottom-1 right-3 w-3 h-3 bg-gray-800 transform rotate-45"></div>
+                  </div>
                 </div>
               </div>
+              <input id="code" type="text" placeholder="123456" maxlength="6"
+                class="w-full px-4 py-3 bg-black border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all text-center text-xl tracking-widest"
+                formControlName="code">
+
+              @if (showCodeError()) {
+              <div class="absolute top-full left-0 right-0 mt-1 animate-fade-in-down">
+                <div class="bg-red-500/90 text-white p-3 rounded-lg border border-red-400">
+                  <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                        clip-rule="evenodd" />
+                    </svg>
+                    <span class="text-sm">{{ getCodeErrorText() }}</span>
+                  </div>
+                </div>
+              </div>
+              }
             </div>
 
             <div class="flex gap-3">
               <button type="button" (click)="goBack()"
-                class="flex-1 bg-gray-800 text-white py-3 px-4 rounded-lg font-medium hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition-all duration-300 form-input-transition">
+                class="flex-1 bg-gray-800 text-white py-3 px-4 rounded-lg font-medium hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition-all duration-300">
                 Volver
               </button>
               <button [disabled]="codeForm.invalid || isLoading" type="submit"
-                class="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white py-3 px-4 rounded-lg font-medium hover:from-green-600 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed form-input-transition">
-                <span *ngIf="!isLoading">Verificar</span>
-                <span *ngIf="isLoading" class="flex items-center justify-center gap-2">
+                class="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white py-3 px-4 rounded-lg font-medium hover:from-green-600 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
+                @if (!isLoading) {
+                <span>Verificar</span>
+                }
+                @if (isLoading) {
+                <span class="flex items-center justify-center gap-2">
                   <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    <path class="opacity-75" fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                    </path>
                   </svg>
                   Verificando...
                 </span>
+                }
               </button>
             </div>
           </form>
         </div>
+        }
 
         <!-- Paso 3: Nueva contraseña -->
-        <div *ngIf="currentStep === 'password'" class="animate-smooth-fade-in">
+        @if (currentStep === 'password') {
+        <div class="animate-smooth-fade-in">
           <h1 class="text-2xl font-bold text-white mb-2 text-center">Nueva Contraseña</h1>
 
           <div class="relative my-4">
@@ -168,62 +239,193 @@
           <p class="text-gray-400 mb-6 text-center text-sm">Crea una nueva contraseña para tu cuenta</p>
 
           <form class="space-y-5" [formGroup]="passwordForm" (submit)="handlePasswordSubmit()">
-            <div>
-              <label for="password" class="block text-sm font-medium text-white mb-2">Nueva Contraseña</label>
-              <div class="relative">
-                <input id="password" type="password" placeholder="Mínimo 6 caracteres"
-                  class="w-full px-4 py-3 bg-black border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all form-input-transition"
-                  formControlName="password">
-              </div>
-
-              <div *ngIf="showPasswordError()" class="mt-2 bg-red-500/90 text-white p-3 rounded-lg border border-red-400">
-                <div class="flex items-center gap-2">
-                  <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-                  </svg>
-                  <span class="text-sm">La contraseña debe tener al menos 6 caracteres</span>
+            <!-- Contraseña -->
+            <div class="relative transition-all duration-300 ease-in-out" [class.mb-8]="showPasswordError()">
+              <div class="flex items-center justify-between mb-2">
+                <label for="password" class="block text-sm font-medium text-white">Nueva Contraseña</label>
+                <!-- Botón de información para password -->
+                <div class="relative group">
+                  <button type="button" class="text-gray-400 hover:text-white transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                        clip-rule="evenodd" />
+                    </svg>
+                  </button>
+                  <!-- Tooltip para password-->
+                  <div
+                    class="absolute right-0 bottom-8 mt-2 w-64 p-3 bg-gray-800 text-white text-sm rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
+                    <p>La contraseña debe tener al menos:</p>
+                    <ul class="list-disc pl-4 mt-1">
+                      <li>8 caracteres</li>
+                      <li>1 letra mayúscula</li>
+                      <li>1 letra minúscula</li>
+                      <li>1 número</li>
+                      <li>1 carácter especial (@$!%*?&.)</li>
+                    </ul>
+                    <div class="absolute -bottom-1 right-3 w-3 h-3 bg-gray-800 transform rotate-45"></div>
+                  </div>
                 </div>
               </div>
+
+              <!-- Contenedor del campo de contraseña con botón -->
+              <div class="relative">
+                <input id="password" [type]="showPassword ? 'text' : 'password'"
+                  placeholder="Mínimo 8 caracteres con mayúsculas, minúsculas, números y símbolos"
+                  class="w-full px-4 py-3 pr-12 bg-black border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
+                  formControlName="password">
+
+                <!-- Botón para mostrar/ocultar contraseña -->
+                <button type="button" (click)="togglePasswordVisibility('password')"
+                  class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-white transition-colors">
+                  @if (showPassword) {
+                  <!-- Icono de ojo tachado (contraseña visible) -->
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                    <path fill-rule="evenodd"
+                      d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                      clip-rule="evenodd" />
+                  </svg>
+                  } @else {
+                  <!-- Icono de ojo (contraseña oculta) -->
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd"
+                      d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z"
+                      clip-rule="evenodd" />
+                    <path
+                      d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z" />
+                  </svg>
+                  }
+                </button>
+              </div>
+
+              @if (showPasswordError()) {
+              <div class="absolute top-full left-0 right-0 mt-1 animate-fade-in-down">
+                <div class="bg-red-500/90 text-white p-3 rounded-lg border border-red-400">
+                  <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                        clip-rule="evenodd" />
+                    </svg>
+                    <span class="text-sm">{{ getPasswordErrorMessage() }}</span>
+                  </div>
+                </div>
+              </div>
+              }
             </div>
 
-            <div>
-              <label for="confirmPassword" class="block text-sm font-medium text-white mb-2">Confirmar Contraseña</label>
-              <div class="relative">
-                <input id="confirmPassword" type="password" placeholder="Repite tu contraseña"
-                  class="w-full px-4 py-3 bg-black border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all form-input-transition"
-                  formControlName="confirmPassword">
-              </div>
-
-              <div *ngIf="showConfirmPasswordError() || showPasswordMismatchError()" class="mt-2 bg-red-500/90 text-white p-3 rounded-lg border border-red-400">
-                <div class="flex items-center gap-2">
-                  <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-                  </svg>
-                  <span class="text-sm" *ngIf="passwordForm.get('confirmPassword')?.hasError('required')">Confirma tu contraseña</span>
-                  <span class="text-sm" *ngIf="passwordForm.hasError('passwordMismatch')">Las contraseñas no coinciden</span>
+            <!-- Confirmar Contraseña -->
+            <div class="relative transition-all duration-300 ease-in-out"
+              [class.mb-8]="showConfirmPasswordError() || showPasswordMismatchError()">
+              <div class="flex items-center justify-between mb-2">
+                <label for="confirmPassword" class="block text-sm font-medium text-white">Confirmar Contraseña</label>
+                <!-- Botón de información para confirmar password -->
+                <div class="relative group">
+                  <button type="button" class="text-gray-400 hover:text-white transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                        clip-rule="evenodd" />
+                    </svg>
+                  </button>
+                  <!-- Tooltip para confirmar password-->
+                  <div
+                    class="absolute right-0 bottom-8 mt-2 w-64 p-3 bg-gray-800 text-white text-sm rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
+                    <p>Debes ingresar exactamente la misma contraseña que escribiste arriba para confirmarla</p>
+                    <div class="absolute -bottom-1 right-3 w-3 h-3 bg-gray-800 transform rotate-45"></div>
+                  </div>
                 </div>
               </div>
+
+              <!-- Contenedor del campo de confirmar contraseña con botón -->
+              <div class="relative">
+                <input id="confirmPassword" [type]="showConfirmPassword ? 'text' : 'password'"
+                  placeholder="Repite tu contraseña"
+                  class="w-full px-4 py-3 pr-12 bg-black border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
+                  formControlName="confirmPassword">
+
+                <!-- Botón para mostrar/ocultar confirmar contraseña -->
+                <button type="button" (click)="togglePasswordVisibility('confirmPassword')"
+                  class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-white transition-colors">
+                  @if (showConfirmPassword) {
+                  <!-- Icono de ojo tachado (contraseña visible) -->
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                    <path fill-rule="evenodd"
+                      d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                      clip-rule="evenodd" />
+                  </svg>
+                  } @else {
+                  <!-- Icono de ojo (contraseña oculta) -->
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd"
+                      d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z"
+                      clip-rule="evenodd" />
+                    <path
+                      d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z" />
+                  </svg>
+                  }
+                </button>
+              </div>
+
+              @if (showConfirmPasswordError() || showPasswordMismatchError()) {
+              <div class="absolute top-full left-0 right-0 mt-1 animate-fade-in-down">
+                <div class="bg-red-500/90 text-white p-3 rounded-lg border border-red-400">
+                  <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                        clip-rule="evenodd" />
+                    </svg>
+                    <span class="text-sm">{{ getConfirmPasswordErrorMessage() }}</span>
+                  </div>
+                </div>
+              </div>
+              }
             </div>
 
             <div class="flex gap-3">
               <button type="button" (click)="goBack()"
-                class="flex-1 bg-gray-800 text-white py-3 px-4 rounded-lg font-medium hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition-all duration-300 form-input-transition">
+                class="flex-1 bg-gray-800 text-white py-3 px-4 rounded-lg font-medium hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition-all duration-300">
                 Volver
               </button>
               <button [disabled]="passwordForm.invalid || isLoading" type="submit"
-                class="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white py-3 px-4 rounded-lg font-medium hover:from-green-600 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed form-input-transition">
-                <span *ngIf="!isLoading">Cambiar Contraseña</span>
-                <span *ngIf="isLoading" class="flex items-center justify-center gap-2">
+                class="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white py-3 px-4 rounded-lg font-medium hover:from-green-600 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
+                @if (!isLoading && !isRedirecting) {
+                <span class="flex items-center justify-center gap-2">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                  Cambiar Contraseña
+                </span>
+                }
+                @if (isLoading && !isRedirecting) {
+                <span class="flex items-center justify-center gap-2">
                   <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    <path class="opacity-75" fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                    </path>
                   </svg>
                   Procesando...
                 </span>
+                }
+                @if (isRedirecting) {
+                <span class="flex items-center justify-center gap-2">
+                  <svg class="w-4 h-4 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  Redirigiendo...
+                </span>
+                }
               </button>
             </div>
           </form>
         </div>
+        }
 
       </div>
     </div>

@@ -1,7 +1,6 @@
-
 import { Component, inject, ChangeDetectorRef } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators, AbstractControl } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { PasswordRecoveryService } from '../services/password-recovery.service';
 
@@ -14,6 +13,7 @@ import { PasswordRecoveryService } from '../services/password-recovery.service';
 export class Recuperar {
   private recoveryService = inject(PasswordRecoveryService);
   private cdRef = inject(ChangeDetectorRef);
+  private router = inject(Router);
 
   // Estados del flujo
   currentStep: 'email' | 'code' | 'password' = 'email';
@@ -26,12 +26,18 @@ export class Recuperar {
 
   // Estados de UI
   isLoading: boolean = false;
+  isRedirecting: boolean = false;
   errorMessage: string = '';
   successMessage: string = '';
-  router: any;
+
+  // Mostrar/ocultar contraseñas
+  showPassword: boolean = false;
+  showConfirmPassword: boolean = false;
+
+  // Patrones de validación
+  private readonly PASSWORD_PATTERN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.])[A-Za-z\d@$!%*?&.]{8,}$/;
 
   constructor() {
-    // Tus formularios existentes...
     this.emailForm = new FormGroup({
       email: new FormControl('', [Validators.required, Validators.email])
     });
@@ -41,7 +47,11 @@ export class Recuperar {
     });
 
     this.passwordForm = new FormGroup({
-      password: new FormControl('', [Validators.required, Validators.minLength(6)]),
+      password: new FormControl('', [
+        Validators.required,
+        Validators.minLength(8),
+        Validators.pattern(this.PASSWORD_PATTERN)
+      ]),
       confirmPassword: new FormControl('', [Validators.required])
     }, { validators: this.passwordMatchValidator });
   }
@@ -70,8 +80,6 @@ export class Recuperar {
       try {
         const response = await this.recoveryService.initiateRecovery(email);
 
-
-
         if (response.success) {
           this.userEmail = email;
           this.currentStep = 'code';
@@ -84,7 +92,6 @@ export class Recuperar {
         this.errorMessage = error?.message || 'Error de conexión. Por favor intenta nuevamente.';
       } finally {
         this.setLoadingState(false);
-        // Forzar detección de cambios
         this.cdRef.detectChanges();
       }
     } else {
@@ -101,7 +108,7 @@ export class Recuperar {
       const code = this.codeForm.get('code')?.value;
 
       try {
-        console.log(' Verificando código:', code);
+        console.log('Verificando código:', code);
         const response = await this.recoveryService.verifyCode(this.userEmail, code);
 
         if (response.success) {
@@ -136,11 +143,12 @@ export class Recuperar {
         const response = await this.recoveryService.resetPassword(this.userEmail, code, password);
 
         if (response.success) {
-          this.successMessage = response.message;
+          this.successMessage = 'Contraseña cambiada exitosamente. Redirigiendo al login...';
+          this.isRedirecting = true;
+
           // Redirigir al login después de 3 segundos
           setTimeout(() => {
             this.router.navigate(['/login']);
-            console.log('Redirigiendo al login...');
           }, 3000);
         } else {
           this.errorMessage = response.message;
@@ -157,9 +165,52 @@ export class Recuperar {
     }
   }
 
+  // Alternar visibilidad de contraseñas
+  togglePasswordVisibility(field: 'password' | 'confirmPassword'): void {
+    if (field === 'password') {
+      this.showPassword = !this.showPassword;
+    } else {
+      this.showConfirmPassword = !this.showConfirmPassword;
+    }
+  }
+
+  // Obtener tipo de input para contraseñas
+  getPasswordInputType(field: 'password' | 'confirmPassword'): string {
+    if (field === 'password') {
+      return this.showPassword ? 'text' : 'password';
+    } else {
+      return this.showConfirmPassword ? 'text' : 'password';
+    }
+  }
+
+  // Mensajes de error para contraseña
+  getPasswordErrorMessage(): string {
+    const passwordControl = this.passwordForm.get('password');
+
+    if (passwordControl?.hasError('required')) {
+      return 'Por favor ingresa tu contraseña';
+    } else if (passwordControl?.hasError('minlength')) {
+      return 'La contraseña debe tener al menos 8 caracteres';
+    } else if (passwordControl?.hasError('pattern')) {
+      return 'Debe contener: mayúsculas, minúsculas, números y caracteres especiales (@$!%*?&.)';
+    }
+    return '';
+  }
+
+  // Mensajes de error para confirmación de contraseña
+  getConfirmPasswordErrorMessage(): string {
+    const confirmControl = this.passwordForm.get('confirmPassword');
+
+    if (confirmControl?.hasError('required')) {
+      return 'Por favor confirma tu contraseña';
+    } else if (this.passwordForm.hasError('passwordMismatch')) {
+      return 'Las contraseñas no coinciden';
+    }
+    return '';
+  }
+
   private setLoadingState(loading: boolean): void {
     this.isLoading = loading;
-    // Forzar detección de cambios inmediatamente
     this.cdRef.detectChanges();
   }
 
@@ -181,6 +232,7 @@ export class Recuperar {
     }
     this.errorMessage = '';
     this.successMessage = '';
+    this.isRedirecting = false;
     this.cdRef.detectChanges();
   }
 
@@ -209,5 +261,27 @@ export class Recuperar {
     const hasError = this.passwordForm.hasError('passwordMismatch');
     const isTouched = this.passwordForm.get('confirmPassword')?.touched;
     return !!(hasError && isTouched);
+  }
+
+  // Obtener texto de error específico para email
+  getEmailErrorText(): string {
+    const emailControl = this.emailForm.get('email');
+    if (emailControl?.hasError('required')) {
+      return 'El correo es requerido';
+    } else if (emailControl?.hasError('email')) {
+      return 'Ingresa un correo válido';
+    }
+    return '';
+  }
+
+  // Obtener texto de error específico para código
+  getCodeErrorText(): string {
+    const codeControl = this.codeForm.get('code');
+    if (codeControl?.hasError('required')) {
+      return 'El código es requerido';
+    } else if (codeControl?.hasError('minlength') || codeControl?.hasError('maxlength')) {
+      return 'El código debe tener 6 dígitos';
+    }
+    return '';
   }
 }

@@ -11,6 +11,7 @@ export interface CheckEmailResponse {
   exists: boolean;
   message: string;
   success: boolean;
+  userId?: string;
 }
 
 @Injectable({
@@ -35,11 +36,11 @@ export class PasswordRecoveryService {
       const recoveryPromise = this.executeRecoveryProcess(email);
       const response = await Promise.race([recoveryPromise, timeoutPromise]);
 
-      console.log(' initiateRecovery completado:', response.success);
+      console.log('✅ initiateRecovery completado:', response.success);
       return response;
 
     } catch (error) {
-      console.error(' Error en initiateRecovery:', error);
+      console.error('❌ Error en initiateRecovery:', error);
 
       const errorMessage = error instanceof Error ? error.message : 'Error de conexión. Por favor intenta nuevamente.';
 
@@ -70,7 +71,6 @@ export class PasswordRecoveryService {
       };
     }
 
-
     // 3. Generar código
     const verificationCode = this.generateRandomCode();
     // 4. Enviar email directamente desde el frontend
@@ -80,7 +80,7 @@ export class PasswordRecoveryService {
       // Guardar temporalmente para verificación
       this.saveRecoveryData(email, verificationCode);
 
-      console.log('Código enviado y guardado');
+      console.log('✅ Código enviado y guardado');
 
       return {
         success: true,
@@ -98,7 +98,7 @@ export class PasswordRecoveryService {
   // Método mejorado para verificar en el backend
   private async checkUserExists(email: string): Promise<boolean> {
     try {
-      console.log('Enviando solicitud a backend...');
+      console.log('📡 Enviando solicitud a backend...');
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 segundos timeout
@@ -115,7 +115,7 @@ export class PasswordRecoveryService {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        console.error('rror en respuesta del servidor:', response.status, response.statusText);
+        console.error('❌ Error en respuesta del servidor:', response.status, response.statusText);
         return false;
       }
 
@@ -124,14 +124,14 @@ export class PasswordRecoveryService {
       return data.exists === true;
 
     } catch (error: any) {
-      console.error('Error en checkUserExists:', error);
+      console.error('❌ Error en checkUserExists:', error);
 
       if (error.name === 'AbortError') {
-        console.error('timeout - El backend no respondió a tiempo');
+        console.error('⏰ Timeout - El backend no respondió a tiempo');
       } else if (error.status === 0) {
-        console.error('Error de conexión - Backend no disponible');
+        console.error('🔌 Error de conexión - Backend no disponible');
       } else if (error.status === 404) {
-        console.error('Endpoint no encontrado - Verifica la URL');
+        console.error('🔍 Endpoint no encontrado - Verifica la URL');
       }
 
       return false;
@@ -139,6 +139,7 @@ export class PasswordRecoveryService {
   }
 
   async verifyCode(email: string, code: string): Promise<RecoveryResponse> {
+    console.log('🔍 Verificando código para:', email);
 
     // Verificar localmente
     const recoveryData = this.getRecoveryData();
@@ -155,6 +156,7 @@ export class PasswordRecoveryService {
     if (recoveryData.email !== email || recoveryData.code !== code) {
       return { success: false, message: 'Código incorrecto' };
     }
+
     return {
       success: true,
       message: 'Código verificado correctamente'
@@ -162,7 +164,7 @@ export class PasswordRecoveryService {
   }
 
   async resetPassword(email: string, code: string, newPassword: string): Promise<RecoveryResponse> {
-
+    console.log('🔄 resetPassword iniciado para:', email);
 
     // Primero verificar que el código sea válido
     const verification = await this.verifyCode(email, code);
@@ -170,12 +172,84 @@ export class PasswordRecoveryService {
     if (!verification.success) {
       return verification;
     }
-    // Limpiar datos de recuperación
-    this.clearRecoveryData();
-    return {
-      success: true,
-      message: 'Contraseña cambiada exitosamente'
-    };
+
+    try {
+      // Ahora enviar la nueva contraseña al backend para actualizarla
+      const updateResult = await this.updatePasswordInBackend(email, newPassword);
+
+      if (updateResult.success) {
+        // Limpiar datos de recuperación solo si fue exitoso
+        this.clearRecoveryData();
+        return {
+          success: true,
+          message: 'Contraseña cambiada exitosamente. Ya puedes iniciar sesión con tu nueva contraseña.'
+        };
+      } else {
+        return updateResult;
+      }
+
+    } catch (error) {
+      console.error('❌ Error en resetPassword:', error);
+      return {
+        success: false,
+        message: 'Error al actualizar la contraseña. Por favor intenta nuevamente.'
+      };
+    }
+  }
+
+  // Nuevo método para actualizar la contraseña en el backend
+  private async updatePasswordInBackend(email: string, newPassword: string): Promise<RecoveryResponse> {
+    try {
+      console.log('📡 Enviando nueva contraseña al backend...');
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+      // Usar el endpoint específico para reset de contraseña
+      const response = await fetch('http://localhost:9001/api-v1/reset-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email,
+          newPassword: newPassword
+        }),
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        console.error('❌ Error del servidor:', response.status, response.statusText);
+        return {
+          success: false,
+          message: `Error del servidor: ${response.status} ${response.statusText}`
+        };
+      }
+
+      const data = await response.json();
+
+      return {
+        success: data.success,
+        message: data.message || (data.success ? 'Contraseña actualizada exitosamente' : 'Error al actualizar la contraseña')
+      };
+
+    } catch (error: any) {
+      console.error('❌ Error en updatePasswordInBackend:', error);
+
+      if (error.name === 'AbortError') {
+        return {
+          success: false,
+          message: 'El servidor no respondió a tiempo. Por favor intenta nuevamente.'
+        };
+      }
+
+      return {
+        success: false,
+        message: 'Error de conexión con el servidor. Verifica tu conexión a internet.'
+      };
+    }
   }
 
   // Métodos auxiliares
@@ -192,7 +266,7 @@ export class PasswordRecoveryService {
     const recoveryData = {
       email: email,
       code: code,
-      expires: Date.now() + 15 * 60 * 1000 // 15 minutos expira el codigo
+      expires: Date.now() + 15 * 60 * 1000 // 15 minutos expira el código
     };
     sessionStorage.setItem('recovery_data', JSON.stringify(recoveryData));
   }

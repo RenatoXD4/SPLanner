@@ -20,6 +20,4 @@ routerUser.get("/auth/google/callback", userController.googleCallback.bind(userC
 routerUser.get("/:userId/dashboard", userController.getDashboardStats.bind(userController));
 //Modificar dato
 routerUser.put('/users/:userId/profile', userController.updateProfile.bind(userController));
-//Recuperar 
-routerUser.post("/check-email", userController.checkEmail.bind(userController));
 export default routerUser;

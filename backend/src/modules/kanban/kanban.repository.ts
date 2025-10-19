@@ -111,8 +111,17 @@ export class KanbanRepository {
 
     // Elimina tarea por id
     public async deleteTask(id: string): Promise<Tarea> {
+        const task = await prisma.tarea.findUnique({
+            where: { id },
+        });
+
+        if (!task) {
+            throw new Error(`La tarea con ID ${id} no existe.`);
+        }
+
         return prisma.tarea.delete({ where: { id } });
     }
+
 
     // Obtener todas las etiquetas ordenadas alfabéticamente
     // Debe recibir proyectoId para filtrar etiquetas de ese proyecto

@@ -18,21 +18,22 @@ interface UpdateUserPayload {
 }
 
 export class UserService {
-  private userRepository: UserRepository;
+  public userRepository: UserRepository;
 
   constructor() {
     this.userRepository = new UserRepository();
   }
-//Formulario de recuperar contra
+
+  // Formulario de recuperar contra
   async checkUserExists(email: string): Promise<boolean> {
-  try {
-    const user = await this.userRepository.findUserByEmail(email);
-    return !!user; // Retorna true si existe, false si no
-  } catch (error) {
-    console.error('Error verificando usuario:', error);
-    return false;
+    try {
+      const user = await this.userRepository.findUserByEmail(email);
+      return !!user; // Retorna true si existe, false si no
+    } catch (error) {
+      console.error('Error verificando usuario:', error);
+      return false;
+    }
   }
-}
 
   // Buscar o crear usuario desde Google
   async findOrCreateUserFromGoogle(googleData: GoogleUserInput): Promise<Usuario> {
@@ -57,6 +58,10 @@ export class UserService {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
       throw new Error(`Error al crear usuario desde Google: ${errorMessage}`);
     }
+  }
+
+  public async findUserByEmail(email: string): Promise<null | Usuario> {
+    return await this.userRepository.findUserByEmail(email);
   }
 
   // Obtener estadísticas del dashboard
@@ -111,7 +116,7 @@ export class UserService {
     return user;
   }
 
-  // Actualizar perfil de usuario - CORREGIDO
+  // Actualizar perfil de usuario
   async updateUserProfile(userId: string, updateData: {
     apellido?: string;
     currentPassword?: string;
@@ -138,7 +143,7 @@ export class UserService {
       // Si se quiere cambiar la contraseña, actualizarla directamente
       if (updateData.newPassword) {
         updatePayload.password = updateData.newPassword;
-        // Ya no verificamos la contraseña actual
+
       }
 
       return await this.userRepository.updateUser(userId, updatePayload);

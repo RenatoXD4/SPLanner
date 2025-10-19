@@ -3,7 +3,7 @@ import { NextFunction, Request, Response } from "express";
 import { UserService } from "./user.service.js";
 
 const port = process.env.PORT ?? "9001";
-const frontendPort = "4200"; // 80 para Docker, 4200 para localhost de angular
+const frontendPort = "4200";
 
 // Interfaces para Google OAuth
 interface GoogleTokens {
@@ -37,12 +37,17 @@ interface RegisterRequestBody {
   password: string;
 }
 
+//reset password
+interface ResetPasswordRequestBody {
+  email: string;
+  newPassword: string;
+}
+
 interface UpdateProfileRequestBody {
   apellido?: string;
   newPassword?: string;
   nombre?: string;
 }
-
 
 interface UserResponse {
   apellido: string;
@@ -57,44 +62,44 @@ interface UserResponse {
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  //Formulario de recuperar
+  // Formulario de recuperar
   public async checkEmail(
-  req: Request<unknown, unknown, { email: string }>,
-  res: Response,
-): Promise<void> {
-  try {
-    const { email } = req.body;
+    req: Request<unknown, unknown, { email: string }>,
+    res: Response,
+  ): Promise<void> {
+    try {
+      const { email } = req.body;
 
-    if (!email) {
-      res.status(400).json({ 
+      if (!email) {
+        res.status(400).json({ 
+          exists: false,
+          message: "Email es requerido",
+          success: false
+        });
+        return;
+      }
+
+      console.log('Verificando email en BD:', email);
+      
+      const userExists = await this.userService.checkUserExists(email);
+      
+      console.log('Resultado verificación:', userExists ? 'EXISTE' : 'NO EXISTE');
+      
+      res.status(200).json({
+        exists: userExists,
+        message: userExists ? "Usuario encontrado" : "Usuario no encontrado",
+        success: true
+      });
+
+    } catch (error) {
+      console.error('Error en checkEmail:', error);
+      res.status(500).json({
         exists: false,
-        message: "Email es requerido",
+        message: "Error interno del servidor",
         success: false
       });
-      return;
     }
-
-    console.log('Verificando email en BD:', email);
-    
-    const userExists = await this.userService.checkUserExists(email);
-    
-    console.log('Resultado verificación:', userExists ? 'EXISTE' : 'NO EXISTE');
-    
-    res.status(200).json({
-      exists: userExists,
-      message: userExists ? "Usuario encontrado" : "Usuario no encontrado",
-      success: true
-    });
-
-  } catch (error) {
-    console.error('Error en checkEmail:', error);
-    res.status(500).json({
-      exists: false,
-      message: "Error interno del servidor",
-      success: false
-    });
   }
-}
 
   // Método de debug temporal
   public debugRedirectUri(req: Request, res: Response): void {
@@ -307,6 +312,7 @@ export class UserController {
         lastName: googleUser.family_name,
         picture: googleUser.picture
       });
+      
       // Crear UserResponse para enviar al frontend
       const userResponse: UserResponse = {
         apellido: user.apellido,
@@ -417,59 +423,117 @@ export class UserController {
     }
   }
 
+  // 🔥 MÉTODO RESET PASSWORD CORREGIDO
+  public async resetPassword(
+    req: Request<unknown, unknown, ResetPasswordRequestBody>,
+    res: Response
+  ): Promise<void> {
+    try {
+      const { email, newPassword } = req.body;
+
+      if (!email || !newPassword) {
+        res.status(400).json({ 
+          message: "Email y nueva contraseña son requeridos",
+          success: false
+        });
+        return;
+      }
+
+      if (newPassword.length < 6) {
+        res.status(400).json({
+          message: "La contraseña debe tener al menos 6 caracteres",
+          success: false
+        });
+        return;
+      }
+
+      console.log('🔑 Reset password solicitado para:', email);
+
+      // Buscar usuario por email usando el servicio
+      const user = await this.userService.findUserByEmail(email);
+      
+      if (!user) {
+        res.status(404).json({
+          message: "Usuario no encontrado",
+          success: false
+        });
+        return;
+      }
+
+      // Actualizar contraseña
+      await this.userService.updateUserProfile(user.id, {
+        newPassword: newPassword
+      });
+
+      console.log('✅ Contraseña actualizada para usuario:', user.id);
+
+      res.status(200).json({
+        message: "Contraseña actualizada exitosamente",
+        success: true
+      });
+
+    } catch (error) {
+      console.error('❌ Error en resetPassword:', error);
+      res.status(500).json({
+        message: "Error interno del servidor al actualizar la contraseña",
+        success: false
+      });
+    }
+  }
+
   // Actualizar perfil de usuario
   public async updateProfile(
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> {
-  try {
-    const { userId } = req.params;
-    const { apellido, newPassword, nombre } = req.body as UpdateProfileRequestBody;
-    if (!userId) {
-      res.status(400).json({ 
-        message: "ID de usuario es requerido",
-        success: false 
-      });
-      return;
-    }
-    // Validar que al menos un campo sea proporcionado
-    if (!nombre && !apellido && !newPassword) {
-      res.status(400).json({ 
-        message: "Al menos un campo debe ser proporcionado para actualizar",
-        success: false 
-      });
-      return;
-    }
-    const updatedUser = await this.userService.updateUserProfile(userId, {
-      apellido,
-      newPassword,
-      nombre
-    });
-    const userResponse: UserResponse = {
-      apellido: updatedUser.apellido,
-      email: updatedUser.email,
-      id: updatedUser.id,
-      nombre: updatedUser.nombre
-    };
-    res.status(200).json({
-      message: "Perfil actualizado exitosamente",
-      success: true,
-      user: userResponse
-    });
-  } catch (error) {
-    if (error instanceof Error) {
-      if (error.message.includes('contraseña actual') || 
-          error.message.includes('Usuario no encontrado')) {
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const { userId } = req.params;
+      const { apellido, newPassword, nombre } = req.body as UpdateProfileRequestBody;
+      if (!userId) {
         res.status(400).json({ 
-          message: error.message,
+          message: "ID de usuario es requerido",
           success: false 
         });
         return;
       }
+      // Validar que al menos un campo sea proporcionado
+      if (!nombre && !apellido && !newPassword) {
+        res.status(400).json({ 
+          message: "Al menos un campo debe ser proporcionado para actualizar",
+          success: false 
+        });
+        return;
+      }
+      const updatedUser = await this.userService.updateUserProfile(userId, {
+        apellido,
+        newPassword,
+        nombre
+      });
+      const userResponse: UserResponse = {
+        apellido: updatedUser.apellido,
+        email: updatedUser.email,
+        id: updatedUser.id,
+        nombre: updatedUser.nombre
+      };
+      res.status(200).json({
+        message: "Perfil actualizado exitosamente",
+        success: true,
+        user: userResponse
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message.includes('contraseña actual') || 
+            error.message.includes('Usuario no encontrado')) {
+          res.status(400).json({ 
+            message: error.message,
+            success: false 
+          });
+          return;
+        }
+      }
+      console.error('Error en updateProfile:', error);
+      next(error);
     }
-    console.error('Error en updateProfile:', error);
-    next(error);
   }
-}
 }

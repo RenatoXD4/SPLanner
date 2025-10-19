@@ -22,4 +22,5 @@ routerUser.get("/:userId/dashboard", userController.getDashboardStats.bind(userC
 routerUser.put('/users/:userId/profile', userController.updateProfile.bind(userController));
 //Recuperar 
 routerUser.post("/check-email", userController.checkEmail.bind(userController));
+routerUser.post("/reset-password", userController.resetPassword.bind(userController));
 export default routerUser;

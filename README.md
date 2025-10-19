@@ -48,3 +48,4 @@ ej> npx prisma migrate dev --name relacion-etiquetas-proyecto --create-only --> 
 # Pagina para revisar la api de enviar correo
 
   https://dashboard.emailjs.com/
+  npm install @emailjs/browser

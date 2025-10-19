@@ -31,7 +31,7 @@ export class UserRepository {
     return await prisma.usuario.findUnique({
       where: { id: userId }
     });
-  } // ← Aquí cerraste correctamente este método
+  } 
 
   public async getUserDashboardStats(userId: string) {
     const user = await prisma.usuario.findUnique({

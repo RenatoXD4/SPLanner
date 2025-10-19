@@ -43,7 +43,7 @@ interface UpdateProfileRequestBody {
   nombre?: string;
 }
 
-// ÚNICA interfaz UserResponse consolidada
+
 interface UserResponse {
   apellido: string;
   createdAt?: string;
@@ -56,6 +56,45 @@ interface UserResponse {
 
 export class UserController {
   constructor(private readonly userService: UserService) {}
+
+  //Formulario de recuperar
+  public async checkEmail(
+  req: Request<unknown, unknown, { email: string }>,
+  res: Response,
+): Promise<void> {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      res.status(400).json({ 
+        exists: false,
+        message: "Email es requerido",
+        success: false
+      });
+      return;
+    }
+
+    console.log('Verificando email en BD:', email);
+    
+    const userExists = await this.userService.checkUserExists(email);
+    
+    console.log('Resultado verificación:', userExists ? 'EXISTE' : 'NO EXISTE');
+    
+    res.status(200).json({
+      exists: userExists,
+      message: userExists ? "Usuario encontrado" : "Usuario no encontrado",
+      success: true
+    });
+
+  } catch (error) {
+    console.error('Error en checkEmail:', error);
+    res.status(500).json({
+      exists: false,
+      message: "Error interno del servidor",
+      success: false
+    });
+  }
+}
 
   // Método de debug temporal
   public debugRedirectUri(req: Request, res: Response): void {

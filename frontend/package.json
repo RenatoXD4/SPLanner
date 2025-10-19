@@ -35,6 +35,7 @@
     "@editorjs/editorjs": "^2.31.0",
     "@editorjs/header": "^2.8.8",
     "@editorjs/list": "^2.0.8",
+    "@emailjs/browser": "^4.4.1",
     "@tailwindcss/postcss": "^4.1.12",
     "daisyui": "^5.1.9",
     "express": "^5.1.0",

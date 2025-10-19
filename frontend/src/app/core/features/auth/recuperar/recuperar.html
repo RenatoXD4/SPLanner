@@ -1,48 +1,231 @@
-<div class="w-full h-full flex flex-col justify-center items-center min-h-screen pb-5 bg-gradient-to-b  from-purple-00">
-  <div class="w-full max-w-md mx-auto px-5 py-8 lg:py-0 lg:h-200 lg:flex lg:items-center shadow-xl/100 bg-black">
-    <!--modificar para mejorar el formulario-->
+<!-- src/app/pages/recuperar/recuperar.html -->
+<div class="w-full min-h-screen flex items-center justify-center relative overflow-hidden bg-gray-900 py-8">
+  <!-- Contenedor del formulario -->
+  <div class="relative z-10 w-full max-w-md mx-auto animate-fade-in-up">
+    <div
+      class="bg-gradient-to-b from-gray-900 via-gray-800 to-gray-950 border border-green-900 rounded-2xl shadow-2xl p-8 mx-4 transform transition-all duration-500 ease-out animate-form-appear">
 
+      <div class="w-full max-w-[350px] mx-auto">
 
-    <div class="w-full max-w-[350px] mx-auto lg:mt-32">
-
-
-      <h1 class="text-3xl font-bold text-white mb-2 text-center">Recuperar cuenta</h1>
-      <div class="relative my-6">
-        <div class="absolute inset-0 flex items-center">
-          <div class="w-full border-t border-zinc-800"></div>
+        <!-- Logo SPlanner -->
+        <div class="flex justify-center mb-4">
+          <svg width="220" height="55" viewBox="0 0 170 50" class="h-16 w-auto">
+            <defs>
+              <linearGradient id="mainGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#1edf28" />
+                <stop offset="100%" stop-color="#1edf28" />
+              </linearGradient>
+            </defs>
+            <rect x="5" y="5" width="45" height="45" rx="6" fill="url(#mainGradient)" />
+            <rect x="12" y="15" width="6" height="25" fill="#fbbf24" rx="1.5" />
+            <rect x="22" y="11" width="6" height="29" fill="#10b981" rx="1.5" />
+            <rect x="32" y="17" width="6" height="23" fill="#ef4444" rx="1.5" />
+            <text x="55" y="33" font-family="Arial, sans-serif" font-size="24" font-weight="bold"
+              fill="url(#mainGradient)">
+              SPlanner
+            </text>
+          </svg>
         </div>
+
+        <!-- Mensajes de éxito/error -->
+        <div *ngIf="successMessage"
+             class="mb-4 p-3 bg-green-500/90 border border-green-400 rounded-lg text-white">
+          <div class="flex items-center gap-2">
+            <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+            </svg>
+            <span class="text-sm">{{ successMessage }}</span>
+          </div>
+        </div>
+
+        <div *ngIf="errorMessage"
+             class="mb-4 p-3 bg-red-500/90 border border-red-400 rounded-lg text-white">
+          <div class="flex items-center gap-2">
+            <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+            </svg>
+            <span class="text-sm">{{ errorMessage }}</span>
+          </div>
+        </div>
+
+        <!-- Paso 1: Email -->
+        <div *ngIf="currentStep === 'email'" class="animate-smooth-fade-in">
+          <h1 class="text-2xl font-bold text-white mb-2 text-center">Recuperar Cuenta</h1>
+
+          <div class="relative my-4">
+            <div class="absolute inset-0 flex items-center">
+              <div class="w-full border-t border-gray-600"></div>
+            </div>
+          </div>
+
+          <p class="text-gray-400 mb-6 text-center text-sm">Ingresa tu correo para recibir un código de verificación</p>
+
+          <form class="space-y-5" [formGroup]="emailForm" (submit)="handleEmailSubmit()">
+            <div>
+              <label for="email" class="block text-sm font-medium text-white mb-2">Correo Electrónico</label>
+              <input id="email" type="email" placeholder="correo@gmail.com"
+                class="w-full px-4 py-3 bg-black border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all form-input-transition"
+                formControlName="email">
+
+              <div *ngIf="showEmailError()" class="mt-2 bg-red-500/90 text-white p-3 rounded-lg border border-red-400">
+                <div class="flex items-center gap-2">
+                  <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                  </svg>
+                  <span class="text-sm" *ngIf="emailForm.get('email')?.hasError('required')">El correo es requerido</span>
+                  <span class="text-sm" *ngIf="emailForm.get('email')?.hasError('email')">Ingresa un correo válido</span>
+                </div>
+              </div>
+            </div>
+
+            <button [disabled]="emailForm.invalid || isLoading" type="submit"
+              class="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-3 px-4 rounded-lg font-medium hover:from-green-600 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed form-input-transition">
+              <span *ngIf="!isLoading" class="flex items-center justify-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                Enviar Código
+              </span>
+              <span *ngIf="isLoading" class="flex items-center justify-center gap-2">
+                <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Enviando...
+              </span>
+            </button>
+          </form>
+
+          <div class="mt-6 text-center">
+            <a routerLink="/login" class="text-gray-400 hover:text-green-400 transition-colors text-sm">
+              ← Volver al inicio de sesión
+            </a>
+          </div>
+        </div>
+
+        <!-- Paso 2: Código de verificación -->
+        <div *ngIf="currentStep === 'code'" class="animate-smooth-fade-in">
+          <h1 class="text-2xl font-bold text-white mb-2 text-center">Verificar Código</h1>
+
+          <div class="relative my-4">
+            <div class="absolute inset-0 flex items-center">
+              <div class="w-full border-t border-gray-600"></div>
+            </div>
+          </div>
+
+          <p class="text-gray-400 mb-6 text-center text-sm">
+            Hemos enviado un código de 6 dígitos a:<br>
+            <strong class="text-white">{{ userEmail }}</strong>
+          </p>
+
+          <form class="space-y-5" [formGroup]="codeForm" (submit)="handleCodeSubmit()">
+            <div>
+              <label for="code" class="block text-sm font-medium text-white mb-2">Código de Verificación</label>
+              <input id="code" type="text" placeholder="123456" maxlength="6"
+                class="w-full px-4 py-3 bg-black border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all text-center text-xl tracking-widest form-input-transition"
+                formControlName="code">
+
+              <div *ngIf="showCodeError()" class="mt-2 bg-red-500/90 text-white p-3 rounded-lg border border-red-400">
+                <div class="flex items-center gap-2">
+                  <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                  </svg>
+                  <span class="text-sm">El código debe tener 6 dígitos</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex gap-3">
+              <button type="button" (click)="goBack()"
+                class="flex-1 bg-gray-800 text-white py-3 px-4 rounded-lg font-medium hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition-all duration-300 form-input-transition">
+                Volver
+              </button>
+              <button [disabled]="codeForm.invalid || isLoading" type="submit"
+                class="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white py-3 px-4 rounded-lg font-medium hover:from-green-600 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed form-input-transition">
+                <span *ngIf="!isLoading">Verificar</span>
+                <span *ngIf="isLoading" class="flex items-center justify-center gap-2">
+                  <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Verificando...
+                </span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Paso 3: Nueva contraseña -->
+        <div *ngIf="currentStep === 'password'" class="animate-smooth-fade-in">
+          <h1 class="text-2xl font-bold text-white mb-2 text-center">Nueva Contraseña</h1>
+
+          <div class="relative my-4">
+            <div class="absolute inset-0 flex items-center">
+              <div class="w-full border-t border-gray-600"></div>
+            </div>
+          </div>
+
+          <p class="text-gray-400 mb-6 text-center text-sm">Crea una nueva contraseña para tu cuenta</p>
+
+          <form class="space-y-5" [formGroup]="passwordForm" (submit)="handlePasswordSubmit()">
+            <div>
+              <label for="password" class="block text-sm font-medium text-white mb-2">Nueva Contraseña</label>
+              <div class="relative">
+                <input id="password" type="password" placeholder="Mínimo 6 caracteres"
+                  class="w-full px-4 py-3 bg-black border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all form-input-transition"
+                  formControlName="password">
+              </div>
+
+              <div *ngIf="showPasswordError()" class="mt-2 bg-red-500/90 text-white p-3 rounded-lg border border-red-400">
+                <div class="flex items-center gap-2">
+                  <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                  </svg>
+                  <span class="text-sm">La contraseña debe tener al menos 6 caracteres</span>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label for="confirmPassword" class="block text-sm font-medium text-white mb-2">Confirmar Contraseña</label>
+              <div class="relative">
+                <input id="confirmPassword" type="password" placeholder="Repite tu contraseña"
+                  class="w-full px-4 py-3 bg-black border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all form-input-transition"
+                  formControlName="confirmPassword">
+              </div>
+
+              <div *ngIf="showConfirmPasswordError() || showPasswordMismatchError()" class="mt-2 bg-red-500/90 text-white p-3 rounded-lg border border-red-400">
+                <div class="flex items-center gap-2">
+                  <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                  </svg>
+                  <span class="text-sm" *ngIf="passwordForm.get('confirmPassword')?.hasError('required')">Confirma tu contraseña</span>
+                  <span class="text-sm" *ngIf="passwordForm.hasError('passwordMismatch')">Las contraseñas no coinciden</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex gap-3">
+              <button type="button" (click)="goBack()"
+                class="flex-1 bg-gray-800 text-white py-3 px-4 rounded-lg font-medium hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition-all duration-300 form-input-transition">
+                Volver
+              </button>
+              <button [disabled]="passwordForm.invalid || isLoading" type="submit"
+                class="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white py-3 px-4 rounded-lg font-medium hover:from-green-600 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed form-input-transition">
+                <span *ngIf="!isLoading">Cambiar Contraseña</span>
+                <span *ngIf="isLoading" class="flex items-center justify-center gap-2">
+                  <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Procesando...
+                </span>
+              </button>
+            </div>
+          </form>
+        </div>
+
       </div>
-
-      <p class="text-zinc-400 mb-8 text-center"></p>
-
-
-      <!-- Formulario de email/contraseña -->
-      <form class="space-y-4" [formGroup]="userForm" (submit)="handleSubmit()">
-        <!--Se vincula con la variable del ts y tamnbien reviso si los datos se envian-->
-        <div>
-          <label for="password" class="block text-sm font-medium text-white mb-1">Nueva contraseña</label>
-          <input id="password" type="password" placeholder=""
-            class="w-full px-4 py-3 bg-zinc-950 border border-zinc-800 rounded-lg text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-white/50"
-            formControlName="password"><!--Se vincula con la variable del ts-->
-        </div>
-
-        <div>
-          <label for="password" class="block text-sm font-medium text-white mb-1">Confirmar contraseña</label>
-          <input id="ConPassword" type="Contraseña" placeholder=""
-            class="w-full px-4 py-3 bg-zinc-950 border border-zinc-800 rounded-lg text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-white/50"
-            formControlName="password"><!--Se vincula con la variable del ts-->
-        </div>
-
-
-        <!--eL DISABLE es para desactivar el boton en caso de que no se cumplan los requerimientos pero por el diseño del boton no se percibe xD-->
-        <button [disabled]="userForm.invalid" type="submit"
-          class="w-full bg-white text-zinc-950 py-3 px-4 rounded-lg font-medium hover:bg-white/90 transition-colors">
-          Confirmar
-        </button>
-
-
-      </form>
-
     </div>
   </div>
 </div>

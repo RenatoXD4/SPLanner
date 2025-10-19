@@ -23,6 +23,16 @@ export class UserService {
   constructor() {
     this.userRepository = new UserRepository();
   }
+//Formulario de recuperar contra
+  async checkUserExists(email: string): Promise<boolean> {
+  try {
+    const user = await this.userRepository.findUserByEmail(email);
+    return !!user; // Retorna true si existe, false si no
+  } catch (error) {
+    console.error('Error verificando usuario:', error);
+    return false;
+  }
+}
 
   // Buscar o crear usuario desde Google
   async findOrCreateUserFromGoogle(googleData: GoogleUserInput): Promise<Usuario> {

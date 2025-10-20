@@ -72,8 +72,7 @@ export class ProjectController {
       next(error);
     }
   }
-
-  // Borrar proyecto
+// Borrar proyecto
   public async requestDeleteProject(
     req: Request<{ id: string }, unknown, DeleteProjectRequest>,
     res: Response<ProjectResponse>,
@@ -110,7 +109,6 @@ export class ProjectController {
       }
     }
   }
-
   // Listar proyectos del usuario
   public async requestListProjects(
     req: Request<object, unknown, unknown, { userId: string }>,
@@ -131,6 +129,26 @@ export class ProjectController {
       next(error);
     }
   }
+
+  public async requestListProjectsAsMember(
+  req: Request<object, unknown, unknown, { userId: string }>,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const { userId } = req.query;
+
+    if (!userId) {
+      res.status(400).json({ message: "Se requiere el ID del usuario" });
+      return;
+    }
+
+    const projects = await this.projectService.listProjectsByMember(userId);
+    res.status(200).json(projects);
+  } catch (error: unknown) {
+    next(error);
+  }
+}
 
   // Actualizar proyecto
   public async requestUpdateProject(

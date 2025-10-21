@@ -24,7 +24,7 @@ export class Sidebar {
   menuItems = [
     { label: 'Home', icon: 'home' },
     { label: 'Mis Proyectos', icon: 'project' },
-    { label: 'Proyectos compartidos', icon: 'team' },
+    { label: 'compartidos', icon: 'team' },
     { label: 'Ajustes', icon: 'settings' },
   ];
 
@@ -54,7 +54,7 @@ export class Sidebar {
     } else if (currentRoute.includes('/proyectos') && !currentRoute.includes('/miembros')) {
       this.activeItem = 'Mis Proyectos';
     } else if (currentRoute.includes('/miembros')) {
-      this.activeItem = 'Proyectos compartidos';
+      this.activeItem = 'compartidos';
     }
     // Puedes agregar más rutas según necesites
   }
@@ -95,7 +95,7 @@ export class Sidebar {
       case 'Mis Proyectos':
         this.router.navigate(['/proyectos']);
         break;
-      case 'Proyectos compartidos':
+      case 'compartidos':
         this.router.navigate(['/miembros']);
         break;
       case 'Home':

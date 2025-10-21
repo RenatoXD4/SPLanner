@@ -2,6 +2,29 @@ import { Prisma, Proyectos } from "@prisma/client";
 
 import { ProjectRepository } from "./projects.repository.js";
 
+// Definir interfaces para los proyectos con counts
+interface ProyectoConCount extends Proyectos {
+  _count?: {
+    miembros: number;
+  };
+  creadoPor?: {
+    apellido: string;
+    email: string;
+    id: string;
+    nombre: string;
+  };
+}
+
+interface ProyectoConMiembrosCount extends Proyectos {
+  creadoPor?: {
+    apellido: string;
+    email: string;
+    id: string;
+    nombre: string;
+  };
+  miembrosCount: number;
+}
+
 export class ProjectService {
   private projectRepository: ProjectRepository;
 
@@ -18,13 +41,29 @@ export class ProjectService {
   }
 
   // Mantener este método si lo necesitas para admin
-  async listAllProjects(): Promise<Proyectos[]> {
-    return this.projectRepository.getAllProjects();
+  async listAllProjects(): Promise<ProyectoConMiembrosCount[]> {
+    const projects = await this.projectRepository.getAllProjects() as ProyectoConCount[];
+    return projects.map(project => ({
+      ...project,
+      miembrosCount: project._count?.miembros ?? 0
+    }));
   }
 
+  async listProjectsByMember(userId: string): Promise<ProyectoConMiembrosCount[]> {
+  const projects = await this.projectRepository.getProjectsByMember(userId) as ProyectoConCount[];
+  return projects.map(project => ({
+    ...project,
+    miembrosCount: project._count?.miembros ?? 0
+  }));
+}
+
   // Nuevo método para obtener proyectos por usuario
-  async listProjectsByUser(userId: string): Promise<Proyectos[]> {
-    return this.projectRepository.getProjectsByUser(userId);
+  async listProjectsByUser(userId: string): Promise<ProyectoConMiembrosCount[]> {
+    const projects = await this.projectRepository.getProjectsByUser(userId) as ProyectoConCount[];
+    return projects.map(project => ({
+      ...project,
+      miembrosCount: project._count?.miembros ?? 0
+    }));
   }
 
   async modifyProject(id: string, data: Prisma.ProyectosUpdateInput, userId: string): Promise<Proyectos> {
@@ -35,7 +74,6 @@ export class ProjectService {
     }
     return this.projectRepository.updateProject(id, data);
   }
-
   async removeProject(id: string, userId: string): Promise<Proyectos> {
     // Verificar que el proyecto pertenezca al usuario
     const isOwner = await this.projectRepository.isProjectOwner(id, userId);
@@ -44,4 +82,6 @@ export class ProjectService {
     }
     return this.projectRepository.deleteProject(id);
   }
+
+
 }

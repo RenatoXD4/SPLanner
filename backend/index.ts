@@ -5,6 +5,7 @@ import express, { NextFunction, Request, Response } from "express";
 config();
 
 import routerKanbantask from "./src/modules/kanban/kanban.routes.js";
+import routerMiembro from "./src/modules/miembro/miembro.routes.js";
 import routerProject from "./src/modules/projects/projects.routes.js";
 import routerUser from "./src/modules/usuario/user.routes.js";
 
@@ -47,7 +48,7 @@ app.use(`/${api}/projects`, routerProject);
 app.use(`/${api}/usuarios`, routerUser);
 // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 app.use(`/${api}`, routerUser);
-
+app.use(`/${api}`, routerMiembro); 
 
 // Ruta raíz
 app.get("/", (req: Request, res: Response) => {

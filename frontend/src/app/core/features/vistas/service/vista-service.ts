@@ -1,13 +1,13 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { BehaviorSubject, map, Observable, tap } from 'rxjs';
 import { AuthService } from '../../../services/auth-service';
 
 export interface Usuario {
   id: string;
   nombre: string;
-  apellido?: string;
-  email?: string;
+  apellido: string;
+  email: string;
 }
 
 export interface Proyecto {
@@ -16,10 +16,33 @@ export interface Proyecto {
   descripcion?: string;
   creadoPorId: string;
   createdAt?: string;
+  miembrosCount?: number;
 }
 
 export interface ProyectoConUsuario extends Proyecto {
   creadoPor?: Usuario;
+  _count?: {
+    miembros: number;
+  };
+}
+
+// Interface para la respuesta del backend de miembros
+interface MiembroBackend {
+  id: number;
+  proyectoId: string;
+  rolId: number;
+  usuarioId: string;
+  rol: {
+    id: number;
+    nombre: string;
+  };
+  usuario: Usuario;
+}
+
+interface ApiResponse<T> {
+  data?: T;
+  message: string;
+  success: boolean;
 }
 
 interface CreateProjectRequest {
@@ -38,11 +61,32 @@ interface DeleteProjectRequest {
   userId: string;
 }
 
+interface InvitarMiembroRequest {
+  proyectoId: string;
+  usuarioId: string;
+  rolId: number;
+}
+
+// Interface para miembros del proyecto en el frontend
+export interface MiembroProyecto {
+  id: number;
+  usuarioId: string;
+  proyectoId: string;
+  rolId: number;
+  rol?: {
+    id: number;
+    nombre: string;
+  };
+  usuario?: Usuario;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class VistasService {
   private apiUrl = 'http://localhost:9001/api-v1/projects';
+  private usuariosUrl = 'http://localhost:9001/api-v1/users';
+  private miembrosUrl = 'http://localhost:9001/api-v1/members';
 
   private proyectosSubject = new BehaviorSubject<ProyectoConUsuario[]>([]);
   proyectos$ = this.proyectosSubject.asObservable();
@@ -66,11 +110,26 @@ export class VistasService {
 
     const params = new HttpParams().set('userId', userId);
 
-    return this.http.get<ProyectoConUsuario[]>(this.apiUrl, {
+    return this.http.get<any[]>(this.apiUrl, {
       headers: this.getHeaders(),
       params
     }).pipe(
+      map(proyectos => proyectos.map(proyecto => ({
+        id: proyecto.id,
+        nombre: proyecto.nombre,
+        descripcion: proyecto.descripcion,
+        creadoPorId: proyecto.creadoPorId,
+        createdAt: proyecto.createdAt,
+        creadoPor: proyecto.creadoPor,
+        miembrosCount: proyecto.miembrosCount || proyecto._count?.miembros || 0,
+        _count: proyecto._count
+      }))),
       tap((proyectos) => {
+        console.log(' Proyectos recibidos con miembrosCount:', proyectos.map(p => ({
+          nombre: p.nombre,
+          miembrosCount: p.miembrosCount,
+          tieneCountBackend: !!p._count
+        })));
         this.proyectosSubject.next(proyectos);
       })
     );
@@ -97,7 +156,6 @@ export class VistasService {
       headers: this.getHeaders()
     }).pipe(
       tap((proyectoEditado) => {
-
         const actualizados = this.proyectosSubject.value.map(p =>
           p.id === proyectoEditado.id ? proyectoEditado : p
         );
@@ -117,11 +175,154 @@ export class VistasService {
       body: deleteData
     }).pipe(
       tap(() => {
-
         const restantes = this.proyectosSubject.value.filter(p => p.id !== id);
         this.proyectosSubject.next(restantes);
       })
     );
+  }
+
+  // === MÉTODOS PARA INVITAR MIEMBROS ===
+
+  /**
+   * Busca un usuario por su correo electrónico
+   * @param email Correo electrónico del usuario a buscar
+   * @returns Observable con los datos del usuario encontrado
+   */
+  buscarUsuarioPorEmail(email: string): Observable<Usuario> {
+    const params = new HttpParams().set('email', email);
+
+    return this.http.get<ApiResponse<Usuario>>(`${this.usuariosUrl}/search`, {
+      headers: this.getHeaders(),
+      params
+    }).pipe(
+      map(response => {
+        if (!response.success || !response.data) {
+          throw new Error(response.message || 'Usuario no encontrado');
+        }
+        return response.data;
+      })
+    );
+  }
+
+  /**
+   * Invita a un usuario a un proyecto con un rol específico
+   * @param proyectoId ID del proyecto
+   * @param usuarioId ID del usuario a invitar
+   * @param rolId ID del rol (1: Admin, 2: Miembro)
+   * @returns Observable con la respuesta de la invitación
+   */
+  invitarUsuarioAProyecto(proyectoId: string, usuarioId: string, rolId: number): Observable<any> {
+    const invitacionData: InvitarMiembroRequest = {
+      proyectoId,
+      usuarioId,
+      rolId
+    };
+
+    return this.http.post(`${this.miembrosUrl}/invitar`, invitacionData, {
+      headers: this.getHeaders()
+    });
+  }
+
+  /**
+   * Obtiene los miembros de un proyecto específico
+   * @param proyectoId ID del proyecto
+   * @returns Observable con la lista de miembros
+   */
+  obtenerMiembrosProyecto(proyectoId: string): Observable<MiembroProyecto[]> {
+    return this.http.get<ApiResponse<MiembroBackend[]>>(`${this.miembrosUrl}/proyecto/${proyectoId}`, {
+      headers: this.getHeaders()
+    }).pipe(
+      map(response => {
+        if (!response.success || !response.data) {
+          throw new Error(response.message || 'Error al obtener miembros');
+        }
+
+        // Mapear la respuesta del backend al formato del frontend
+        return response.data.map(miembro => ({
+          id: miembro.id,
+          usuarioId: miembro.usuarioId,
+          proyectoId: miembro.proyectoId,
+          rolId: miembro.rolId,
+          rol: miembro.rol,
+          usuario: miembro.usuario
+        }));
+      })
+    );
+  }
+
+  /**
+   * Actualiza el rol de un miembro
+   * @param miembroId ID del miembro
+   * @param nuevoRolId Nuevo ID del rol
+   * @returns Observable con la respuesta
+   */
+  actualizarRolMiembro(miembroId: number, nuevoRolId: number): Observable<any> {
+  // Validar que los parámetros sean números válidos
+  if (typeof miembroId !== 'number' || isNaN(miembroId) || miembroId <= 0) {
+    throw new Error('miembroId debe ser un número válido');
+  }
+
+  if (typeof nuevoRolId !== 'number' || isNaN(nuevoRolId) || nuevoRolId <= 0) {
+    throw new Error('nuevoRolId debe ser un número válido');
+  }
+
+
+  return this.http.patch<ApiResponse<any>>(
+    `${this.miembrosUrl}/rol/${miembroId.toString()}`,
+    { rolId: nuevoRolId },
+    { headers: this.getHeaders() }
+  ).pipe(
+    map(response => {
+      if (!response.success) {
+        throw new Error(response.message || 'Error al actualizar el rol');
+      }
+      return response;
+    })
+  );
+}
+
+  /**
+   * Elimina a un miembro de un proyecto
+   * @param proyectoId ID del proyecto
+   * @param usuarioId ID del usuario a eliminar
+   * @returns Observable con la respuesta
+   */
+  eliminarMiembroProyecto(proyectoId: string, usuarioId: string): Observable<void> {
+    const params = new HttpParams()
+      .set('proyectoId', proyectoId)
+      .set('usuarioId', usuarioId);
+
+    return this.http.delete<ApiResponse<void>>(`${this.miembrosUrl}/eliminar`, {
+      headers: this.getHeaders(),
+      params
+    }).pipe(
+      map(response => {
+        if (!response.success) {
+          throw new Error(response.message || 'Error al eliminar miembro');
+        }
+        // No retornamos datos, solo confirmación
+      })
+    );
+  }
+
+  /**
+   * Actualiza el contador de miembros para un proyecto específico
+   * Esto se puede usar para mantener actualizado el contador en la UI
+   * @param proyectoId ID del proyecto
+   * @param nuevoCount Nuevo número de miembros
+   */
+  actualizarContadorMiembros(proyectoId: string, nuevoCount: number): void {
+    const proyectosActualizados = this.proyectosSubject.value.map(proyecto => {
+      if (proyecto.id === proyectoId) {
+        return {
+          ...proyecto,
+          miembrosCount: nuevoCount
+        };
+      }
+      return proyecto;
+    });
+
+    this.proyectosSubject.next(proyectosActualizados);
   }
 
   get proyectosActuales(): ProyectoConUsuario[] {
@@ -130,7 +331,34 @@ export class VistasService {
 
   // Método para forzar actualización desde el componente si es necesario
   actualizarProyectosManualmente(proyectos: ProyectoConUsuario[]): void {
-
     this.proyectosSubject.next(proyectos);
   }
+
+
+
+/**
+ * Obtiene los proyectos donde el usuario es miembro (no necesariamente el creador)
+ * @param usuarioId ID del usuario
+ * @returns Observable con la lista de proyectos donde el usuario es miembro
+ */
+
+obtenerProyectosComoMiembro(usuarioId: string): Observable<ProyectoConUsuario[]> {
+  const params = new HttpParams().set('userId', usuarioId);
+
+  return this.http.get<any[]>(`${this.apiUrl}/member`, {
+    headers: this.getHeaders(),
+    params
+  }).pipe(
+    map(proyectos => proyectos.map(proyecto => ({
+      id: proyecto.id,
+      nombre: proyecto.nombre,
+      descripcion: proyecto.descripcion,
+      creadoPorId: proyecto.creadoPorId,
+      createdAt: proyecto.createdAt,
+      creadoPor: proyecto.creadoPor,
+      miembrosCount: proyecto.miembrosCount || proyecto._count?.miembros || 0,
+      _count: proyecto._count
+    })))
+  );
+}
 }

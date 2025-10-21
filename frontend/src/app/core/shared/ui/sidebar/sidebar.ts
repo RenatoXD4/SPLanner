@@ -24,6 +24,7 @@ export class Sidebar {
   menuItems = [
     { label: 'Home', icon: 'home' },
     { label: 'Mis Proyectos', icon: 'project' },
+    { label: 'compartidos', icon: 'team' },
     { label: 'Ajustes', icon: 'settings' },
   ];
 
@@ -36,7 +37,7 @@ export class Sidebar {
   constructor(
     private authService: AuthService,
     private router: Router,
-    private proyectoGuard: ProyectoGuard, // Inyectar el guard
+    private proyectoGuard: ProyectoGuard,
     @Inject(PLATFORM_ID) platformId: Object
   ) {
     this.isBrowser = isPlatformBrowser(platformId);
@@ -50,8 +51,10 @@ export class Sidebar {
     const currentRoute = this.router.url;
     if (currentRoute.includes('/Menu') || currentRoute === '/') {
       this.activeItem = 'Home';
-    } else if (currentRoute.includes('/proyectos')) {
+    } else if (currentRoute.includes('/proyectos') && !currentRoute.includes('/miembros')) {
       this.activeItem = 'Mis Proyectos';
+    } else if (currentRoute.includes('/miembros')) {
+      this.activeItem = 'compartidos';
     }
     // Puedes agregar más rutas según necesites
   }
@@ -92,8 +95,11 @@ export class Sidebar {
       case 'Mis Proyectos':
         this.router.navigate(['/proyectos']);
         break;
+      case 'compartidos':
+        this.router.navigate(['/miembros']);
+        break;
       case 'Home':
-        this.router.navigate(['/Menu']); // Home redirige a Menu
+        this.router.navigate(['/Menu']);
         break;
       case 'Equipo':
         // this.router.navigate(['/equipo']);
@@ -112,14 +118,11 @@ export class Sidebar {
 
   logout() {
     if (this.isBrowser) {
-
-
       // LIMPIAR EL PROYECTO ACTUAL ANTES DE HACER LOGOUT
       this.proyectoGuard.clearProyectoActual();
 
       // Limpia todo el localStorage (token y userData)
       this.authService.logout();
-
 
       // Redirige al login
       this.router.navigate(['/login']);
@@ -135,7 +138,7 @@ export class Sidebar {
           const user = JSON.parse(userData);
           return user.nombre || 'Usuario';
         } catch (error) {
-
+          console.error('Error parsing user data:', error);
         }
       }
     }

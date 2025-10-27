@@ -1,7 +1,7 @@
 import { Component, OnInit, Inject, PLATFORM_ID, ChangeDetectorRef } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Sidebar } from '../../shared/ui/sidebar/sidebar';
-import { DashboardService, DashboardApiResponse } from '../../services/dashboard.service';
+import { DashboardService, DashboardApiResponse} from '../vistas/service/dashboard.service';
 import { AuthService } from '../../services/auth-service';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';

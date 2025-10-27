@@ -1,0 +1,18 @@
+/* src/app/dashboard/dashboard.component.css */
+:host {
+  display: block;
+}
+
+/* Asegurar que los canvas de los gráficos tengan tamaño */
+canvas {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Contenedor de gráficos */
+.chart-container {
+  position: relative;
+  height: 320px;
+  width: 100%;
+}

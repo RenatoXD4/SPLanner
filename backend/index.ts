@@ -4,10 +4,11 @@ import express, { NextFunction, Request, Response } from "express";
 
 config();
 
+import routerDashboard from "./src/modules/dashboard/dashboard.routes.js";
 import routerKanbantask from "./src/modules/kanban/kanban.routes.js";
 import routerMiembro from "./src/modules/miembro/miembro.routes.js";
 import routerProject from "./src/modules/projects/projects.routes.js";
-import routerUser from "./src/modules/usuario/user.routes.js";
+import routerUser from "./src/modules/usuario/user.routes.js"; 
 
 const app = express();
 const port = process.env.PORT ?? "9001";
@@ -49,6 +50,7 @@ app.use(`/${api}/usuarios`, routerUser);
 // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 app.use(`/${api}`, routerUser);
 app.use(`/${api}`, routerMiembro); 
+app.use(`/${api}`, routerDashboard); // ✅ NUEVA RUTA DEL DASHBOARD
 
 // Ruta raíz
 app.get("/", (req: Request, res: Response) => {

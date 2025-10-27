@@ -250,7 +250,21 @@ async cargarMiembrosProyecto(proyectoId: string): Promise<void> {
       }
     }
   }
+irAlDashboard(proyectoId: string): void {
+  if (!this.isBrowser || !proyectoId || proyectoId === '') {
+    console.error('ID de proyecto no válido para dashboard');
+    this.mostrarMensaje('Error: No se puede acceder a las métricas del proyecto');
+    return;
+  }
 
+  console.log('[DEBUG] Navegando al dashboard del proyecto:', proyectoId);
+
+  // Guardar el ID del proyecto para usar en el dashboard
+  this.proyectoGuard.setProyectoActual(proyectoId);
+
+  // Navegar a la ruta de dashboards
+  this.router.navigate(['/dashboard', proyectoId]);
+}
   async actualizarRolMiembro(miembro: MiembroProyecto): Promise<void> {
   try {
     const nuevoRolId = Number(miembro.rolId);

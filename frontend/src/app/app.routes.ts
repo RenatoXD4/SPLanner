@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { GoogleCallbackComponent } from './core/services/Api/google-callback.component';
 import { NotFound } from './core/features/not-found/not-found';
+import { Dashboard } from './core/features/vistas/dashboard/dashboard';
 
 export const APP_ROUTES: Routes = [
   {
@@ -24,9 +25,14 @@ export const APP_ROUTES: Routes = [
     loadChildren: () => import('./core/features/vistas/vistas.routes').then(m => m.VISTAS_ROUTE),
   },
   { path: 'auth/google/callback', component: GoogleCallbackComponent },
+ {
+  path: 'dashboard/:id',
+    component: Dashboard
+  },
 
-  //404
+
 {
+   //404
     path: '**',
     component: NotFound
   }

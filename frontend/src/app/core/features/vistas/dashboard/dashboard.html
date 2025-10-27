@@ -1,0 +1,315 @@
+<!-- src/app/dashboard/dashboard.component.html -->
+<div class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white flex">
+  <!-- Sidebar -->
+  <app-sidebar [class.hidden]="!mostrarSidebar"></app-sidebar>
+
+  <!-- Contenido Principal -->
+  <div class="flex-1 flex flex-col min-h-screen">
+    <!-- Header -->
+    <header class="bg-gray-800/50 border-b border-gray-700 p-6 sticky top-0 z-40 backdrop-blur-sm">
+      <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+        <div class="flex items-center gap-4">
+          <button (click)="toggleSidebar()"
+            class="lg:hidden p-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+          <div>
+            <h1 class="text-2xl font-bold text-white">Dashboard del Proyecto</h1>
+            <p class="text-gray-400 mt-1 text-sm">Métricas y estadísticas personalizables</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <!-- Selector de Gráficos -->
+          <button (click)="toggleChartSelector()"
+            class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg font-semibold flex items-center gap-2 transition-all duration-200">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            Gráficos ({{ getChartCount() }})
+          </button>
+
+          <button (click)="irAlBoard()"
+            class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold flex items-center gap-2 transition-all duration-200">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+            Ir al Board
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Selector de Gráficos Modal -->
+    @if (showChartSelector) {
+    <div class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in"
+      (click)="toggleChartSelector()">
+      <div (click)="$event.stopPropagation()"
+        class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl w-full max-w-2xl border border-gray-700 shadow-2xl transform transition-all duration-300 animate-scale-in">
+
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-purple-800 to-purple-700 rounded-t-2xl p-6 border-b border-purple-600">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+              <div
+                class="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
+              <div>
+                <h2 class="text-xl font-bold text-white">Personalizar Gráficos</h2>
+                <p class="text-purple-200 text-sm">Selecciona qué gráficos mostrar en el dashboard</p>
+              </div>
+            </div>
+            <button (click)="toggleChartSelector()"
+              class="w-8 h-8 bg-purple-600 hover:bg-purple-500 rounded-lg flex items-center justify-center transition-all duration-200 hover:scale-110">
+              <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Lista de Gráficos -->
+        <div class="p-6 max-h-96 overflow-y-auto">
+          <div class="space-y-3">
+            @for (chart of availableCharts; track chart.id) {
+            <div
+              class="flex items-center justify-between p-4 bg-gray-700/50 rounded-xl border border-gray-600 hover:border-purple-500 transition-colors duration-200">
+              <div class="flex items-center space-x-4">
+                <div class="text-2xl">{{ chart.icon }}</div>
+                <div>
+                  <h3 class="font-semibold text-white">{{ chart.name }}</h3>
+                  <p class="text-gray-400 text-sm">{{ chart.description }}</p>
+                </div>
+              </div>
+              <button (click)="toggleChart(chart.id)"
+                class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+                [class]="chart.enabled ? 'bg-purple-600' : 'bg-gray-600'" role="switch"
+                [attr.aria-checked]="chart.enabled">
+                <span class="sr-only">Toggle chart</span>
+                <span aria-hidden="true"
+                  class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                  [class]="chart.enabled ? 'translate-x-5' : 'translate-x-0'"></span>
+              </button>
+            </div>
+            }
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="px-6 py-4 border-t border-gray-700 bg-gray-800/50 rounded-b-2xl">
+          <div class="flex justify-between items-center">
+            <span class="text-gray-400 text-sm">{{ getChartCount() }} de {{ availableCharts.length }} gráficos
+              activos</span>
+            <button (click)="toggleChartSelector()"
+              class="bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded-lg font-semibold transition-colors duration-200">
+              Aplicar Cambios
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    }
+
+    <!-- Contenido del Dashboard -->
+    <main class="flex-1 p-4 lg:p-6 overflow-auto">
+      @if (cargando) {
+      <!-- Loading State -->
+      <div class="flex items-center justify-center py-12">
+        <div class="text-center">
+          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto mb-4"></div>
+          <p class="text-gray-400">Cargando métricas del proyecto...</p>
+        </div>
+      </div>
+      } @else if (error) {
+      <!-- Error State -->
+      <div class="flex items-center justify-center py-12">
+        <div class="text-center max-w-md">
+          <div class="w-16 h-16 mx-auto mb-4 bg-red-500/20 rounded-2xl flex items-center justify-center">
+            <svg class="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-bold text-white mb-2">Error al cargar datos</h3>
+          <p class="text-gray-400 mb-6">{{ error }}</p>
+          <button (click)="cargarMetricas()"
+            class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold inline-flex items-center gap-2 transition-colors duration-200">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Reintentar
+          </button>
+        </div>
+      </div>
+      } @else if (metrics) {
+      <!-- Dashboard Content -->
+      <div class="space-y-6">
+        <!-- Información del Proyecto -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Tarjeta de Proyecto -->
+          <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+            <div class="flex items-center gap-4">
+              <div
+                class="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
+                <span class="text-white font-semibold text-lg">
+                  {{ metrics.proyecto.nombre.charAt(0) }}
+                </span>
+              </div>
+              <div>
+                <h3 class="text-lg font-bold text-white">{{ metrics.proyecto.nombre }}</h3>
+                <p class="text-gray-400 text-sm">{{ metrics.proyecto.descripcion || 'Sin descripción' }}</p>
+                <p class="text-gray-500 text-xs mt-1">
+                  Creado el {{ formatearFecha(metrics.proyecto.createdAt) }}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Estadísticas del Proyecto -->
+          <div class="bg-gray-800 rounded-xl p-6 border border-gray-700 lg:col-span-2">
+            <h3 class="text-lg font-bold text-white mb-4">Estadísticas del Proyecto</h3>
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div class="text-center">
+                <div class="text-2xl font-bold text-green-400">{{ metrics.stats.totalTareas }}</div>
+                <div class="text-gray-400 text-sm">Total Tareas</div>
+              </div>
+              <div class="text-center">
+                <div class="text-2xl font-bold text-blue-400">{{ metrics.stats.tareasCompletadas }}</div>
+                <div class="text-gray-400 text-sm">Completadas</div>
+              </div>
+              <div class="text-center">
+                <div class="text-2xl font-bold text-yellow-400">{{ metrics.stats.tareasPendientes }}</div>
+                <div class="text-gray-400 text-sm">Pendientes</div>
+              </div>
+              <div class="text-center">
+                <div class="text-2xl font-bold text-purple-400">
+                  {{ formatearPorcentaje(metrics.stats.porcentajeCompletado) }}
+                </div>
+                <div class="text-gray-400 text-sm">Progreso</div>
+              </div>
+            </div>
+
+            <!-- Información adicional si hay datos -->
+            @if (metrics.stats.tareasEnProgreso > 0) {
+            <div class="mt-4 grid grid-cols-2 gap-4">
+              <div class="text-center">
+                <div class="text-xl font-bold text-orange-400">{{ metrics.stats.tareasEnProgreso }}</div>
+                <div class="text-gray-400 text-sm">En Progreso</div>
+              </div>
+              <div class="text-center">
+                <div class="text-xl font-bold text-amber-400">{{ metrics.stats.tareasEnRevision }}</div>
+                <div class="text-gray-400 text-sm">En Revisión</div>
+              </div>
+            </div>
+            }
+          </div>
+        </div>
+
+        <!-- Sección de Gráficos Personalizables -->
+        <!-- Reemplaza toda la sección de gráficos con este código: -->
+
+        <!-- Sección de Gráficos Personalizables -->
+        @if (getChartCount() > 0) {
+        <div class="space-y-4"> <!-- Reducido de space-y-6 a space-y-4 -->
+
+          <!-- Fila 1: Gráficos principales más compactos -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4"> <!-- Reducido gap-6 a gap-4 -->
+
+            <!-- Gráfico de Barras -->
+            @if (isBarChartEnabled()) {
+            <div class="bg-gray-800 rounded-xl p-4 border border-gray-700"> <!-- Reducido p-6 a p-4 -->
+              <h4 class="text-md font-semibold text-white mb-3 text-center">Tareas por Estado</h4>
+              <!-- Texto más pequeño -->
+              <div class="h-60"> <!-- Reducido de h-80 a h-60 -->
+                <canvas baseChart [data]="barChartData" [options]="barChartOptions" type="bar"></canvas>
+              </div>
+            </div>
+            }
+
+            <!-- Gráfico Circular -->
+            @if (isPieChartEnabled()) {
+            <div class="bg-gray-800 rounded-xl p-4 border border-gray-700">
+              <h4 class="text-md font-semibold text-white mb-3 text-center">Tareas por Prioridad</h4>
+              <div class="h-60">
+                <canvas baseChart [data]="pieChartData" [options]="pieChartOptions" type="pie"></canvas>
+              </div>
+            </div>
+            }
+
+          </div>
+
+          <!-- Fila 2: Gráfico de líneas más compacto -->
+          @if (isLineChartEnabled()) {
+          <div class="bg-gray-800 rounded-xl p-4 border border-gray-700">
+            <h4 class="text-md font-semibold text-white mb-3 text-center">Productividad Semanal</h4>
+            <div class="h-56"> <!-- Más compacto que los otros -->
+              <canvas baseChart [data]="lineChartData" [options]="lineChartOptions" type="line"></canvas>
+            </div>
+          </div>
+          }
+
+          <!-- Fila 3: Gráficos adicionales -->
+          @if (isDoughnutChartEnabled() || isRadarChartEnabled()) {
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+            <!-- Gráfico de Anillo -->
+            @if (isDoughnutChartEnabled()) {
+            <div class="bg-gray-800 rounded-xl p-4 border border-gray-700">
+              <h4 class="text-md font-semibold text-white mb-3 text-center">Eficiencia por Usuario</h4>
+              <div class="h-60">
+                <canvas baseChart [data]="doughnutChartData" [options]="doughnutChartOptions" type="doughnut"></canvas>
+              </div>
+            </div>
+            }
+
+            <!-- Gráfico Radar -->
+            @if (isRadarChartEnabled()) {
+            <div class="bg-gray-800 rounded-xl p-4 border border-gray-700">
+              <h4 class="text-md font-semibold text-white mb-3 text-center">Métricas de Calidad</h4>
+              <div class="h-60">
+                <canvas baseChart [data]="radarChartData" [options]="radarChartOptions" type="radar"></canvas>
+              </div>
+            </div>
+            }
+
+          </div>
+          }
+
+        </div>
+        } @else {
+        <!-- Estado sin gráficos - también más compacto -->
+        <div class="bg-gray-800 rounded-xl p-8 border border-gray-700 text-center"> <!-- Reducido p-12 a p-8 -->
+          <div class="w-16 h-16 mx-auto mb-4 bg-gray-700 rounded-2xl flex items-center justify-center">
+            <!-- Icono más pequeño -->
+            <svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+          </div>
+          <h3 class="text-lg font-bold text-white mb-2">Sin gráficos activos</h3> <!-- Texto más pequeño -->
+          <p class="text-gray-400 mb-4">Selecciona los gráficos que quieres ver en tu dashboard</p>
+          <!-- Menos margen -->
+          <button (click)="toggleChartSelector()"
+            class="bg-purple-500 hover:bg-purple-600 text-white px-5 py-2 rounded-lg font-semibold inline-flex items-center gap-2 transition-colors duration-200">
+            <!-- Botón más compacto -->
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            Seleccionar Gráficos
+          </button>
+        </div>
+        }
+      </div>
+      }
+    </main>
+  </div>
+</div>

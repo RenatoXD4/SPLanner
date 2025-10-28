@@ -50,7 +50,7 @@ app.use(`/${api}/usuarios`, routerUser);
 // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 app.use(`/${api}`, routerUser);
 app.use(`/${api}`, routerMiembro); 
-app.use(`/${api}`, routerDashboard); // ✅ NUEVA RUTA DEL DASHBOARD
+app.use(`/${api}`, routerDashboard); 
 
 // Ruta raíz
 app.get("/", (req: Request, res: Response) => {

@@ -174,13 +174,16 @@
             </div>
           </div>
 
+
+
           <!-- Estadísticas del Proyecto -->
           <div class="bg-gray-800 rounded-xl p-6 border border-gray-700 lg:col-span-2">
             <h3 class="text-lg font-bold text-white mb-4">Estadísticas del Proyecto</h3>
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="grid grid-cols-2 lg:grid-cols-3 gap-4">
+
               <div class="text-center">
-                <div class="text-2xl font-bold text-green-400">{{ metrics.stats.totalTareas }}</div>
-                <div class="text-gray-400 text-sm">Total Tareas</div>
+                <div class="text-2xl font-bold text-yellow-400">{{ metrics.stats.tareasEnProgreso }}</div>
+                <div class="text-gray-400 text-sm">En Progreso</div>
               </div>
               <div class="text-center">
                 <div class="text-2xl font-bold text-blue-400">{{ metrics.stats.tareasCompletadas }}</div>
@@ -191,6 +194,14 @@
                 <div class="text-gray-400 text-sm">Pendientes</div>
               </div>
               <div class="text-center">
+                <div class="text-2xl font-bold text-green-400">{{ metrics.stats.totalTareas }}</div>
+                <div class="text-gray-400 text-sm">Total Tareas</div>
+              </div>
+              <div class="text-center">
+                <div class="text-xl font-bold text-amber-400">{{ metrics.stats.tareasEnRevision }}</div>
+                <div class="text-gray-400 text-sm">En Revisión</div>
+              </div>
+              <div class="text-center">
                 <div class="text-2xl font-bold text-purple-400">
                   {{ formatearPorcentaje(metrics.stats.porcentajeCompletado) }}
                 </div>
@@ -198,19 +209,7 @@
               </div>
             </div>
 
-            <!-- Información adicional si hay datos -->
-            @if (metrics.stats.tareasEnProgreso > 0) {
-            <div class="mt-4 grid grid-cols-2 gap-4">
-              <div class="text-center">
-                <div class="text-xl font-bold text-orange-400">{{ metrics.stats.tareasEnProgreso }}</div>
-                <div class="text-gray-400 text-sm">En Progreso</div>
-              </div>
-              <div class="text-center">
-                <div class="text-xl font-bold text-amber-400">{{ metrics.stats.tareasEnRevision }}</div>
-                <div class="text-gray-400 text-sm">En Revisión</div>
-              </div>
-            </div>
-            }
+
           </div>
         </div>
 

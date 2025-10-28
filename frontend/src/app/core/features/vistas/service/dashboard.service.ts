@@ -86,8 +86,8 @@ getProjectDashboard(projectId: string): Observable<{ success: boolean; data: Pro
   );
 }
 
-  // Obtener dashboard del usuario (para el menú principal) - MÉTODO AGREGADO
-  getDashboardData(userId: string): Observable<DashboardApiResponse> {
+    getDashboardData(userId: string): Observable<DashboardApiResponse> {
+
     return this.http.get<DashboardApiResponse>(
       `${this.apiUrl}/usuarios/${userId}/dashboard`
     );
@@ -103,7 +103,7 @@ generateChartData(metrics: ProjectDashboardMetrics): {
   const tareasPorEstado = metrics.tareasPorEstado && metrics.tareasPorEstado.length > 0
     ? metrics.tareasPorEstado
     : [
-        { estado: 'Completadas', cantidad: metrics.stats.tareasCompletadas },
+        { estado: 'finalizado', cantidad: metrics.stats.tareasCompletadas },
         { estado: 'Pendientes', cantidad: metrics.stats.tareasPendientes },
         { estado: 'En Progreso', cantidad: metrics.stats.tareasEnProgreso || 0 },
         { estado: 'En Revisión', cantidad: metrics.stats.tareasEnRevision || 0 }

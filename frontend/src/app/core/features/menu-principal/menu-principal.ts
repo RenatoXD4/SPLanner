@@ -79,8 +79,6 @@ export class MenuPrincipal implements OnInit {
   showConfirmPassword: boolean = false;
   showPasswordFields: boolean = false; // Controla si mostrar los campos de nueva contraseña
 
-  // Validaciones de contraseña
-  private readonly PASSWORD_PATTERN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.])[A-Za-z\d@$!%*?&.]{8,}$/;
   passwordErrors = {
     minLength: false,
     hasUpperCase: false,
@@ -131,36 +129,32 @@ export class MenuPrincipal implements OnInit {
   }
 
   loadDashboardData() {
-    this.loading = true;
-    this.error = null;
-    const userId = this.getUserId();
-    if (!userId) {
-      return;
-    }
-
-    this.dashboardService.getDashboardData(userId).subscribe({
-      next: (response: DashboardApiResponse) => {
-        if (response && response.success) {
-          this.dashboardData = response.data;
-          this.loading = false;
-        } else {
-          this.error = response?.message || 'Error al cargar los datos del dashboard';
-          this.loading = false;
-        }
-        this.changeDetectorRef.detectChanges();
-      },
-      error: (err) => {
-        this.error = 'Error de conexión con el servidor';
-        this.loading = false;
-        this.changeDetectorRef.detectChanges();
-
-        // Solo hacer logout en el navegador si hay error de autenticación
-        if (this.isBrowser && (err.status === 401 || err.status === 403)) {
-          this.authService.logout();
-        }
-      }
-    });
+  this.loading = true;
+  this.error = null;
+  const userId = this.getUserId();
+  if (!userId) {
+    return;
   }
+
+  this.dashboardService.getDashboardData(userId).subscribe({
+    next: (response: DashboardApiResponse) => {
+      if (response && response.success) {
+        this.dashboardData = response.data;
+        this.loading = false;
+      } else {
+        this.error = response?.message || 'Error al cargar los datos del dashboard';
+        this.loading = false;
+      }
+      this.changeDetectorRef.detectChanges();
+    },
+    error: (err) => {
+      console.error('❌ API Error:', err);
+      this.error = 'Error de conexión con el servidor';
+      this.loading = false;
+      this.changeDetectorRef.detectChanges();
+    }
+  });
+}
 
   // Métodos para el modal de edición
   openEditModal() {
@@ -471,10 +465,12 @@ export class MenuPrincipal implements OnInit {
   }
 
   getProjectStatusText(percentage: number): string {
-    if (percentage >= 80) return 'Activo';
-    if (percentage >= 50) return 'En progreso';
-    return 'En inicio';
-  }
+  if (percentage >= 100) return 'Finalizado';
+  if (percentage >= 70) return 'Avanzado';
+  if (percentage >= 30) return 'En progreso';
+  if (percentage > 0) return 'En inicio';
+  return 'Sin tareas';
+}
 
   // Método para formatear fecha (solo en navegador)
   formatDate(dateString: string): string {

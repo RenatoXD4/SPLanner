@@ -413,13 +413,12 @@ export class Dashboard implements OnInit, OnDestroy {
 
   // 1. GRÁFICO DE BARRAS - Tareas por Estado (datos originales)
   this.barChartData = {
-    labels: ['Por Hacer', 'En Progreso', 'En Revisión', 'Completadas'],
+    labels: ['Sin empezar', 'En Progreso', 'Completadas'],
     datasets: [
       {
         data: [
           this.metrics.stats.tareasPendientes,
           this.metrics.stats.tareasEnProgreso,
-          this.metrics.stats.tareasEnRevision,
           this.metrics.stats.tareasCompletadas
         ],
         label: 'Tareas',
@@ -591,10 +590,10 @@ private generarMetricasCalidad(): number[] {
 
   getColorEstado(estado: string): string {
     switch (estado.toLowerCase()) {
-      case 'completado': return 'bg-green-500';
-      case 'en progreso': return 'bg-blue-500';
+      case 'finalizado': return 'bg-green-500';
+      case 'en proceso': return 'bg-blue-500';
       case 'en revisión': return 'bg-yellow-500';
-      case 'por hacer': return 'bg-gray-500';
+      case 'sin empezar': return 'bg-gray-500';
       default: return 'bg-gray-500';
     }
   }

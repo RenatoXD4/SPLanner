@@ -23,6 +23,13 @@ export interface Responsable {
 export interface Etiqueta {
   id: number;
   nombre: string;
+  color: string;
+}
+
+export interface Color {
+  id: number;
+  nombre: string;
+  codigo: string;
 }
 
 export interface BloqueContenido {
@@ -56,7 +63,13 @@ export interface Estado {
   nombre: string;
   posicion: number;
   proyectoId: string;
+  color?: {            // Añadir color como opcional
+    id: number;
+    nombre: string;
+    codigo: string;
+  };
 }
+
 
 @Injectable({
   providedIn: 'root'
@@ -178,8 +191,8 @@ export class BoardService {
   /**
    * Actualizar etiqueta (por ID)
    */
-  updateEtiqueta(id: number, nombre: string): Observable<Etiqueta> {
-    return this.http.put<Etiqueta>(`${this.apiUrl}/etiquetas/${id}`, { nombre }).pipe(
+  updateEtiqueta(id: number, nombre: string, proyectoId: string, colorId: number): Observable<Etiqueta> {
+    return this.http.put<Etiqueta>(`${this.apiUrl}/etiquetas/${id}`, { nombre, proyectoId, colorId }).pipe(
       catchError(this.handleError)
     );
   }
@@ -192,5 +205,73 @@ export class BoardService {
       catchError(this.handleError)
     );
   }
+
+  /**
+   * Obtener todos los colores
+   */
+  getAllColors(): Observable<Color[]> {
+    return this.http.get<Color[]>(`${this.apiUrl}/colores`).pipe(
+      retry(2),
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Obtener un color por ID
+   */
+  getColorById(id: number): Observable<Color> {
+    return this.http.get<Color>(`${this.apiUrl}/colores/${id}`).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Crear un nuevo color
+   */
+  createColor(nombre: string, codigo: string): Observable<Color> {
+    return this.http.post<Color>(`${this.apiUrl}/colores`, { nombre, codigo }).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Actualizar un color existente por ID
+   */
+  updateColor(id: number, nombre: string, codigo: string): Observable<Color> {
+    return this.http.put<Color>(`${this.apiUrl}/colores/${id}`, { nombre, codigo }).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Eliminar un color por ID
+   */
+  deleteColor(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/colores/${id}`).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  // Crear estado
+  createEstado(nombre: string, posicion: number, proyectoId: string, colorId: number): Observable<Estado> {
+    return this.http.post<Estado>(`${this.apiUrl}/estados`, { nombre, posicion, proyectoId, colorId }).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  // Actualizar estado parcialmente
+  updateEstado(id: number, data: Partial<Estado>): Observable<Estado> {
+    return this.http.patch<Estado>(`${this.apiUrl}/estados/${id}`, data).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  // Eliminar estado
+  deleteEstado(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/estados/${id}`).pipe(
+      catchError(this.handleError)
+    );
+  }
+
 
 }

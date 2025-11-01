@@ -22,7 +22,7 @@ import { ProyectoGuard } from '../../../../guards/proyecto.guard';
 
 interface ProyectoMiembro extends ProyectoConUsuario {
   miRol?: string;
-  updatedAt?: string; 
+  updatedAt?: string;
 }
 
 @Component({
@@ -105,30 +105,29 @@ export class Miembros implements OnInit, OnDestroy {
   }
 
   async cargarProyectosComoMiembro(): Promise<void> {
-    try {
-      const userId = this.authService.getCurrentUserId();
-      if (!userId) {
-        throw new Error('Usuario no autenticado');
-      }
-
-      // Usar el nuevo método que solo trae proyectos donde el usuario es miembro
-      const proyectos = await this.vistasService.obtenerProyectosComoMiembro(userId).toPromise();
-
-      this.proyectos = (proyectos || []).map(proyecto => ({
-        ...proyecto,
-        miRol: 'Visualizador' // Valor temporal hasta que carguemos el rol real
-      }));
-
-      // Cargar los roles para cada proyecto
-      await this.cargarRolesParaProyectos();
-
-      this.actualizarProyectosFiltrados();
-
-    } catch (error) {
-      console.error('Error al cargar proyectos como miembro:', error);
-      this.mostrarMensaje('Error al cargar proyectos');
+  try {
+    const userId = this.authService.getCurrentUserId();
+    if (!userId) {
+      throw new Error('Usuario no autenticado');
     }
+
+    const proyectos = await this.vistasService.obtenerProyectosComoMiembroNoCreador(userId).toPromise();
+
+    this.proyectos = (proyectos || []).map(proyecto => ({
+      ...proyecto,
+      miRol: 'Visualizador' // Valor temporal hasta que carguemos el rol real
+    }));
+
+    // Cargar los roles para cada proyecto
+    await this.cargarRolesParaProyectos();
+
+    this.actualizarProyectosFiltrados();
+
+  } catch (error) {
+    console.error('Error al cargar proyectos como miembro:', error);
+    this.mostrarMensaje('Error al cargar proyectos');
   }
+}
 
   private async cargarRolesParaProyectos(): Promise<void> {
     const promises = this.proyectos.map(async (proyecto) => {
@@ -210,9 +209,13 @@ export class Miembros implements OnInit, OnDestroy {
   /**
    * Cuenta proyectos por rol para las estadísticas
    */
-  contarProyectosPorRol(rol: string): number {
-    return this.proyectos.filter(p => this.obtenerRolProyecto(p.id) === rol).length;
-  }
+ contarProyectosPorRol(rol: string): number {
+  return this.proyectos.filter(p => {
+    // Asegurarnos de que el usuario no sea el creador
+    const esCreador = p.creadoPorId === this.authService.getCurrentUserId();
+    return !esCreador && this.obtenerRolProyecto(p.id) === rol;
+  }).length;
+}
 
   /**
    * Abre el modal de detalles del proyecto

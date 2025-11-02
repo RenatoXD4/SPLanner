@@ -48,13 +48,13 @@
       @for (item of CategoriasK; track item.id) {
       <div
         class="w-full md:w-[300px] flex-shrink-0 rounded-lg shadow-md p-4 space-y-4"
-        [ngClass]="getColumnColorClass(item.nombre)"
+        [ngStyle]="getColumnColorClass(item.nombre)"
       >
         <!-- Título -->
         <div class="flex items-center justify-between">
           <h2
             class="text-lg font-semibold whitespace-normal text-ellipsis break-words max-w-full overflow-hidden"
-            [ngClass]="getTextColorClass(item.nombre)"
+            [ngStyle]="getTextColorClass(item.nombre)"
           >
             {{ item.nombre }}
           </h2>
@@ -75,13 +75,20 @@
           @for (A of item.tasks; track A.id) {
           <div
             cdkDrag
+            [ngStyle]="getCardColorClass(item.nombre)"
+            class="border-base-300"
+            [class.ring]="hoveredTaskId === A.id.toString()"
+            [class.ring-primary]="hoveredTaskId === A.id.toString()"
+            [class.ring-offset-2]="hoveredTaskId === A.id.toString()"
+            [class.scale-[1.01]]="hoveredTaskId === A.id.toString()"
+            [class.bg-base-100]="hoveredTaskId === A.id.toString()"
+            [class.shadow-md]="hoveredTaskId === A.id.toString()"
             (cdkDragStarted)="onDragStarted()"
             (cdkDragEnded)="onDragEnded()"
             (mouseenter)="onTaskHover(A.id.toString())"
             (mouseleave)="onTaskHoverLeave(A.id.toString())"
             class="relative rounded-lg p-3 flex flex-col gap-1 border group hover:shadow-md hover:ring hover:ring-primary"
             [ngClass]="[
-              getCardColorClass(item.nombre),
               'border-base-300',
               hoveredTaskId === A.id.toString()
                 ? 'ring ring-primary ring-offset-2 scale-[1.01] bg-base-100 shadow-md'
@@ -104,11 +111,8 @@
               @for (nombreEtiqueta of getNombresEtiquetas(A.etiquetas); track nombreEtiqueta) {
               <span
                 class="badge"
-                [ngClass]="{
-                  Alta: nombreEtiqueta === 'Alta',
-                  Media: nombreEtiqueta === 'Media',
-                  Baja: nombreEtiqueta === 'Baja'
-                }"
+                [style.backgroundColor]="getEtiquetaColorByNombre(nombreEtiqueta)"
+                style="color: white"
               >
                 {{ nombreEtiqueta }}
               </span>
@@ -208,7 +212,7 @@
         <!-- Botón Nueva Tarea -->
         <button
           class="btn btn-sm w-full font-medium transition hover:scale-105"
-          [ngClass]="getButtonColorClass(item.nombre)"
+          [ngStyle]="getButtonColorClass(item.nombre)"
           (click)="abrirModal(item)"
         >
           + Nueva Tarea
@@ -676,12 +680,6 @@
                 <div>
                   @for (etiqueta of getNombresEtiquetas(item.tarea.etiquetas); track etiqueta) {
                   <span
-                    class="badge"
-                    [ngClass]="{
-                      Alta: etiqueta === 'Alta',
-                      Media: etiqueta === 'Media',
-                      Baja: etiqueta === 'Baja'
-                    }"
                   >
                     {{ etiqueta }}
                   </span>

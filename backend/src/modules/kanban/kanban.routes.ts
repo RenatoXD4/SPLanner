@@ -40,7 +40,16 @@ routerKanbantask.put('/tasks/full/:id', controladorDeF.requestUpdateTask.bind(co
 routerKanbantask.patch('/tasks/:id', controladorDeF.requestUpdateTaskv2.bind(controladorDeF));
 
 // Obtener estados por proyectoId
-routerKanbantask.get('/estados/:proyectoId', controladorDeF.obtenerEstados.bind(controladorDeF));
+routerKanbantask.get('/estados/:proyectoId', controladorDeF.obtenerEstados.bind(controladorDeF)); //http://localhost:9001/api-v1/kanban/estados/
+
+// Crear estado
+routerKanbantask.post('/estados', controladorDeF.createEstado.bind(controladorDeF));
+
+// Actualizar estado (parcial)
+routerKanbantask.patch('/estados/:id', controladorDeF.updateEstado.bind(controladorDeF));
+
+// Eliminar estado
+routerKanbantask.delete('/estados/:id', controladorDeF.deleteEstado.bind(controladorDeF));
 
 // Obtener miembros del proyecto por proyectoId (responsables de tareas)
 routerKanbantask.get('/proyectos/:proyectoId/miembros', controladorDeF.requestGetMiembrosDelProyecto.bind(controladorDeF));
@@ -61,8 +70,22 @@ routerKanbantask.get('/etiquetas/:id', controladorDeF.requestGetEtiquetaById.bin
 routerKanbantask.put('/etiquetas/:id', controladorDeF.requestUpdateEtiqueta.bind(controladorDeF));
 
 // Eliminar etiqueta (por ID)
-routerKanbantask.delete('/etiquetas/:id', controladorDeF.requestDeleteEtiqueta.bind(controladorDeF));
+routerKanbantask.delete('/etiquetas/:id', controladorDeF.requestDeleteEtiqueta.bind(controladorDeF)); //http://localhost:9001/api-v1/kanban/etiquetas/4?proyectoId=ea1de6ea-f101-4335-b032-19c391c6469c
 
+// Crear color
+routerKanbantask.post('/colores', controladorDeF.createColor.bind(controladorDeF));
+
+// Obtener todos los colores
+routerKanbantask.get('/colores', controladorDeF.getAllColors.bind(controladorDeF));
+
+// Obtener color por ID
+routerKanbantask.get('/colores/:id', controladorDeF.getColorById.bind(controladorDeF));
+
+// Actualizar color (requiere objeto completo)
+routerKanbantask.put('/colores/:id', controladorDeF.updateColor.bind(controladorDeF));
+
+// Eliminar color por ID
+routerKanbantask.delete('/colores/:id', controladorDeF.deleteColor.bind(controladorDeF));
 
 
 // para usar postman>> http://localhost:9001/api-v1/kanban/tasks/2c1a2523-c447-4b65-a595-17324cad1532       --> debe de ser un Id de proyecto valido   http://localhost:9001/api-v1/kanban/tasks/idproyectoaqui

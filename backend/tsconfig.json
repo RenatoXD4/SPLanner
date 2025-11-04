@@ -4,6 +4,6 @@
     "outDir": "./dist",
     "rootDir": "./"
   },
-  "include": ["**/*.ts"],
+  "include": ["**/*.ts", "src/modules/blocks/interface.ts"],
   "exclude": ["dist"]
 }

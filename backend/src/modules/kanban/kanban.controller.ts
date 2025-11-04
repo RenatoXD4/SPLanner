@@ -1,11 +1,13 @@
-import { Tarea } from "@prisma/client";
+import { Tarea, TipoDeBloque } from "@prisma/client";
 import { NextFunction, Request, Response } from "express";
 
 import { KanbanService } from "./kanban.service.js";
 
 interface BloqueContenidoInput {
   contenido: string;
+  id: string;      // <-- Falta en tu tipo
   posicion: number;
+  tareaId: string; // <-- Falta en tu tipo
   tipo: TipoDeBloque;
 }
 
@@ -36,8 +38,6 @@ interface ResponsableConUsuario {
   };
 }
 
-// Tipo personalizado (como el que espera el repositorio)
-type TipoDeBloque = 'CHECKLIST' | 'CODE' | 'HEADING_1' | 'HEADING_2' | 'IMAGE' | 'PARAGRAPH';
 
 interface UpdateEtiquetaBody {
   nombre?: string;

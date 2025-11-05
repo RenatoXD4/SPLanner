@@ -7,7 +7,7 @@ import { prisma } from "../../lib/prisma.js";
 export class BlocksRepository {
 
 
-    async actualizarBloquesDeTarea(
+  public async actualizarBloquesDeTarea(
     tareaId: string, 
     bloquesData: Prisma.BloqueContenidoCreateManyInput[]
   ) {
@@ -33,7 +33,7 @@ export class BlocksRepository {
     });
   }
 
-  async obtenerBloquesPorTareaId(tareaId: string): Promise<BloqueContenido[]> {
+  public async obtenerBloquesPorTareaId(tareaId: string): Promise<BloqueContenido[]> {
     return await prisma.bloqueContenido.findMany({
       orderBy: {
         posicion: 'asc',

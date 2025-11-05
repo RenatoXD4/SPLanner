@@ -4,6 +4,7 @@ import express, { NextFunction, Request, Response } from "express";
 
 config();
 
+import blocksRouter from "./src/modules/blocks/blocks.routes.js";
 import { KanbanRepository } from "./src/modules/kanban/kanban.repository.js";
 import routerKanbantask from "./src/modules/kanban/kanban.routes.js";
 import routerMiembro from "./src/modules/miembro/miembro.routes.js";
@@ -46,11 +47,12 @@ app.use((req, res, next) => {
 app.use(`/${api}/kanban`, routerKanbantask);
 app.use(`/${api}/projects`, routerProject);
 //Ruta de login y google auth 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+ 
 app.use(`/${api}/usuarios`, routerUser);
-// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+ 
 app.use(`/${api}`, routerUser);
 app.use(`/${api}`, routerMiembro); 
+app.use(`/${api}/blocks`, blocksRouter)
 
 // Ruta raíz
 app.get("/", (req: Request, res: Response) => {

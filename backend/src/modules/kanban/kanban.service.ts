@@ -1,3 +1,4 @@
+import type { BloqueContenido, Etiqueta, Tarea } from "@prisma/client";
 import type { Color, Etiqueta, Tarea } from "@prisma/client";
 
 import { prisma } from "../../lib/prisma.js";
@@ -9,14 +10,8 @@ export interface EstadoUpdateData {
   posicion?: number;
 }
 
-interface BloqueContenidoInput {
-  contenido: string;
-  posicion: number;
-  tipo: TipoDeBloque;
-}
-
 interface CreateTareaInput {
-  bloquesContenido?: BloqueContenidoInput[];
+  bloquesContenido?: BloqueContenido[];
   estadoId: number;
   etiquetaIds?: number[];
   fechaLimite?: Date;
@@ -25,8 +20,6 @@ interface CreateTareaInput {
   responsablesIds?: string[];
   titulo: string;
 }
-
-type TipoDeBloque = 'CHECKLIST' | 'CODE' | 'HEADING_1' | 'HEADING_2' | 'IMAGE' | 'PARAGRAPH';
 
 export class KanbanService {
   private kanbanrepo: KanbanRepository;

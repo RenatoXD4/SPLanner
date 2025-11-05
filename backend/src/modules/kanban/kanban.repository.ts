@@ -1,5 +1,5 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { Etiqueta, BloqueContenido as PrismaBloqueContenido, Tarea, Usuario } from "@prisma/client";
+import { Color, Etiqueta, BloqueContenido as PrismaBloqueContenido, Tarea, Usuario } from "@prisma/client";
 
 import { prisma } from "../../lib/prisma.js";
 
@@ -29,39 +29,90 @@ interface BloqueContenido {
     tipo: TipoDeBloque;
 }
 
+interface EstadoUpdateData {
+    colorId?: number;
+    nombre?: string;
+    posicion?: number;
+}
+
 // Para las etiquetas con el join y datos de etiqueta
 interface TareaEtiqueta {
     etiqueta: Etiqueta;
 }
-
 // Para los responsables con datos de usuario
 interface TareaResponsable {
     usuario: Usuario;
 }
 
+const defaultColors = [
+    { codigo: '#0f172a', nombre: 'Slate' },      // bg-slate-900
+    { codigo: '#111827', nombre: 'Gray' },       // bg-gray-900
+    { codigo: '#7f1d1d', nombre: 'Red' },        // bg-red-900
+    { codigo: '#713f12', nombre: 'Yellow' },     // bg-yellow-900
+    { codigo: '#14532d', nombre: 'Green' },      // bg-green-900
+    { codigo: '#1e3a8a', nombre: 'Blue' },       // bg-blue-900
+    { codigo: '#312e81', nombre: 'Indigo' },     // bg-indigo-900
+    { codigo: '#4c1d95', nombre: 'Purple' },     // bg-purple-900
+    { codigo: '#831843', nombre: 'Pink' },       // bg-pink-900
+];
 
 // Definición correcta del tipo TipoDeBloque (usa solo comillas simples o dobles sin mezclar)
 type TipoDeBloque = 'CHECKLIST' | 'CODE' | 'HEADING_1' | 'HEADING_2' | 'IMAGE' | 'PARAGRAPH';
 
 export class KanbanRepository {
 
+
+    public async createColor(nombre: string, codigo: string): Promise<Color> {
+        return prisma.color.create({ data: { codigo, nombre } });
+    }
+    public async createDefaultColorsIfNotExist(): Promise<void> {
+        for (const colorData of defaultColors) {
+            const exists = await prisma.color.findFirst({
+                where: { codigo: colorData.codigo, nombre: colorData.nombre },
+            });
+            if (!exists) {
+                await prisma.color.create({ data: colorData });
+            }
+        }
+    }
+
     public async createDefaultEstados(proyectoId: string): Promise<void> {
+        // Nombres de colores que quieres usar
+        const colorNombres = ["Slate", "Blue", "Green"];
+
+        // Buscar los colores por nombre
+        const colores = await prisma.color.findMany({
+            where: {
+                nombre: { in: colorNombres }
+            }
+        });
+
+        // Mapear nombre a id para fácil acceso
+        const colorMap = colores.reduce<Record<string, number>>((acc, color) => {
+            acc[color.nombre] = color.id;
+            return acc;
+        }, {});
+
         const estadosPorDefecto = [
-            { nombre: "Sin empezar", posicion: 1 },
-            { nombre: "En proceso", posicion: 2 },
-            { nombre: "Finalizado", posicion: 3 }
+            { colorNombre: "Slate", nombre: "Sin empezar", posicion: 1 },
+            { colorNombre: "Blue", nombre: "En proceso", posicion: 2 },
+            { colorNombre: "Green", nombre: "Finalizado", posicion: 3 }
         ];
 
         for (const estado of estadosPorDefecto) {
+            const colorId = colorMap[estado.colorNombre];
+            if (!colorId) {
+                throw new Error(`No existe color con nombre ${estado.colorNombre}`);
+            }
             await prisma.estado.upsert({
                 create: {
+                    colorId,
                     nombre: estado.nombre,
                     posicion: estado.posicion,
                     proyectoId
                 },
                 update: {},
                 where: {
-                    // Esto asume una clave única compuesta (nombre + proyectoId)
                     nombre_proyectoId: {
                         nombre: estado.nombre,
                         proyectoId,
@@ -74,24 +125,68 @@ export class KanbanRepository {
     // Crear etiquetas por defecto (prioridades)                                    // RELACIONADO CON ETIQUETAS
     // Ahora necesita un proyectoId para asignar las etiquetas por defecto a un proyecto
     public async createDefaultPriorities(proyectoId: string): Promise<void> {
-        const defaultPriorities = ["Alta", "Media", "Baja"];
-
-        for (const nombre of defaultPriorities) {
-            await prisma.etiqueta.upsert({      // upsert es basicamente insertar y actualizar, en caso de que ya exista lo actualiza, en caso de que no exista lo crea 
+        const defaultPriorities = [
+            { colorNombre: "Red", nombre: "Alta" },
+            { colorNombre: "Yellow", nombre: "Media" },
+            { colorNombre: "Green", nombre: "Baja" },
+        ];
+        for (const prioridad of defaultPriorities) {
+            // Obtener el colorId a partir del nombre del color
+            const color = await prisma.color.findFirst({
+                where: { nombre: prioridad.colorNombre }
+            });
+            if (!color) {
+                throw new Error(`Color ${prioridad.colorNombre} no encontrado en la base de datos.`);
+            }
+            await prisma.etiqueta.upsert({
                 create: {
-                    nombre,
-                    proyectoId,
+                    colorId: color.id,
+                    nombre: prioridad.nombre,
+                    proyectoId: proyectoId,
                 },
-                update: {},
+                update: {
+                    // En update podrías actualizar el colorId si quieres forzar el color por prioridad
+                    colorId: color.id,
+                },
                 where: {
-                    // La clave única ahora es compuesta: nombre + proyectoId       // esto se ve en la tabla etiquetas en el unique que es donde estan estas 2 relaciones
                     nombre_proyectoId: {
-                        nombre,
-                        proyectoId,
+                        nombre: prioridad.nombre,
+                        proyectoId: proyectoId,
                     }
-                },
+                }
             });
         }
+    }
+
+    // Crear un estado nuevo con color (nombre, posición, proyectoId, colorId)
+    public async createEstado(nombre: string, posicion: number, proyectoId: string, colorId: number) {
+        if (!nombre.trim()) throw new Error("El nombre es obligatorio");
+        if (!proyectoId.trim()) throw new Error("El ID del proyecto es obligatorio");
+        if (!colorId) throw new Error("El colorId es obligatorio");
+
+        return prisma.estado.create({
+            data: {
+                colorId,
+                nombre,
+                posicion,
+                proyectoId,
+            },
+            include: { color: true },
+        });
+    }
+
+    public async deleteColor(id: number) {
+        return prisma.color.delete({ where: { id } });
+    }
+
+
+    // Eliminar un estado por ID
+    public async deleteEstado(id: number) {
+        if (!id) throw new Error("ID del estado es obligatorio");
+
+        return prisma.estado.delete({
+            where: { id }
+        });
     }
 
     // Eliminar etiqueta por ID y proyecto, devolviendo la etiqueta eliminada
@@ -109,6 +204,7 @@ export class KanbanRepository {
         });
     }
 
+
     // Elimina tarea por id
     public async deleteTask(id: string): Promise<Tarea> {
         const task = await prisma.tarea.findUnique({
@@ -122,17 +218,26 @@ export class KanbanRepository {
         return prisma.tarea.delete({ where: { id } });
     }
 
+    // Obtener todos los colores disponibles
+    public async getAllColores(): Promise<Color[]> {
+        return prisma.color.findMany();
+    }
 
-    // Obtener todas las etiquetas ordenadas alfabéticamente
-    // Debe recibir proyectoId para filtrar etiquetas de ese proyecto
+    public async getAllColors() {
+        return prisma.color.findMany({ orderBy: { nombre: 'asc' } });
+    }
+
+    // Obtener todas las etiquetas de un proyecto, incluyendo el color
     public async getAllEtiquetas(proyectoId: string): Promise<Etiqueta[]> {
         if (!proyectoId.trim()) throw new Error("El proyectoId es obligatorio");
 
         return prisma.etiqueta.findMany({
+            include: { color: true }, // Incluir la relación con Color
             orderBy: { nombre: "asc" },
             where: { proyectoId },
         });
     }
+
 
     // Obtiene todas las tareas de un proyecto, con relaciones
     public async getAllTask(proyectoId: string): Promise<TareaConRelaciones[]> {
@@ -149,14 +254,18 @@ export class KanbanRepository {
         });
     }
 
+    public async getColorById(id: number) {
+        return prisma.color.findUnique({ where: { id } });
+    }
 
-    // Obtener estados del proyecto con tareas
+    // Obtener todos los estados de un proyecto con sus tareas y color incluidos
     public async getEstadosByProyectoId(proyectoId: string) {
         if (!proyectoId.trim()) {
             throw new Error("El ID del proyecto es requerido.");
         }
         return prisma.estado.findMany({
             include: {
+                color: true,   // incluir color relacionado
                 tareas: {
                     include: {
                         BloqueContenido: true,
@@ -164,22 +273,24 @@ export class KanbanRepository {
                         responsables: { include: { usuario: true } },
                     },
                     orderBy: { posicion: 'asc' }
-                }
+                },
             },
             orderBy: { posicion: 'asc' },
-            where: { proyectoId }
+            where: { proyectoId },
         });
     }
 
-    // Obtener una etiqueta por ID    // Para evitar que un usuario acceda a etiquetas de otro proyecto, opcionalmente se puede recibir proyectoId y validar
+    // Obtener una etiqueta por ID, incluyendo el color
     public async getEtiquetaById(id: number, proyectoId?: string): Promise<Etiqueta | null> {
         return prisma.etiqueta.findFirst({
+            include: { color: true }, // Incluir la relación con Color
             where: {
                 id,
                 ...(proyectoId ? { proyectoId } : {}),
             },
         });
     }
+
 
     // Miembros asignados a 1 proyecto
     public async getMiembrosProyecto(proyectoId: string): Promise<ResponsableConUsuario[]> {
@@ -237,6 +348,7 @@ export class KanbanRepository {
         return responsables;
     }
 
+
     // Obtener tarea específica con relaciones
     public async getTaskById(id: string): Promise<null | TareaConRelaciones> {
         return prisma.tarea.findUnique({
@@ -249,13 +361,18 @@ export class KanbanRepository {
         });
     }
 
-    // Crear nueva etiqueta   // Recibir proyectoId y guardarlo
-    public async insertNuevaEtiqueta(nombre: string, proyectoId: string): Promise<Etiqueta> {
+    // Crear nueva etiqueta con color (asociado a un proyecto)
+    public async insertNuevaEtiqueta(nombre: string, proyectoId: string, colorId: number): Promise<Etiqueta> {
         if (!nombre.trim()) throw new Error("El nombre de la etiqueta es obligatorio");
         if (!proyectoId.trim()) throw new Error("El proyectoId es obligatorio");
+        if (!colorId) throw new Error("El colorId es obligatorio");
 
         return prisma.etiqueta.create({
-            data: { nombre, proyectoId },
+            data: {
+                colorId, // Relación con el color
+                nombre,
+                proyectoId,
+            },
         });
     }
 
@@ -313,13 +430,46 @@ export class KanbanRepository {
         });
     }
 
-    // Actualizar etiqueta
-    public async updateEtiqueta(id: number, nombre: string, proyectoId: string): Promise<Etiqueta> {
+    public async updateColor(id: number, nombre: string, codigo: string) {
+        return prisma.color.update({ data: { codigo, nombre }, where: { id } });
+    }
+
+    // Actualizar un estado existente (nombre, posición, color)
+    public async updateEstado(id: number, data: EstadoUpdateData) {
+        if (!id) throw new Error("ID del estado es obligatorio");
+
+        // Si se envía colorId, validar que exista el color
+        if (data.colorId !== undefined) {
+            const color = await prisma.color.findUnique({ where: { id: data.colorId } });
+            if (!color) {
+                throw new Error(`El colorId ${data.colorId.toString()} no existe.`);
+            }
+        }
+
+        // Validar nombre si es que se envió
+        if (data.nombre !== undefined && !data.nombre.trim()) {
+            throw new Error("El nombre no puede estar vacío.");
+        }
+
+        return prisma.estado.update({
+            data, // solo los campos que vengan en data se actualizan
+            include: { color: true },
+            where: { id },
+        });
+    }
+
+    // Actualizar etiqueta con color
+    public async updateEtiqueta(id: number, nombre: string, proyectoId: string, colorId: number): Promise<Etiqueta> {
         if (!nombre.trim()) throw new Error("El nombre de la etiqueta es obligatorio");
         if (!proyectoId.trim()) throw new Error("El proyectoId es obligatorio");
+        if (!colorId) throw new Error("El colorId es obligatorio");
 
         return prisma.etiqueta.update({
-            data: { nombre, proyectoId },
+            data: {
+                colorId, // Relación con el color
+                nombre,
+                proyectoId,
+            },
             where: { id },
         });
     }
@@ -426,6 +576,4 @@ export class KanbanRepository {
             where: params.where,
         });
     }
-
-
 }

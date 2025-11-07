@@ -1,5 +1,5 @@
 import { Tarea, TipoDeBloque } from "@prisma/client";
-import { Color, Tarea } from "@prisma/client";
+import { Color } from "@prisma/client";
 import { NextFunction, Request, Response } from "express";
 
 import { KanbanService } from "./kanban.service.js";

@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import emailjs from '@emailjs/browser';
 
 export interface InvitationEmailParams {
-  email: string; // 🔥 CAMBIADO: to_email -> email
+  email: string;
   project_name: string;
   inviter_name: string;
   role_name: string;
@@ -17,7 +17,7 @@ export interface InvitationEmailParams {
 })
 export class InvitationEmailService {
   private serviceId = 'service_38kl5yn';
-  private templateId = 'template_xkud8cu'; // 🔥 CAMBIADO: tu template ID real
+  private templateId = 'template_xkud8cu';
   private publicKey = 'qagJDWc32IzRRf0Lv';
 
   constructor() {
@@ -41,9 +41,9 @@ export class InvitationEmailService {
       };
     }
 
-    // 🔥 CAMBIADO: Parámetros que coinciden con tu template
+
     const templateParams: InvitationEmailParams = {
-      email: toEmail, // 🔥 Variable principal para el destinatario
+      email: toEmail,
       project_name: projectName,
       inviter_name: inviterName,
       role_name: roleName,

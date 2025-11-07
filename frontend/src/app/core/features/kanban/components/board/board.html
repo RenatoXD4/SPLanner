@@ -54,7 +54,6 @@
             (mouseenter)="onTaskHover(A.id.toString())" (mouseleave)="onTaskHoverLeave(A.id.toString())"
             class="relative rounded-lg p-3 flex flex-col gap-1 border group hover:shadow-md hover:ring hover:ring-primary"
             [ngClass]="[
-              getCardColorClass(item.nombre),
               'border-base-300',
               hoveredTaskId === A.id.toString()
                 ? 'ring ring-primary ring-offset-2 scale-[1.01] bg-base-100 shadow-md'

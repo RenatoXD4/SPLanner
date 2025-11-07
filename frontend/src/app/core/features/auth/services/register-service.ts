@@ -3,7 +3,7 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { catchError, tap } from 'rxjs/operators';
 import { throwError } from 'rxjs';
-import { environment } from '../../../../../environments/environment'; //Dejar en minuscula
+import { environment } from '../../../../../Environments/environment'; //Dejar en minuscula
 import { Router } from '@angular/router';
 
 interface RegisterResponse {

@@ -169,6 +169,9 @@ model Estado {
   proyecto   Proyectos @relation(fields: [proyectoId], references: [id], onDelete: Cascade)
   proyectoId String
 
+  colorId   Int       // Relación con tabla Color
+  color     Color     @relation(fields: [colorId], references: [id])
+
   // Relación: Un estado puede contener muchas tareas.
   tareas Tarea[]
 
@@ -231,6 +234,10 @@ model Etiqueta {
   id     Int    @id @default(autoincrement())
   nombre String @db.VarChar(50)
 
+  // Relación con el color de la etiqueta
+  colorId Int // Relación con el color de la etiqueta
+  color   Color @relation(fields: [colorId], references: [id]) // Relación con la tabla Color
+
   // Nueva relación directa con el proyecto al que pertenece la etiqueta
   proyecto   Proyectos @relation(fields: [proyectoId], references: [id], onDelete: Cascade)
   proyectoId String
@@ -253,5 +260,17 @@ model TareasEtiquetas {
   etiquetaId Int
 
   @@id([tareaId, etiquetaId])
+  @@schema("public")
+}
+
+model Color {
+  id     Int    @id @default(autoincrement())
+  nombre String @db.VarChar(50) // Nombre del color (por ejemplo, "Rojo", "Verde", etc.)
+  codigo String @db.VarChar(7) // Código hexadecimal del color (p.ej., #f59e0b para rojo)
+
+  // Relación de colores con etiquetas
+  etiquetas Etiqueta[] // Relación con las etiquetas
+
+  Estado Estado[]
   @@schema("public")
 }

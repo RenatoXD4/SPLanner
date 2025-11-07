@@ -1,18 +1,33 @@
-import { Tarea } from "@prisma/client";
+import { Tarea, TipoDeBloque } from "@prisma/client";
+import { Color, Tarea } from "@prisma/client";
 import { NextFunction, Request, Response } from "express";
 
 import { KanbanService } from "./kanban.service.js";
 
 interface BloqueContenidoInput {
   contenido: string;
+  id: string;      // <-- Falta en tu tipo
   posicion: number;
+  tareaId: string; // <-- Falta en tu tipo
   tipo: TipoDeBloque;
 }
 
-interface CreateEtiquetaBody {
+interface CreateColorBody {
+  codigo: string;
   nombre: string;
-  proyectoId: string; // nuevo campo obligatorio para crear etiqueta
 }
+interface CreateEstadoBody {
+  colorId: number;
+  nombre: string;
+  posicion: number;
+  proyectoId: string;
+}
+interface CreateEtiquetaBody {
+  colorId: number; // obligatorio, no opcional
+  nombre: string;
+  proyectoId: string;
+}
+
 
 interface CreateTareaInput {
   bloquesContenido?: BloqueContenidoInput[];
@@ -25,7 +40,6 @@ interface CreateTareaInput {
   titulo: string;
 }
 
-
 interface ResponsableConUsuario {
   id: number;
   usuario: {
@@ -36,16 +50,117 @@ interface ResponsableConUsuario {
   };
 }
 
-// Tipo personalizado (como el que espera el repositorio)
-type TipoDeBloque = 'CHECKLIST' | 'CODE' | 'HEADING_1' | 'HEADING_2' | 'IMAGE' | 'PARAGRAPH';
+
+interface UpdateColorBody {
+  codigo: string;
+  nombre: string;
+}
+
+interface UpdateEstadoBody {
+  colorId?: number;
+  nombre?: string;
+  posicion?: number;
+}
 
 interface UpdateEtiquetaBody {
+  colorId: number; // opcional para actualizar color, ahora por ID
   nombre?: string;
-  proyectoId: string; // requerido para actualizar etiqueta
+  proyectoId: string; // obligatorio para validar proyecto
 }
 
 export class KanbanController {
   constructor(private readonly KanbanSer: KanbanService) { }
+
+  public async createColor(
+    req: Request<Record<string, never>, unknown, CreateColorBody>,
+    res: Response
+  ): Promise<void> {
+    const { codigo, nombre } = req.body;
+    try {
+      const color: Color = await this.KanbanSer.createColor(nombre, codigo);
+      res.status(201).json(color);
+    } catch (error) {
+      console.error('Error creando color:', error);
+      res.status(500).json({ message: 'Error al crear el color.' });
+    }
+  }
+
+  // Crear nuevo estado
+  public async createEstado(
+    req: Request<Record<string, never>, unknown, CreateEstadoBody>,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    const { colorId, nombre, posicion, proyectoId } = req.body;
+    try {
+      const estado = await this.KanbanSer.createEstado(nombre, posicion, proyectoId, colorId);
+      res.status(201).json(estado);
+    } catch (error) {
+      console.error("Error creando estado:", error);
+      next(error);
+    }
+  }
+
+  // Eliminar color
+  public async deleteColor(
+    req: Request<{ id: string }>,
+    res: Response
+  ): Promise<void> {
+    const id = Number(req.params.id);
+    try {
+      await this.KanbanSer.deleteColor(id);
+      res.json({ message: 'Color eliminado correctamente.' });
+    } catch (error) {
+      console.error('Error eliminando color:', error);
+      res.status(500).json({ message: 'Error al eliminar el color.' });
+    }
+  }
+
+  // Eliminar estado
+  public async deleteEstado(
+    req: Request<{ id: string }>,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    const id = Number(req.params.id);
+    try {
+      await this.KanbanSer.deleteEstado(id);
+      res.json({ message: "Estado eliminado correctamente." });
+    } catch (error) {
+      console.error("Error eliminando estado:", error);
+      next(error);
+    }
+  }
+
+  // Obtener todos los colores
+  public async getAllColors(
+    req: Request,
+    res: Response
+  ): Promise<void> {
+    try {
+      const colors: Color[] = await this.KanbanSer.getAllColors();
+      res.json(colors);
+    } catch (error) {
+      console.error('Error obteniendo colores:', error);
+      res.status(500).json({ message: 'Error al obtener los colores.' });
+    }
+  }
+
+  // Obtener un color por ID
+  public async getColorById(
+    req: Request<{ id: string }>,
+    res: Response
+  ): Promise<void> {
+    const id = Number(req.params.id);
+    try {
+      const color: Color = await this.KanbanSer.getColorById(id);
+      res.json(color);
+    } catch (error) {
+      console.error('Error obteniendo color:', error);
+      res.status(404).json({ message: 'Color no encontrado.' });
+    }
+  }
+
 
   // Método para obtener estados por proyectoId
   public async obtenerEstados(req: Request, res: Response) {
@@ -59,15 +174,18 @@ export class KanbanController {
     }
   }
 
-
   public async requestCreateEtiqueta(
-    req: Request<Record<string, never>, unknown, CreateEtiquetaBody & { proyectoId: string }>,
+    req: Request<Record<string, never>, unknown, CreateEtiquetaBody>,
     res: Response,
     next: NextFunction
   ): Promise<void> {
     try {
-      const { nombre, proyectoId } = req.body;
+      const { colorId, nombre, proyectoId } = req.body;
 
+      if (!colorId || typeof colorId !== "number") {
+        res.status(400).json({ message: "El colorId es obligatorio y debe ser un número." });
+        return;
+      }
       if (typeof nombre !== "string" || !nombre.trim()) {
         res.status(400).json({ message: "El nombre de la etiqueta es obligatorio." });
         return;
@@ -77,7 +195,7 @@ export class KanbanController {
         return;
       }
 
-      const nuevaEtiqueta = await this.KanbanSer.createEtiqueta(nombre.trim(), proyectoId.trim());
+      const nuevaEtiqueta = await this.KanbanSer.createEtiqueta(nombre.trim(), proyectoId.trim(), colorId);
       res.status(201).json(nuevaEtiqueta);
     } catch (error) {
       next(error);
@@ -207,6 +325,7 @@ export class KanbanController {
     }
   }
 
+
   // Miembros relacionados al proyecto
   public async requestGetEquipoProyecto(
     req: Request,
@@ -239,7 +358,6 @@ export class KanbanController {
       next(error);
     }
   }
-
 
   public async requestGetEtiquetaById(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
@@ -304,13 +422,13 @@ export class KanbanController {
   }
 
   public async requestUpdateEtiqueta(
-    req: Request<{ id: string }, unknown, UpdateEtiquetaBody & { proyectoId: string }>,
+    req: Request<{ id: string }, unknown, UpdateEtiquetaBody>,
     res: Response,
     next: NextFunction
   ): Promise<void> {
     try {
       const id = Number(req.params.id);
-      const { nombre, proyectoId } = req.body;
+      const { colorId, nombre, proyectoId } = req.body;
 
       if (!id || isNaN(id)) {
         res.status(400).json({ message: "ID de etiqueta inválido." });
@@ -325,7 +443,7 @@ export class KanbanController {
         return;
       }
 
-      const etiquetaActualizada = await this.KanbanSer.updateEtiqueta(id, nombre.trim(), proyectoId.trim());
+      const etiquetaActualizada = await this.KanbanSer.updateEtiqueta(id, nombre.trim(), proyectoId.trim(), colorId);
       res.status(200).json(etiquetaActualizada);
     } catch (error) {
       next(error);
@@ -417,8 +535,37 @@ export class KanbanController {
       next(e);
     }
   }
+  // Actualizar color
+  public async updateColor(
+    req: Request<{ id: string }, unknown, UpdateColorBody>,
+    res: Response
+  ): Promise<void> {
+    const id = Number(req.params.id);
+    const { codigo, nombre } = req.body;
+    try {
+      const updatedColor: Color = await this.KanbanSer.updateColor(id, nombre, codigo);
+      res.json(updatedColor);
+    } catch (error) {
+      console.error('Error actualizando color:', error);
+      res.status(500).json({ message: 'Error al actualizar el color.' });
+    }
+  }
 
-
-
+  // Actualización parcial de estado
+  public async updateEstado(
+    req: Request<{ id: string }, unknown, UpdateEstadoBody>,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    const id = Number(req.params.id);
+    const data = req.body;
+    try {
+      const estadoActualizado = await this.KanbanSer.updateEstado(id, data);
+      res.json(estadoActualizado);
+    } catch (error) {
+      console.error("Error actualizando estado:", error);
+      next(error);
+    }
+  }
 
 }

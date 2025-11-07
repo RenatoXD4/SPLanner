@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white flex">
+<div class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white flex">
 
   <!-- Sidebar -->
   <app-sidebar [class.hidden]="!mostrarSidebar"></app-sidebar>
@@ -81,7 +81,8 @@
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
                   Administrar
                 </button>
@@ -195,7 +196,8 @@
                 <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
               </div>
               <div>
@@ -214,10 +216,8 @@
 
         <!-- Navegación entre secciones -->
         <div class="flex border-b border-gray-700">
-          <button
-            (click)="cambiarSeccionAdministrar('proyecto')"
-            class="flex-1 px-6 py-3 text-sm font-medium transition-all duration-200"
-            [class]="seccionAdministrar === 'proyecto'
+          <button (click)="cambiarSeccionAdministrar('proyecto')"
+            class="flex-1 px-6 py-3 text-sm font-medium transition-all duration-200" [class]="seccionAdministrar === 'proyecto'
               ? 'bg-blue-500/20 text-blue-400 border-b-2 border-blue-400'
               : 'text-gray-400 hover:text-white hover:bg-gray-700/50'">
             <div class="flex items-center justify-center gap-2">
@@ -228,10 +228,8 @@
               Editar Proyecto
             </div>
           </button>
-          <button
-            (click)="cambiarSeccionAdministrar('usuarios')"
-            class="flex-1 px-6 py-3 text-sm font-medium transition-all duration-200"
-            [class]="seccionAdministrar === 'usuarios'
+          <button (click)="cambiarSeccionAdministrar('usuarios')"
+            class="flex-1 px-6 py-3 text-sm font-medium transition-all duration-200" [class]="seccionAdministrar === 'usuarios'
               ? 'bg-blue-500/20 text-blue-400 border-b-2 border-blue-400'
               : 'text-gray-400 hover:text-white hover:bg-gray-700/50'">
             <div class="flex items-center justify-center gap-2">
@@ -270,7 +268,8 @@
                 placeholder="Describe el propósito del proyecto..." rows="4"
                 class="w-full bg-gray-700/50 border border-gray-600 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 backdrop-blur-sm resize-none">
               </textarea>
-              <p class="text-gray-500 text-xs">Opcional: Una buena descripción ayuda a entender el objetivo del proyecto</p>
+              <p class="text-gray-500 text-xs">Opcional: Una buena descripción ayuda a entender el objetivo del proyecto
+              </p>
             </div>
 
             <!-- Botones de acción -->
@@ -308,7 +307,8 @@
                     d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
                 </svg>
                 <p>No hay miembros en este proyecto</p>
-                <p class="text-sm mt-2">Usa la opción "Invitar Miembro" desde el menú de acciones para agregar personas</p>
+                <p class="text-sm mt-2">Usa la opción "Invitar Miembro" desde el menú de acciones para agregar personas
+                </p>
               </div>
               } @else {
               <div class="space-y-3">

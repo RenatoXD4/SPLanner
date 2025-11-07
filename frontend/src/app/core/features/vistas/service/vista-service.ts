@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { BehaviorSubject, map, Observable, tap } from 'rxjs';
 import { AuthService } from '../../../services/auth-service';
-
+import { InvitationEmailService } from './invitation-email.service';
 export interface Usuario {
   id: string;
   nombre: string;
@@ -93,7 +93,8 @@ export class VistasService {
 
   constructor(
     private http: HttpClient,
-    private authService: AuthService
+    private authService: AuthService,
+    private invitationEmailService: InvitationEmailService
   ) {}
 
   private getHeaders(): HttpHeaders {
@@ -211,16 +212,82 @@ export class VistasService {
    * @param rolId ID del rol (1: Admin, 2: Miembro)
    * @returns Observable con la respuesta de la invitación
    */
-  invitarUsuarioAProyecto(proyectoId: string, usuarioId: string, rolId: number): Observable<any> {
+  async invitarUsuarioAProyecto(
+    proyectoId: string,
+    usuarioId: string,
+    rolId: number,
+    proyectoNombre?: string,
+    usuarioInvitadoEmail?: string
+  ): Promise<any> {
+
     const invitacionData: InvitarMiembroRequest = {
       proyectoId,
       usuarioId,
       rolId
     };
 
-    return this.http.post(`${this.miembrosUrl}/invitar`, invitacionData, {
-      headers: this.getHeaders()
+    try {
+      // 1. Primero hacer la invitación en la base de datos
+      const resultado = await this.http.post(`${this.miembrosUrl}/invitar`, invitacionData, {
+        headers: this.getHeaders()
+      }).toPromise();
+
+      // 2. Si tenemos la información necesaria, enviar el correo
+      if (usuarioInvitadoEmail && proyectoNombre) {
+        const usuarioActual = this.authService.getCurrentUser();
+        const nombreRol = this.obtenerNombreRol(rolId);
+
+        this.enviarCorreoInvitacion(
+          usuarioInvitadoEmail,
+          proyectoNombre,
+          usuarioActual?.nombre || 'Un usuario',
+          nombreRol
+        );
+      }
+
+      return resultado;
+
+    } catch (error) {
+      console.error('Error en invitarUsuarioAProyecto:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Envía el correo de invitación (manejo asíncrono sin await)
+   */
+  private enviarCorreoInvitacion(
+    email: string,
+    proyectoNombre: string,
+    inviterName: string,
+    roleName: string
+  ): void {
+    this.invitationEmailService.sendSimpleInvitation(
+      email,
+      proyectoNombre,
+      inviterName,
+      roleName
+    ).then(result => {
+      if (result.success) {
+        console.log('Correo de invitación enviado exitosamente');
+      } else {
+        console.warn('Correo de invitación no pudo enviarse:', result.message);
+      }
+    }).catch(error => {
+      console.error('Error enviando correo de invitación:', error);
     });
+  }
+
+  /**
+   * Obtiene el nombre del rol basado en el ID
+   */
+  private obtenerNombreRol(rolId: number): string {
+    switch (rolId) {
+      case 1: return 'Administrador';
+      case 2: return 'Editor';
+      case 3: return 'Visualizador';
+      default: return 'Miembro';
+    }
   }
 
   /**
@@ -359,6 +426,38 @@ obtenerProyectosComoMiembro(usuarioId: string): Observable<ProyectoConUsuario[]>
       miembrosCount: proyecto.miembrosCount || proyecto._count?.miembros || 0,
       _count: proyecto._count
     })))
+  );
+}
+
+
+/**
+ * Obtiene los proyectos donde el usuario es miembro pero NO el creador
+ * @param usuarioId ID del usuario
+ * @returns Observable con la lista de proyectos donde el usuario es miembro pero no creador
+ */
+obtenerProyectosComoMiembroNoCreador(usuarioId: string): Observable<ProyectoConUsuario[]> {
+  const params = new HttpParams().set('userId', usuarioId);
+
+  return this.http.get<any[]>(`${this.apiUrl}/member`, {
+    headers: this.getHeaders(),
+    params
+  }).pipe(
+    map(proyectos => proyectos
+      .filter(proyecto => proyecto.creadoPorId !== usuarioId)
+      .map(proyecto => ({
+        id: proyecto.id,
+        nombre: proyecto.nombre,
+        descripcion: proyecto.descripcion,
+        creadoPorId: proyecto.creadoPorId,
+        createdAt: proyecto.createdAt,
+        creadoPor: proyecto.creadoPor,
+        miembrosCount: proyecto.miembrosCount || proyecto._count?.miembros || 0,
+        _count: proyecto._count
+      }))
+    ),
+    tap(proyectosFiltrados => {
+      console.log('Proyectos como miembro (excluyendo creados):', proyectosFiltrados.length);
+    })
   );
 }
 }

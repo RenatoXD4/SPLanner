@@ -3,8 +3,9 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { catchError, tap } from 'rxjs/operators';
 import { throwError } from 'rxjs';
-import { environment } from '../../../../../Environments/environment'; //Dejar en minuscula
 import { Router } from '@angular/router';
+import { environment } from '../../../../../Environments/environment';
+import { EmailVerificationService } from './email-verification.service';
 
 interface RegisterResponse {
   message: string;
@@ -38,6 +39,7 @@ export class RegistroService {
   isSuccess = signal(false);
   errorMessage = signal('');
   emailExistsError = signal(false);
+  isVerificationSent = signal(false);
 
   private readonly EMAIL_PATTERN = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   private readonly PASSWORD_PATTERN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.])[A-Za-z\d@$!%*?&.]{8,}$/;
@@ -45,7 +47,8 @@ export class RegistroService {
 
   constructor(
     private http: HttpClient,
-    private router: Router
+    private router: Router,
+    private emailVerificationService: EmailVerificationService
   ) {
     this.email = new FormControl('', [
       Validators.required,
@@ -171,6 +174,58 @@ export class RegistroService {
     }
   }
 
+ async sendVerificationEmail(): Promise<boolean> {
+  if (this.userForm.valid) {
+    this.isLoading.set(true);
+    this.errorMessage.set('');
+
+    const userData = {
+      nombre: this.name.value,
+      apellido: this.apellido.value,
+      email: this.email.value,
+      password: this.password.value
+    };
+
+    const verificationToken = Math.random().toString(36).substring(2) + Date.now().toString(36);
+
+    // GUARDAR EN LOCALSTORAGE
+    const pendingUser = {
+      ...userData,
+      verificationToken,
+      createdAt: new Date().toISOString()
+    };
+
+    localStorage.setItem(`pending_${verificationToken}`, JSON.stringify(pendingUser));
+
+
+
+    try {
+      const result = await this.emailVerificationService.sendVerificationEmail(
+        userData.email,
+        userData.nombre,
+        verificationToken
+      );
+
+      this.isLoading.set(false);
+
+      if (result.success) {
+        this.isVerificationSent.set(true);
+        return true;
+      } else {
+        this.errorMessage.set(result.message || 'Error al enviar correo de verificación');
+        localStorage.removeItem(`pending_${verificationToken}`);
+        return false;
+      }
+    } catch (error) {
+      this.isLoading.set(false);
+      this.errorMessage.set('Error al enviar correo de verificación');
+      localStorage.removeItem(`pending_${verificationToken}`);
+      return false;
+    }
+  }
+  return false;
+}
+
   registerUser() {
     if (this.userForm.valid) {
       this.isLoading.set(true);
@@ -286,7 +341,7 @@ export class RegistroService {
     this.emailExistsError.set(false);
   }
 
-  private playShakeAnimation(): void {
+  public playShakeAnimation(): void {
     const form = document.querySelector('form');
     if (form) {
       form.classList.add('animate-shake');

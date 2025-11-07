@@ -1,14 +1,69 @@
-<div
-  class="w-full min-h-screen flex items-center justify-center relative overflow-hidden bg-gray-900 py-8 animate-smooth-fade-in">
-  <!-- Contenedor del formulario -->
+<div class="w-full min-h-screen flex items-center justify-center bg-gray-900 px-4 py-4 animate-smooth-fade-in">
+
+  <!-- Interfaz de Verificación (si hay token en URL) -->
+  @if (getVerificationTokenFromUrl()) {
+  <div class="relative z-10 w-full max-w-md mx-auto">
+    <div
+      class="bg-gradient-to-b from-gray-900 via-gray-800 to-gray-950 border border-green-900 rounded-2xl shadow-2xl p-6 sm:p-8 mx-2 sm:mx-4">
+      <div class="w-full max-w-[320px] sm:max-w-[350px] mx-auto text-center">
+
+        <!-- Estado de carga -->
+        @if (isVerifying) {
+        <div class="space-y-4">
+          <div
+            class="w-14 h-14 sm:w-16 sm:h-16 mx-auto border-4 border-green-500 border-t-transparent rounded-full animate-spin">
+          </div>
+          <h2 class="text-lg sm:text-xl font-bold text-white">Verificando tu cuenta...</h2>
+          <p class="text-gray-400 text-sm sm:text-base">Por favor espera un momento.</p>
+        </div>
+        }
+
+        <!-- Éxito -->
+        @if (isVerificationSuccess && !isVerifying) {
+        <div class="space-y-4">
+          <div class="w-14 h-14 sm:w-16 sm:h-16 mx-auto bg-green-500/20 rounded-full flex items-center justify-center">
+            <svg class="w-7 h-7 sm:w-8 sm:h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h2 class="text-xl sm:text-2xl font-bold text-white">¡Cuenta verificada!</h2>
+          <p class="text-gray-300 text-sm sm:text-base">Tu cuenta ha sido activada exitosamente.</p>
+          <p class="text-gray-400 text-xs sm:text-sm">Serás redirigido al login en unos segundos...</p>
+        </div>
+        }
+
+        <!-- Error -->
+        @if (verificationError && !isVerifying) {
+        <div class="space-y-4">
+          <div class="w-14 h-14 sm:w-16 sm:h-16 mx-auto bg-red-500/20 rounded-full flex items-center justify-center">
+            <svg class="w-7 h-7 sm:w-8 sm:h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </div>
+          <h2 class="text-xl sm:text-2xl font-bold text-white">Error de verificación</h2>
+          <p class="text-gray-300 text-sm sm:text-base">{{ verificationError }}</p>
+          <button (click)="router.navigate(['/register'])"
+            class="bg-green-500 hover:bg-green-600 text-white px-5 py-2 sm:px-6 sm:py-2 rounded-lg transition-colors text-sm sm:text-base">
+            Intentar nuevamente
+          </button>
+        </div>
+        }
+
+      </div>
+    </div>
+  </div>
+  }
+
+  <!-- Formulario de registro (se muestra cuando NO hay token y NO se ha enviado verificación) -->
+  @else if (!isVerificationSent) {
   <div class="relative z-10 w-full max-w-md mx-auto animate-fade-in-up">
     <div
-      class="bg-gradient-to-b from-gray-900 via-gray-800 to-gray-950 border border-green-900 rounded-2xl shadow-2xl p-8 mx-4 transform transition-all duration-500 ease-out animate-form-appear">
-      <div class="w-full max-w-[350px] mx-auto">
+      class="bg-gradient-to-b from-gray-900 via-gray-800 to-gray-950 border border-green-900 rounded-2xl shadow-2xl p-6 sm:p-8 mx-2 sm:mx-4 transform transition-all duration-500 ease-out animate-form-appear">
+      <div class="w-full max-w-[300px] sm:max-w-[350px] mx-auto">
 
         <!-- Logo SPlanner -->
         <div class="flex justify-center mb-4">
-          <svg width="220" height="55" viewBox="0 0 170 50" class="h-16 w-auto">
+          <svg width="180" height="45" viewBox="0 0 170 50" class="h-12 sm:h-16 w-auto">
             <defs>
               <linearGradient id="mainGradient" x1="0%" y1="0%" x2="100%" y2="0%">
                 <stop offset="0%" stop-color="#1edf28" />
@@ -19,63 +74,68 @@
             <rect x="12" y="15" width="6" height="25" fill="#fbbf24" rx="1.5" />
             <rect x="22" y="11" width="6" height="29" fill="#10b981" rx="1.5" />
             <rect x="32" y="17" width="6" height="23" fill="#ef4444" rx="1.5" />
-            <text x="55" y="33" font-family="Arial, sans-serif" font-size="24" font-weight="bold"
+            <text x="55" y="33" font-family="Arial, sans-serif" font-size="20" font-weight="bold"
               fill="url(#mainGradient)">
               SPlanner
             </text>
           </svg>
         </div>
 
-
-
-        <h1 class="text-2xl font-bold text-white mb-2 text-center">Registro de usuario</h1>
-        <div class="relative my-4">
+        <h1 class="text-xl sm:text-2xl font-bold text-white mb-2 text-center">Registro de usuario</h1>
+        <div class="relative my-3 sm:my-4">
           <div class="absolute inset-0 flex items-center">
             <div class="w-full border-t border-gray-600"></div>
           </div>
         </div>
 
-        <p class="text-gray-400 mb-6 text-center">Ingresa tus datos para crear tu cuenta</p>
+        <p class="text-gray-400 text-sm sm:text-base mb-4 sm:mb-6 text-center">Ingresa tus datos para crear tu cuenta
+        </p>
+
+        <!-- Mensaje de error -->
+        @if (errorMessage) {
+        <div class="mb-3 sm:mb-4 p-3 bg-red-500/20 border border-red-500 rounded-lg">
+          <p class="text-red-400 text-xs sm:text-sm text-center">{{ errorMessage }}</p>
+        </div>
+        }
 
         <!-- Formulario de registro -->
-        <form class="space-y-4" [formGroup]="userForm" (submit)="handleSubmit()">
+        <form class="space-y-3 sm:space-y-4" [formGroup]="userForm">
+
           <!--Email-->
-          <div class="relative transition-all duration-300 ease-in-out" [class.mb-8]="showEmailError()">
-            <div class="flex items-center justify-between mb-2">
-              <label for="email" class="block text-sm font-medium text-white">Correo</label>
-              <!-- Botón de información para email -->
+          <div class="relative transition-all duration-300 ease-in-out" [class.mb-6]="showEmailError()">
+            <div class="flex items-center justify-between mb-1 sm:mb-2">
+              <label for="email" class="block text-xs sm:text-sm font-medium text-white">Correo</label>
               <div class="relative group">
                 <button type="button" class="text-gray-400 hover:text-white transition-colors">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5" viewBox="0 0 20 20"
+                    fill="currentColor">
                     <path fill-rule="evenodd"
                       d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
                       clip-rule="evenodd" />
                   </svg>
                 </button>
-                <!-- Tooltip para email -->
                 <div
-                  class="absolute right-5 bottom-3  mt-2 w-64 p-3 bg-gray-800 text-white text-sm rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-100 ">
+                  class="absolute right-0 sm:right-5 bottom-3 mt-2 w-48 sm:w-64 p-2 sm:p-3 bg-gray-800 text-white text-xs sm:text-sm rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-100">
                   <p>Debe ser una dirección de correo válida con formato: usuario@dominio.com</p>
-                  <div class="  bg-gray-800 transform rotate-45"></div>
+                  <div class="bg-gray-800 transform rotate-45 absolute -top-1 right-2 sm:right-4 w-2 h-2"></div>
                 </div>
               </div>
             </div>
             <input id="email" type="email" placeholder="correo@gmail.com"
-              class="w-full px-4 py-3 bg-black border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
+              class="w-full px-3 py-2 sm:px-4 sm:py-3 bg-black border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all text-sm sm:text-base"
               autocomplete="email" formControlName="email" (blur)="markFieldAsTouched('email')">
 
             <!-- Alerta animada para email -->
             @if (showEmailError()) {
-            <div class="absolute top-full left-0 right-0 mt-0 animate-fade-in-down">
-              <div class="bg-red-500/90 text-white p-3 rounded-lg border border-red-400">
-                <div class="flex items-center gap-2">
-                  <svg class="w-5 h-5 flex-shrink-0" fill="currentColor"
-                    viewBox="0 0 20 20"><!--Logo de la x para el error -->
+            <div class="left-0 right-0 mt-0 animate-fade-in-down">
+              <div class="bg-red-500/90 text-white p-2 sm:p-3 rounded-lg border border-red-400">
+                <div class="flex items-center gap-1 sm:gap-2">
+                  <svg class="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd"
                       d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
                       clip-rule="evenodd" />
                   </svg>
-                  <span class="text-sm">{{ getEmailErrorMessage() }}</span>
+                  <span class="text-xs sm:text-sm">{{ getEmailErrorMessage() }}</span>
                 </div>
               </div>
             </div>
@@ -83,42 +143,40 @@
           </div>
 
           <!--Nombre de usuario-->
-          <div class="relative transition-all duration-300 ease-in-out" [class.mb-8]="showNameError()">
-            <div class="flex items-center justify-between mb-2">
-              <label for="name" class="block text-sm font-medium text-white">Nombre</label>
-              <!-- Botón de información para nombre -->
+          <div class="relative transition-all duration-300 ease-in-out" [class.mb-6]="showNameError()">
+            <div class="flex items-center justify-between mb-1 sm:mb-2">
+              <label for="name" class="block text-xs sm:text-sm font-medium text-white">Nombre</label>
               <div class="relative group">
                 <button type="button" class="text-gray-400 hover:text-white transition-colors">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5" viewBox="0 0 20 20"
+                    fill="currentColor">
                     <path fill-rule="evenodd"
                       d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
                       clip-rule="evenodd" />
                   </svg>
                 </button>
-                <!-- Tooltip para nombre -->
                 <div
-                  class="absolute right-5 bottom-3  mt-2 w-64 p-3 bg-gray-800 text-white text-sm rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-100 ">
+                  class="absolute right-0 sm:right-5 bottom-3 mt-2 w-48 sm:w-64 p-2 sm:p-3 bg-gray-800 text-white text-xs sm:text-sm rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-100">
                   <p>Ingresa tu nombre real. Solo puede contener letras y espacios. Mínimo 2 caracteres.</p>
-                  <div class="w-3 h-3 bg-gray-800 transform rotate-45"></div>
+                  <div class="bg-gray-800 transform rotate-45 absolute -top-1 right-2 sm:right-4 w-2 h-2"></div>
                 </div>
               </div>
             </div>
             <input id="name" type="text" placeholder="Ingresa tu nombre"
-              class="w-full px-4 py-3 bg-black border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
+              class="w-full px-3 py-2 sm:px-4 sm:py-3 bg-black border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all text-sm sm:text-base"
               formControlName="name" (blur)="markFieldAsTouched('name')">
 
             <!-- Alerta animada para nombre -->
             @if (showNameError()) {
-            <div class="absolute top-full left-0 right-0 mt-1 animate-fade-in-down">
-              <div class="bg-red-500/90 text-white p-3 rounded-lg border border-red-400">
-                <div class="flex items-center gap-2">
-                  <svg class="w-5 h-5 flex-shrink-0" fill="currentColor"
-                    viewBox="0 0 20 20"><!--Logo de la x para el error -->
+            <div class="top-full left-0 right-0 mt-0 animate-fade-in-down">
+              <div class="bg-red-500/90 text-white p-2 sm:p-3 rounded-lg border border-red-400">
+                <div class="flex items-center gap-1 sm:gap-2">
+                  <svg class="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd"
                       d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
                       clip-rule="evenodd" />
                   </svg>
-                  <span class="text-sm">{{ getNameErrorMessage() }}</span>
+                  <span class="text-xs sm:text-sm">{{ getNameErrorMessage() }}</span>
                 </div>
               </div>
             </div>
@@ -126,42 +184,40 @@
           </div>
 
           <!--Apellido -->
-          <div class="relative transition-all duration-300 ease-in-out" [class.mb-8]="showApellidoError()">
-            <div class="flex items-center justify-between mb-2">
-              <label for="apellido" class="block text-sm font-medium text-white">Apellido</label>
-              <!-- Botón de información para apellido -->
+          <div class="relative transition-all duration-300 ease-in-out" [class.mb-6]="showApellidoError()">
+            <div class="flex items-center justify-between mb-1 sm:mb-2">
+              <label for="apellido" class="block text-xs sm:text-sm font-medium text-white">Apellido</label>
               <div class="relative group">
                 <button type="button" class="text-gray-400 hover:text-white transition-colors">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5" viewBox="0 0 20 20"
+                    fill="currentColor">
                     <path fill-rule="evenodd"
                       d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
                       clip-rule="evenodd" />
                   </svg>
                 </button>
-                <!-- Tooltip para apellido -->
                 <div
-                  class="absolute right-5 bottom-3  mt-2 w-64 p-3 bg-gray-800 text-white text-sm rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-100 ">
+                  class="absolute right-0 sm:right-5 bottom-3 mt-2 w-48 sm:w-64 p-2 sm:p-3 bg-gray-800 text-white text-xs sm:text-sm rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-100">
                   <p>Ingresa tu apellido real. Solo puede contener letras y espacios. Mínimo 2 caracteres.</p>
-                  <div class=" w-3 h-3 bg-gray-800 transform rotate-45"></div>
+                  <div class="bg-gray-800 transform rotate-45 absolute -top-1 right-2 sm:right-4 w-2 h-2"></div>
                 </div>
               </div>
             </div>
             <input id="apellido" type="text" placeholder="Ingresa tu apellido"
-              class="w-full px-4 py-3 bg-black border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
+              class="w-full px-3 py-2 sm:px-4 sm:py-3 bg-black border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all text-sm sm:text-base"
               formControlName="apellido" (blur)="markFieldAsTouched('apellido')">
 
             <!-- Alerta animada para apellido -->
             @if (showApellidoError()) {
-            <div class="absolute top-full left-0 right-0 mt-1 animate-fade-in-down">
-              <div class="bg-red-500/90 text-white p-3 rounded-lg border border-red-400">
-                <div class="flex items-center gap-2">
-                  <svg class="w-5 h-5 flex-shrink-0" fill="currentColor"
-                    viewBox="0 0 20 20"><!--Logo de la x para el error -->
+            <div class="top-full left-0 right-0 mt-0 animate-fade-in-down">
+              <div class="bg-red-500/90 text-white p-2 sm:p-3 rounded-lg border border-red-400">
+                <div class="flex items-center gap-1 sm:gap-2">
+                  <svg class="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd"
                       d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
                       clip-rule="evenodd" />
                   </svg>
-                  <span class="text-sm">{{ getApellidoErrorMessage() }}</span>
+                  <span class="text-xs sm:text-sm">{{ getApellidoErrorMessage() }}</span>
                 </div>
               </div>
             </div>
@@ -169,49 +225,44 @@
           </div>
 
           <!--Contraseña -->
-          <div class=" relative transition-all duration-300 ease-in-out" [class.mb-8]="showPasswordError()">
-            <div class="flex items-center justify-between mb-2">
-              <label for="password" class="block text-sm font-medium text-white">Password</label>
-              <!-- Botón de información para password -->
+          <div class="relative transition-all duration-300 ease-in-out" [class.mb-6]="showPasswordError()">
+            <div class="flex items-center justify-between mb-1 sm:mb-2">
+              <label for="password" class="block text-xs sm:text-sm font-medium text-white">Password</label>
               <div class="relative group">
-                <button type="button" class="text-gray-400 hover:text-white transition-colors ">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <button type="button" class="text-gray-400 hover:text-white transition-colors">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5" viewBox="0 0 20 20"
+                    fill="currentColor">
                     <path fill-rule="evenodd"
                       d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
                       clip-rule="evenodd" />
                   </svg>
                 </button>
-                <!-- Tooltip para password-->
                 <div
-                  class="absolute right-5 bottom-3  mt-2 w-64 p-3 bg-gray-800 text-white text-sm rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-100 ">
+                  class="absolute right-0 sm:right-5 bottom-3 mt-2 w-48 sm:w-64 p-2 sm:p-3 bg-gray-800 text-white text-xs sm:text-sm rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-100">
                   <p>La contraseña debe tener al menos:</p>
-                  <ul class="list-disc pl-4 mt-1">
-                    <li>8 caracteres</li>
-                    <li>1 letra mayúscula</li>
-                    <li>1 letra minúscula</li>
-                    <li>1 número</li>
-                    <li>1 carácter especial</li>
+                  <ul class="list-disc pl-3 sm:pl-4 mt-1">
+                    @for (requirement of passwordRequirements; track requirement) {
+                    <li class="text-xs sm:text-sm">{{ requirement }}</li>
+                    }
                   </ul>
-                  <div class="absolute   w-3 h-3 bg-gray-800 transform rotate-45"></div>
+                  <div class="bg-gray-800 transform rotate-45 absolute -top-1 right-2 sm:right-4 w-2 h-2"></div>
                 </div>
               </div>
-
-
-
             </div>
 
             <!-- Contenedor del campo de contraseña con botón -->
             <div class="relative">
               <input id="password" [type]="showPassword ? 'text' : 'password'" placeholder="********"
-                class="w-full px-4 py-3 bg-black border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
-                formControlName="password" (blur)="markFieldAsTouched('password') ">
+                class="w-full px-3 py-2 sm:px-4 sm:py-3 bg-black border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all text-sm sm:text-base pr-10"
+                formControlName="password" (blur)="markFieldAsTouched('password')">
 
               <!-- Botón para mostrar/ocultar contraseña -->
               <button type="button" (click)="togglePasswordVisibility()"
-                class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-white transition-colors ">
+                class="absolute inset-y-0 right-0 flex items-center pr-2 sm:pr-3 text-gray-400 hover:text-white transition-colors">
                 @if (showPassword) {
                 <!-- Icono de ojo tachado (contraseña visible) -->
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5" viewBox="0 0 20 20"
+                  fill="currentColor">
                   <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
                   <path fill-rule="evenodd"
                     d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
@@ -219,7 +270,8 @@
                 </svg>
                 } @else {
                 <!-- Icono de ojo (contraseña oculta) -->
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5" viewBox="0 0 20 20"
+                  fill="currentColor">
                   <path fill-rule="evenodd"
                     d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z"
                     clip-rule="evenodd" />
@@ -231,33 +283,77 @@
             </div>
 
             <!-- Alerta animada para password -->
-
             @if (showPasswordError()) {
-            <div class="bg-red-500/90 text-white p-3 rounded-lg border border-red-400">
-              <div class="flex items-center gap-2">
-                <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <div class="bg-red-500/90 text-white p-2 sm:p-3 rounded-lg border border-red-400 mt-2">
+              <div class="flex items-center gap-1 sm:gap-2">
+                <svg class="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd"
                     d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
                     clip-rule="evenodd" />
                 </svg>
-                <span class="text-sm">Formato de contraseña invalida</span>
+                <span class="text-xs sm:text-sm">Formato de contraseña invalida</span>
               </div>
             </div>
             }
-            <div class="pt-2">
-              <app-form-button [text]="'Registrarse'" (buttonClick)="onRegister()">
-              </app-form-button>
 
+            <div class="pt-2">
+              <app-form-button [text]="isLoading ? 'Enviando...' : 'Registrarse'" (buttonClick)="onRegister()">
+              </app-form-button>
             </div>
-            <div class="mt-3 space-y-2 text-sm">
+
+            <div class="mt-2 sm:mt-3 space-y-1 sm:space-y-2 text-xs sm:text-sm">
               <a href="login" class="block text-white hover:text-zinc-300 transition-colors text-center">
                 Volver
               </a>
             </div>
           </div>
         </form>
-
-
       </div>
     </div>
   </div>
+  }
+
+  <!-- Interfaz de verificación enviada  -->
+  @else if (isVerificationSent) {
+  <div class="relative z-10 w-full max-w-md mx-auto">
+    <div
+      class="bg-gradient-to-b from-gray-900 via-gray-800 to-gray-950 border border-green-900 rounded-2xl shadow-2xl p-6 sm:p-8 mx-2 sm:mx-4 transform transition-all duration-500 ease-out">
+      <div class="w-full max-w-[300px] sm:max-w-[350px] mx-auto text-center">
+
+        <!-- Icono de correo -->
+        <div class="flex justify-center mb-4 sm:mb-6">
+          <div class="w-14 h-14 sm:w-16 sm:h-16 bg-green-500/20 rounded-full flex items-center justify-center">
+            <svg class="w-7 h-7 sm:w-8 sm:h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+          </div>
+        </div>
+
+        <h2 class="text-xl sm:text-2xl font-bold text-white mb-3 sm:mb-4">Verifica tu correo</h2>
+
+        <p class="text-gray-300 text-sm sm:text-base mb-2">
+          Hemos enviado un enlace de verificación a tu correo electrónico.
+        </p>
+
+        <p class="text-gray-400 text-xs sm:text-sm mb-4 sm:mb-6">
+          Por favor revisa tu bandeja de entrada y haz clic en el enlace para activar tu cuenta.
+        </p>
+
+        <div class="bg-blue-500/20 border border-blue-500 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6">
+          <p class="text-blue-400 text-xs sm:text-sm">
+            Tip: Si no encuentras el correo, revisa tu carpeta de spam.
+          </p>
+        </div>
+
+        <div class="mt-4 sm:mt-6">
+          <button (click)="goBackToForm()"
+            class="text-green-400 hover:text-green-300 transition-colors font-medium text-sm sm:text-base">
+            Volver al formulario
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+</div>

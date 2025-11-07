@@ -17,8 +17,6 @@ export class Registro implements OnInit {
   showPassword: boolean = false;
   showSuccessPopup: boolean = false;
   isRedirecting: boolean = false;
-
-
   isVerifying: boolean = false;
   isVerificationSuccess: boolean = false;
   verificationError: string = '';
@@ -40,71 +38,85 @@ export class Registro implements OnInit {
   ) {}
 
   ngOnInit() {
-    const token = this.getVerificationTokenFromUrl();
-
-    if (token) {
-      this.verifyAccount(token);
-    }
+    // Usar ActivatedRoute para obtener el token
+    this.route.queryParams.subscribe(params => {
+      const token = params['token'];
+      if (token) {
+        this.verifyAccount(token);
+      }
+    });
   }
 
-  getVerificationTokenFromUrl(): string | null {
-    const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get('token');
-  }
+  public getVerificationTokenFromUrl(): string | null {
+    let token: string | null = null;
 
+    // Suscribirse a los query params de forma síncrona
+    this.route.queryParams.subscribe(params => {
+      token = params['token'] || null;
+    }).unsubscribe(); // Nos desuscribimos inmediatamente después de obtener el valor
+
+    return token;
+  }
 
   verifyAccount(token: string) {
-  this.isVerifying = true;
-  this.verificationError = '';
+    this.isVerifying = true;
+    this.verificationError = '';
 
-  const pendingUserStr = localStorage.getItem(`pending_${token}`);
-
-  if (!pendingUserStr) {
-    this.verificationError = 'Token de verificación inválido o expirado';
-    this.isVerifying = false;
-    return;
-  }
-
-  const pendingUser = JSON.parse(pendingUserStr);
-
-  this.http.post(`${environment.apiUrl}/usuarios/register`, {
-    nombre: pendingUser.nombre,
-    apellido: pendingUser.apellido,
-    email: pendingUser.email,
-    password: pendingUser.password
-  }).subscribe({
-    next: (response: any) => {
-      console.log('Cuenta verificada exitosamente:', response);
+    // Verificar si estamos en el cliente antes de usar localStorage
+    if (typeof localStorage === 'undefined') {
+      this.verificationError = 'No se puede verificar en este entorno';
       this.isVerifying = false;
-      this.isVerificationSuccess = true;
-
-      // Limpiar datos temporales
-      localStorage.removeItem(`pending_${token}`);
-
-      // Redirigir al login después de 3 segundos
-      setTimeout(() => {
-        this.router.navigate(['/login']);
-      }, 3000);
-    },
-    error: (error) => {
-      console.error(' Error en verificación:', error);
-      this.isVerifying = false;
-
-      // Manejar diferentes tipos de errores
-      if (error.status === 409) {
-        this.verificationError = 'Este correo electrónico ya está registrado';
-      } else if (error.status === 400) {
-        this.verificationError = 'Datos de registro inválidos';
-      } else if (error.status === 0) {
-        this.verificationError = 'Error de conexión con el servidor. Verifica que el backend esté ejecutándose.';
-      } else {
-        this.verificationError = 'Error al crear la cuenta. Por favor intenta registrarte nuevamente.';
-      }
-
-      console.error(' Detalles del error:', error);
+      return;
     }
-  });
-}
+
+    const pendingUserStr = localStorage.getItem(`pending_${token}`);
+
+    if (!pendingUserStr) {
+      this.verificationError = 'Token de verificación inválido o expirado';
+      this.isVerifying = false;
+      return;
+    }
+
+    const pendingUser = JSON.parse(pendingUserStr);
+
+    this.http.post(`${environment.apiUrl}/usuarios/register`, {
+      nombre: pendingUser.nombre,
+      apellido: pendingUser.apellido,
+      email: pendingUser.email,
+      password: pendingUser.password
+    }).subscribe({
+      next: (response: any) => {
+        console.log('Cuenta verificada exitosamente:', response);
+        this.isVerifying = false;
+        this.isVerificationSuccess = true;
+
+        // Limpiar datos temporales
+        localStorage.removeItem(`pending_${token}`);
+
+        // Redirigir al login después de 3 segundos
+        setTimeout(() => {
+          this.router.navigate(['/login']);
+        }, 3000);
+      },
+      error: (error) => {
+        console.error(' Error en verificación:', error);
+        this.isVerifying = false;
+
+        // Manejar diferentes tipos de errores
+        if (error.status === 409) {
+          this.verificationError = 'Este correo electrónico ya está registrado';
+        } else if (error.status === 400) {
+          this.verificationError = 'Datos de registro inválidos';
+        } else if (error.status === 0) {
+          this.verificationError = 'Error de conexión con el servidor. Verifica que el backend esté ejecutándose.';
+        } else {
+          this.verificationError = 'Error al crear la cuenta. Por favor intenta registrarte nuevamente.';
+        }
+
+        console.error(' Detalles del error:', error);
+      }
+    });
+  }
 
   get userForm() {
     return this.registroService.userForm;

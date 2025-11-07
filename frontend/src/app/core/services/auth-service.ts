@@ -2,11 +2,7 @@ import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject, throwError } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
-<<<<<<< HEAD
 import { environment } from '../../../Environments/environment';
-=======
-import { environment } from '../../../Environments/environment'; //Dejar en minuscula
->>>>>>> cd4ee7a6b79ccb50ea059db94296eb3ed33676e8
 import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
 export interface LoginResponse {

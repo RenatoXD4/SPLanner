@@ -3,13 +3,8 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { catchError, tap } from 'rxjs/operators';
 import { throwError } from 'rxjs';
-<<<<<<< HEAD
-=======
-import { environment } from '../../../../../Environments/environment'; //Dejar en minuscula
->>>>>>> cd4ee7a6b79ccb50ea059db94296eb3ed33676e8
 import { Router } from '@angular/router';
 import { environment } from '../../../../../Environments/environment';
-
 import { EmailVerificationService } from './email-verification.service';
 
 interface RegisterResponse {
@@ -202,7 +197,7 @@ export class RegistroService {
 
     localStorage.setItem(`pending_${verificationToken}`, JSON.stringify(pendingUser));
 
-  
+
 
     try {
       const result = await this.emailVerificationService.sendVerificationEmail(

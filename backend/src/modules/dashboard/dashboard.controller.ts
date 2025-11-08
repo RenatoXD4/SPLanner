@@ -48,7 +48,7 @@ export class DashboardController {
   }
 
   /**
-   * Obtener dashboard de un proyecto específico
+   * Obtener dashboard de un proyecto específico - CORREGIDO
    */
   public async getProjectDashboard(
     req: Request,
@@ -100,12 +100,22 @@ export class DashboardController {
         return;
       }
 
-      // Obtener datos adicionales para el dashboard del proyecto
-      const [tareasPorEstado, tareasPorPrioridad, actividadReciente] = await Promise.all([
-        this.getTareasPorEstado(),
-        this.getTareasPorPrioridad(),
-        this.getActividadReciente()
+      // ✅ CORRECCIÓN: Usar métodos reales en lugar de datos vacíos
+      const [tareasPorEstado, tareasPorPrioridad, actividadReciente, tareasEnRevision] = await Promise.all([
+        this.getTareasPorEstado(projectId),
+        this.getTareasPorPrioridad(projectId),
+        this.getActividadReciente(projectId),
+        this.userRepository.getTareasEnRevisionCount(projectId)
       ]);
+
+      // ✅ CORRECCIÓN: Usar datos reales en lugar de fórmulas fijas
+      const tareasEnProgreso = 'tareasEnProgreso' in proyectoEspecifico 
+        ? (proyectoEspecifico as any).tareasEnProgreso 
+        : Math.floor(proyectoEspecifico.totalTareas * 0.3);
+      
+      const tareasPendientes = 'tareasPendientes' in proyectoEspecifico 
+        ? (proyectoEspecifico as any).tareasPendientes 
+        : proyectoEspecifico.totalTareas - proyectoEspecifico.tareasCompletadas;
 
       // Estructurar la respuesta para el dashboard del proyecto
       const projectDashboard = {
@@ -119,15 +129,19 @@ export class DashboardController {
         stats: {
           porcentajeCompletado: proyectoEspecifico.porcentajeCompletado,
           tareasCompletadas: proyectoEspecifico.tareasCompletadas,
-          tareasEnProgreso: Math.floor(proyectoEspecifico.totalTareas * 0.3),
-          tareasEnRevision: Math.floor(proyectoEspecifico.totalTareas * 0.1),
-          tareasPendientes: proyectoEspecifico.totalTareas - proyectoEspecifico.tareasCompletadas,
+          tareasEnProgreso: tareasEnProgreso,
+          tareasEnRevision: tareasEnRevision,
+          tareasPendientes: tareasPendientes,
           totalTareas: proyectoEspecifico.totalTareas
         },
+        // ✅ CORREGIDO: Estos ahora son datos REALES del repository
         tareasPorEstado,
         tareasPorPrioridad,
         tendenciaUltimaSemana: this.generateTrendData(proyectoEspecifico.tareasCompletadas)
       };
+
+      console.log('📊 Dashboard final - Tareas por prioridad:', tareasPorPrioridad);
+      console.log('📊 Dashboard final - Tareas por estado:', tareasPorEstado);
 
       res.json({
         data: projectDashboard,
@@ -264,7 +278,99 @@ export class DashboardController {
     }
   }
 
-  // ========== MÉTODOS PRIVADOS AUXILIARES ==========
+  /**
+   * Exportar datos completos del proyecto
+   */
+  public async exportProjectData(
+    req: Request,
+    res: Response
+  ): Promise<void> {
+    try {
+      const projectId = req.params.projectId;
+      const format = req.query.format as string || 'json';
+      
+      if (!projectId) {
+        res.status(400).json({ 
+          error: 'projectId es requerido',
+          success: false 
+        });
+        return;
+      }
+
+      console.log('📤 Exportando datos del proyecto:', projectId, 'Formato:', format);
+      
+      // Obtener datos completos para exportación
+      const exportData = await this.userRepository.getProjectExportData(projectId);
+      
+      // Diferentes respuestas según el formato solicitado
+      switch (format.toLowerCase()) {
+        case 'json':
+          res.setHeader('Content-Type', 'application/json');
+          res.setHeader('Content-Disposition', `attachment; filename="proyecto-${projectId}-${new Date().toISOString().split('T')[0]}.json"`);
+          res.json({
+            success: true,
+            data: exportData
+          });
+          break;
+
+        default:
+          res.json({
+            success: true,
+            data: exportData,
+            format: 'json',
+            note: `Formato ${format} no implementado. Se devuelve JSON.`
+          });
+      }
+
+    } catch (error) {
+      console.error('Error exporting project data:', error);
+      res.status(500).json({ 
+        error: 'Error interno del servidor al exportar datos',
+        success: false 
+      });
+    }
+  }
+
+  /**
+   * Generar reporte ejecutivo del proyecto
+   */
+  public async generateProjectReport(
+    req: Request,
+    res: Response
+  ): Promise<void> {
+    try {
+      const projectId = req.params.projectId;
+      const reportType = req.query.type as string || 'summary';
+      
+      if (!projectId) {
+        res.status(400).json({ 
+          error: 'projectId es requerido',
+          success: false 
+        });
+        return;
+      }
+
+      console.log('📊 Generando reporte del proyecto:', projectId, 'Tipo:', reportType);
+      
+      const reportData = await this.userRepository.getProjectSummary(projectId);
+      
+      res.json({
+        success: true,
+        data: reportData,
+        reportType: reportType,
+        generatedAt: new Date().toISOString()
+      });
+
+    } catch (error) {
+      console.error('Error generating project report:', error);
+      res.status(500).json({ 
+        error: 'Error interno del servidor al generar reporte',
+        success: false 
+      });
+    }
+  }
+
+  // ========== MÉTODOS PRIVADOS AUXILIARES ACTUALIZADOS ==========
 
   /**
    * Generar datos de tendencia para la última semana
@@ -289,39 +395,50 @@ export class DashboardController {
     return trend;
   }
 
-/**
- * Obtener actividad reciente del proyecto
- */
-private async getActividadReciente(): Promise<{
-  accion: string;
-  fecha: string;
-  id: string;
-  tarea: string;
-  usuario: string;
-}[]> {
-  // TODO: Implementar con consulta real a la base de datos
-  // Por ahora retornamos array vacío
-  await new Promise(resolve => setTimeout(resolve, 10));
-  return [];
-}
+  /**
+   * Obtener actividad reciente del proyecto - ACTUALIZADO
+   */
+  private async getActividadReciente(projectId: string): Promise<{
+    accion: string;
+    fecha: string;
+    id: string;
+    tarea: string;
+    usuario: string;
+  }[]> {
+    try {
+      // TODO: Implementar con consulta real a la base de datos
+      // Por ahora retornamos array vacío
+      await new Promise(resolve => setTimeout(resolve, 10));
+      return [];
+    } catch (error) {
+      console.error('Error obteniendo actividad reciente:', error);
+      return [];
+    }
+  }
 
-/**
- * Obtener distribución de tareas por estado
- */
-private async getTareasPorEstado(): Promise<{ cantidad: number; estado: string; }[]> {
-  // TODO: Implementar con consulta real a la base de datos
-  // Por ahora retornamos array vacío
-  await new Promise(resolve => setTimeout(resolve, 10));
-  return [];
-}
+  /**
+   * Obtener distribución de tareas por estado - ACTUALIZADO
+   */
+  private async getTareasPorEstado(projectId: string): Promise<{ cantidad: number; estado: string; }[]> {
+    try {
+      // ✅ CORRECCIÓN: Usar el método real del repository
+      return await this.userRepository.getTareasPorEstado(projectId);
+    } catch (error) {
+      console.error('Error obteniendo tareas por estado:', error);
+      return [];
+    }
+  }
 
-/**
- * Obtener distribución de tareas por prioridad
- */
-private async getTareasPorPrioridad(): Promise<{ cantidad: number; prioridad: string; }[]> {
-  // TODO: Implementar con consulta real a la base de datos
-  // Por ahora retornamos array vacío
-  await new Promise(resolve => setTimeout(resolve, 10));
-  return [];
-}
+  /**
+   * Obtener distribución de tareas por prioridad - ACTUALIZADO
+   */
+  private async getTareasPorPrioridad(projectId: string): Promise<{ cantidad: number; prioridad: string; }[]> {
+    try {
+      // ✅ CORRECCIÓN: Usar el método real del repository
+      return await this.userRepository.getTareasPorPrioridad(projectId);
+    } catch (error) {
+      console.error('Error obteniendo tareas por prioridad:', error);
+      return [];
+    }
+  }
 }

@@ -1,44 +1,80 @@
 <!-- src/app/dashboard/dashboard.component.html -->
 <div class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white flex">
   <!-- Sidebar -->
-  <app-sidebar [class.hidden]="!mostrarSidebar"></app-sidebar>
+  <app-sidebar [class.hidden]="!mostrarSidebar" class="transition-all duration-300 ease-in-out"></app-sidebar>
 
   <!-- Contenido Principal -->
-  <div class="flex-1 flex flex-col min-h-screen">
-    <!-- Header -->
-    <header class="bg-gray-800/50 border-b border-gray-700 p-6 sticky top-0 z-40 backdrop-blur-sm">
+  <div class="flex-1 flex flex-col min-h-screen transition-all duration-300">
+    <!-- Header Ultra Mejorado -->
+    <header class="bg-gradient-to-r from-gray-800 via-gray-800/95 to-gray-800 border-b border-gray-700/30 p-4 lg:p-6 sticky top-0 z-50 backdrop-blur-2xl shadow-2xl">
       <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-        <div class="flex items-center gap-4">
+        <div class="flex items-center gap-4 flex-1 min-w-0">
           <button (click)="toggleSidebar()"
-            class="lg:hidden p-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            class="lg:hidden p-3 rounded-2xl bg-gradient-to-br from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 transition-all duration-300 hover:scale-105 hover:shadow-xl border border-gray-600/50 shadow-lg">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
-          <div>
-            <h1 class="text-2xl font-bold text-white">Dashboard del Proyecto</h1>
-            <p class="text-gray-400 mt-1 text-sm">Métricas y estadísticas personalizables</p>
+          
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-4">
+              <div class="relative">
+                <div class="w-12 h-12 bg-gradient-to-br from-purple-500 via-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center shadow-2xl transform hover:rotate-12 transition-transform duration-500">
+                  <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                </div>
+                <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-gray-800 shadow-lg animate-pulse"></div>
+              </div>
+              <div class="min-w-0 flex-1">
+                <h1 class="text-2xl lg:text-3xl font-bold text-white truncate bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">
+                  {{ metrics?.proyecto?.nombre || 'Dashboard del Proyecto' }}
+                </h1>
+                <p class="text-gray-300 mt-1 text-sm lg:text-base truncate flex items-center gap-2">
+                  <span class="flex w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                  Métricas en tiempo real • Actualizado {{ getTiempoDesdeUltimaActualizacion() }}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-3 w-full lg:w-auto">
+          <!-- Botón Exportar Mejorado - SOLO PDF -->
+          <div class="relative">
+            <button (click)="abrirMenuExportacion()"
+              class="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 text-white rounded-xl font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg border border-gray-600/50">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <span class="hidden sm:block">Exportar PDF</span>
+            </button>
+          </div>
+
           <!-- Selector de Gráficos -->
           <button (click)="toggleChartSelector()"
-            class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg font-semibold flex items-center gap-2 transition-all duration-200">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
-            Gráficos ({{ getChartCount() }})
+            class="flex-1 lg:flex-none bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white px-5 py-3 rounded-xl font-semibold flex items-center gap-3 transition-all duration-300 hover:scale-105 hover:shadow-xl border border-purple-400/30 shadow-lg relative overflow-hidden group">
+            <div class="relative z-10 flex items-center gap-3">
+              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+              <span class="hidden sm:block">Gráficos</span>
+              <div class="w-6 h-6 bg-white/20 rounded-full text-xs flex items-center justify-center text-white font-bold backdrop-blur-sm">
+                {{ getChartCount() }}
+              </div>
+            </div>
+            <div class="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
           </button>
 
           <button (click)="irAlBoard()"
-            class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold flex items-center gap-2 transition-all duration-200">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-            </svg>
-            Ir al Board
+            class="flex-1 lg:flex-none bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-5 py-3 rounded-xl font-semibold flex items-center gap-3 transition-all duration-300 hover:scale-105 hover:shadow-xl border border-green-400/30 shadow-lg relative overflow-hidden group">
+            <div class="relative z-10 flex items-center gap-3">
+              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+              <span class="hidden sm:block">Ir al Board</span>
+            </div>
+            <div class="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
           </button>
         </div>
       </div>
@@ -46,70 +82,106 @@
 
     <!-- Selector de Gráficos Modal -->
     @if (showChartSelector) {
-    <div class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in"
+    <div class="fixed inset-0 bg-black/80 backdrop-blur-xl flex items-center justify-center p-4 z-50 animate-fade-in"
       (click)="toggleChartSelector()">
       <div (click)="$event.stopPropagation()"
-        class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl w-full max-w-2xl border border-gray-700 shadow-2xl transform transition-all duration-300 animate-scale-in">
+        class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-3xl w-full max-w-2xl border border-gray-700/50 shadow-2xl transform transition-all duration-300 animate-scale-in">
 
-        <!-- Header -->
-        <div class="bg-gradient-to-r from-purple-800 to-purple-700 rounded-t-2xl p-6 border-b border-purple-600">
+        <!-- Header - Estilo Original Mejorado -->
+        <div class="bg-gradient-to-r from-purple-600 to-purple-700 rounded-t-3xl p-6 border-b border-purple-500/30">
           <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-              <div
-                class="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            <div class="flex items-center space-x-4">
+              <div class="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center shadow-lg backdrop-blur-sm">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
               </div>
               <div>
-                <h2 class="text-xl font-bold text-white">Personalizar Gráficos</h2>
-                <p class="text-purple-200 text-sm">Selecciona qué gráficos mostrar en el dashboard</p>
+                <h2 class="text-2xl font-bold text-white">Personalizar Gráficos</h2>
+                <p class="text-purple-100 text-sm mt-1">Selecciona qué gráficos mostrar en tu dashboard</p>
               </div>
             </div>
             <button (click)="toggleChartSelector()"
-              class="w-8 h-8 bg-purple-600 hover:bg-purple-500 rounded-lg flex items-center justify-center transition-all duration-200 hover:scale-110">
-              <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              class="w-10 h-10 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-all duration-200 hover:scale-110 backdrop-blur-sm">
+              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           </div>
         </div>
 
-        <!-- Lista de Gráficos -->
-        <div class="p-6 max-h-96 overflow-y-auto">
-          <div class="space-y-3">
+        <!-- Lista de Gráficos - Estilo Original Mejorado -->
+        <div class="p-6 max-h-96 overflow-y-auto custom-scrollbar">
+          <div class="space-y-4">
             @for (chart of availableCharts; track chart.id) {
             <div
-              class="flex items-center justify-between p-4 bg-gray-700/50 rounded-xl border border-gray-600 hover:border-purple-500 transition-colors duration-200">
-              <div class="flex items-center space-x-4">
-                <div class="text-2xl">{{ chart.icon }}</div>
-                <div>
-                  <h3 class="font-semibold text-white">{{ chart.name }}</h3>
-                  <p class="text-gray-400 text-sm">{{ chart.description }}</p>
+              class="group flex items-center justify-between p-5 bg-gray-700/30 rounded-2xl border border-gray-600/50 hover:border-purple-500/50 hover:bg-gray-700/50 transition-all duration-300 cursor-pointer backdrop-blur-sm"
+              (click)="toggleChart(chart.id)">
+              <div class="flex items-center space-x-4 flex-1">
+                <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                  @switch (chart.id) {
+                    @case ('bar') {
+                      <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                      </svg>
+                    }
+                    @case ('pie') {
+                      <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+                      </svg>
+                    }
+                    @case ('area') {
+                      <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3v18h18M3 9l9-6 9 6-9 6-9-6z" />
+                      </svg>
+                    }
+                    @case ('doughnut') {
+                      <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2a10 10 0 1010 10A10 10 0 0012 2zm0 18a8 8 0 118-8 8 8 0 01-8 8z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6a6 6 0 106 6 6 6 0 00-6-6z" />
+                      </svg>
+                    }
+                    @default {
+                      <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                      </svg>
+                    }
+                  }
+                </div>
+                <div class="flex-1 min-w-0">
+                  <h3 class="font-semibold text-white text-lg truncate">{{ chart.name }}</h3>
+                  <p class="text-gray-400 text-sm mt-1 truncate">{{ chart.description }}</p>
                 </div>
               </div>
-              <button (click)="toggleChart(chart.id)"
-                class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
-                [class]="chart.enabled ? 'bg-purple-600' : 'bg-gray-600'" role="switch"
-                [attr.aria-checked]="chart.enabled">
-                <span class="sr-only">Toggle chart</span>
-                <span aria-hidden="true"
-                  class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
-                  [class]="chart.enabled ? 'translate-x-5' : 'translate-x-0'"></span>
-              </button>
+              <div class="ml-4">
+                <button
+                  class="relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-900"
+                  [class]="chart.enabled ? 'bg-purple-600 shadow-lg' : 'bg-gray-600'" role="switch"
+                  [attr.aria-checked]="chart.enabled">
+                  <span class="sr-only">Toggle chart</span>
+                  <span aria-hidden="true"
+                    class="pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-lg ring-0 transition-all duration-300 ease-in-out"
+                    [class]="chart.enabled ? 'translate-x-5 shadow-purple-200' : 'translate-x-0 shadow-gray-400'"></span>
+                </button>
+              </div>
             </div>
             }
           </div>
         </div>
 
-        <!-- Footer -->
-        <div class="px-6 py-4 border-t border-gray-700 bg-gray-800/50 rounded-b-2xl">
-          <div class="flex justify-between items-center">
-            <span class="text-gray-400 text-sm">{{ getChartCount() }} de {{ availableCharts.length }} gráficos
-              activos</span>
+        <!-- Footer - Estilo Original Mejorado -->
+        <div class="px-6 py-5 border-t border-gray-700/50 bg-gray-800/30 rounded-b-3xl backdrop-blur-sm">
+          <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="text-center sm:text-left">
+              <span class="text-gray-400 text-sm">{{ getChartCount() }} de {{ availableCharts.length }} gráficos activos</span>
+              <div class="w-32 h-2 bg-gray-700 rounded-full mt-2 overflow-hidden">
+                <div class="h-full bg-gradient-to-r from-purple-500 to-purple-600 rounded-full transition-all duration-500" 
+                  [style.width]="(getChartCount() / availableCharts.length) * 100 + '%'"></div>
+              </div>
+            </div>
             <button (click)="toggleChartSelector()"
-              class="bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded-lg font-semibold transition-colors duration-200">
+              class="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white px-8 py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg border border-purple-400/20 min-w-32">
               Aplicar Cambios
             </button>
           </div>
@@ -118,195 +190,322 @@
     </div>
     }
 
-    <!-- Contenido del Dashboard -->
-    <main class="flex-1 p-4 lg:p-6 overflow-auto">
+    <!-- Modal de Exportación Mejorado - SOLO PDF -->
+    @if (showExportModal) {
+    <div class="fixed inset-0 bg-black/80 backdrop-blur-xl flex items-center justify-center p-4 z-50 animate-fade-in"
+      (click)="cerrarMenuExportacion()">
+      <div (click)="$event.stopPropagation()"
+        class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-3xl w-full max-w-md border border-gray-700/50 shadow-2xl transform transition-all duration-300 animate-scale-in">
+
+        <!-- Header del Modal -->
+        <div class="bg-gradient-to-r from-blue-600 to-blue-700 rounded-t-3xl p-6 border-b border-blue-500/30">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+              <div class="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center shadow-lg backdrop-blur-sm">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <div>
+                <h2 class="text-2xl font-bold text-white">Exportar Dashboard</h2>
+                <p class="text-blue-100 text-sm mt-1">Generar reporte en formato PDF</p>
+              </div>
+            </div>
+            <button (click)="cerrarMenuExportacion()"
+              class="w-10 h-10 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-all duration-200 hover:scale-110 backdrop-blur-sm">
+              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Opciones de Exportación - SOLO PDF -->
+        <div class="p-6">
+          <div class="space-y-4">
+            @for (format of exportFormats; track format.id) {
+            <div
+              class="group flex items-center justify-between p-5 bg-gray-700/30 rounded-2xl border border-gray-600/50 hover:border-blue-500/50 hover:bg-gray-700/50 transition-all duration-300 cursor-pointer backdrop-blur-sm"
+              (click)="seleccionarFormatoExportacion(format.id)">
+              <div class="flex items-center space-x-4 flex-1">
+                <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                  <span class="text-xl">{{ format.icon }}</span>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <h3 class="font-semibold text-white text-lg">{{ format.name }}</h3>
+                  <p class="text-gray-400 text-sm mt-1">{{ format.description }}</p>
+                </div>
+              </div>
+              <div class="ml-4">
+                <svg class="w-5 h-5 text-gray-400 group-hover:text-blue-400 transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </div>
+            }
+          </div>
+        </div>
+
+        <!-- Footer del Modal -->
+        <div class="px-6 py-5 border-t border-gray-700/50 bg-gray-800/30 rounded-b-3xl backdrop-blur-sm">
+          <div class="text-center">
+            <p class="text-gray-400 text-sm">El reporte se descargará automáticamente en formato PDF</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    }
+
+    <!-- Contenido del Dashboard Ultra Mejorado -->
+    <main class="flex-1 p-4 lg:p-6 overflow-auto bg-gradient-to-br from-gray-900/50 via-gray-800/30 to-gray-900/50">
       @if (cargando) {
-      <!-- Loading State -->
-      <div class="flex items-center justify-center py-12">
+      <!-- Loading State Ultra Mejorado -->
+      <div class="flex items-center justify-center py-20">
         <div class="text-center">
-          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto mb-4"></div>
-          <p class="text-gray-400">Cargando métricas del proyecto...</p>
+          <div class="relative mb-8">
+            <div class="w-24 h-24 border-4 border-gray-700 rounded-full shadow-2xl"></div>
+            <div class="w-24 h-24 border-4 border-green-500 rounded-full absolute top-0 left-0 animate-spin border-t-transparent shadow-lg"></div>
+            <div class="w-24 h-24 border-4 border-purple-500 rounded-full absolute top-0 left-0 animate-spin border-b-transparent shadow-lg" style="animation-duration: 2s"></div>
+            <div class="w-24 h-24 border-4 border-blue-500 rounded-full absolute top-0 left-0 animate-spin border-l-transparent shadow-lg" style="animation-duration: 1.5s"></div>
+          </div>
+          <h3 class="text-2xl font-bold text-white mb-3 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+            Cargando Dashboard
+          </h3>
+          <p class="text-gray-400 text-lg">Preparando tus métricas en tiempo real...</p>
+          <div class="flex justify-center mt-6">
+            <div class="flex gap-1">
+              <div class="w-2 h-2 bg-green-400 rounded-full animate-bounce"></div>
+              <div class="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+              <div class="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+            </div>
+          </div>
         </div>
       </div>
       } @else if (error) {
-      <!-- Error State -->
-      <div class="flex items-center justify-center py-12">
+      <!-- Error State Ultra Mejorado -->
+      <div class="flex items-center justify-center py-20">
         <div class="text-center max-w-md">
-          <div class="w-16 h-16 mx-auto mb-4 bg-red-500/20 rounded-2xl flex items-center justify-center">
-            <svg class="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+          <div class="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-red-500/20 to-red-600/20 rounded-3xl flex items-center justify-center backdrop-blur-sm border border-red-500/30 shadow-2xl">
+            <svg class="w-12 h-12 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
             </svg>
           </div>
-          <h3 class="text-xl font-bold text-white mb-2">Error al cargar datos</h3>
-          <p class="text-gray-400 mb-6">{{ error }}</p>
+          <h3 class="text-3xl font-bold text-white mb-4 bg-gradient-to-r from-red-400 to-red-300 bg-clip-text text-transparent">
+            Error al cargar datos
+          </h3>
+          <p class="text-gray-300 mb-8 leading-relaxed text-lg">{{ error }}</p>
           <button (click)="cargarMetricas()"
-            class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold inline-flex items-center gap-2 transition-colors duration-200">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            class="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-8 py-4 rounded-xl font-semibold inline-flex items-center gap-3 transition-all duration-300 hover:scale-105 hover:shadow-xl border border-green-400/30 relative overflow-hidden group">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
-            Reintentar
+            <span class="relative z-10">Reintentar Carga</span>
+            <div class="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
           </button>
         </div>
       </div>
       } @else if (metrics) {
-      <!-- Dashboard Content -->
-      <div class="space-y-6">
-        <!-- Información del Proyecto -->
+      <!-- Dashboard Content Ultra Mejorado -->
+      <div class="space-y-8">
+        <!-- Información del Proyecto Ultra Mejorada -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <!-- Tarjeta de Proyecto -->
-          <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
-            <div class="flex items-center gap-4">
-              <div
-                class="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
-                <span class="text-white font-semibold text-lg">
-                  {{ metrics.proyecto.nombre.charAt(0) }}
-                </span>
-              </div>
-              <div>
-                <h3 class="text-lg font-bold text-white">{{ metrics.proyecto.nombre }}</h3>
-                <p class="text-gray-400 text-sm">{{ metrics.proyecto.descripcion || 'Sin descripción' }}</p>
-                <p class="text-gray-500 text-xs mt-1">
-                  Creado el {{ formatearFecha(metrics.proyecto.createdAt) }}
-                </p>
-              </div>
-            </div>
-          </div>
-
-
-
-          <!-- Estadísticas del Proyecto -->
-          <div class="bg-gray-800 rounded-xl p-6 border border-gray-700 lg:col-span-2">
-            <h3 class="text-lg font-bold text-white mb-4">Estadísticas del Proyecto</h3>
-            <div class="grid grid-cols-2 lg:grid-cols-3 gap-4">
-
-              <div class="text-center">
-                <div class="text-2xl font-bold text-yellow-400">{{ metrics.stats.tareasEnProgreso }}</div>
-                <div class="text-gray-400 text-sm">En Progreso</div>
-              </div>
-              <div class="text-center">
-                <div class="text-2xl font-bold text-blue-400">{{ metrics.stats.tareasCompletadas }}</div>
-                <div class="text-gray-400 text-sm">Completadas</div>
-              </div>
-              <div class="text-center">
-                <div class="text-2xl font-bold text-yellow-400">{{ metrics.stats.tareasPendientes }}</div>
-                <div class="text-gray-400 text-sm">Pendientes</div>
-              </div>
-              <div class="text-center">
-                <div class="text-2xl font-bold text-green-400">{{ metrics.stats.totalTareas }}</div>
-                <div class="text-gray-400 text-sm">Total Tareas</div>
-              </div>
-              <div class="text-center">
-                <div class="text-xl font-bold text-amber-400">{{ metrics.stats.tareasEnRevision }}</div>
-                <div class="text-gray-400 text-sm">En Revisión</div>
-              </div>
-              <div class="text-center">
-                <div class="text-2xl font-bold text-purple-400">
-                  {{ formatearPorcentaje(metrics.stats.porcentajeCompletado) }}
+          <!-- Tarjeta de Proyecto Ultra Mejorada -->
+          <div class="bg-gradient-to-br from-gray-800 via-gray-800/95 to-gray-900 rounded-3xl p-6 border border-gray-700/50 shadow-3xl hover:shadow-4xl transition-all duration-500 hover:scale-105 group relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-500/10 to-blue-500/10 rounded-full transform translate-x-16 -translate-y-16"></div>
+            <div class="relative z-10">
+              <div class="flex items-center gap-5">
+                <div class="relative">
+                  <div class="w-16 h-16 bg-gradient-to-br from-blue-500 via-purple-500 to-cyan-500 rounded-2xl flex items-center justify-center shadow-2xl group-hover:scale-110 group-hover:rotate-12 transition-all duration-500">
+                    <span class="text-white font-bold text-xl">
+                      {{ metrics.proyecto.nombre.charAt(0) }}
+                    </span>
+                  </div>
+                  <div class="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-4 border-gray-900 shadow-lg animate-pulse"></div>
                 </div>
-                <div class="text-gray-400 text-sm">Progreso</div>
+                <div class="flex-1 min-w-0">
+                  <h3 class="text-2xl font-bold text-white truncate group-hover:text-blue-300 transition-colors duration-300 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+                    {{ metrics.proyecto.nombre }}
+                  </h3>
+                  <p class="text-gray-300 text-sm mt-2 line-clamp-2 leading-relaxed">
+                    {{ metrics.proyecto.descripcion || 'Proyecto sin descripción' }}
+                  </p>
+                  <p class="text-gray-400 text-xs mt-3 flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    Creado el {{ formatearFecha(metrics.proyecto.createdAt) }}
+                  </p>
+                </div>
               </div>
             </div>
+          </div>
 
-
+          <!-- Estadísticas del Proyecto Ultra Mejoradas -->
+          <div class="bg-gradient-to-br from-gray-800 via-gray-800/95 to-gray-900 rounded-3xl p-6 border border-gray-700/50 shadow-3xl lg:col-span-2 relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-24 h-24 bg-gradient-to-br from-green-500/10 to-blue-500/10 rounded-full transform -translate-x-12 -translate-y-12"></div>
+            <div class="relative z-10">
+              <div class="flex items-center justify-between mb-6">
+                <h3 class="text-2xl font-bold text-white bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+                  Estadísticas del Proyecto
+                </h3>
+                <div class="text-sm text-gray-300 bg-gradient-to-r from-gray-700/50 to-gray-600/50 px-4 py-2 rounded-full border border-gray-600/50 shadow-lg flex items-center gap-2">
+                  <span class="flex w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                  Actualizado {{ getTiempoDesdeUltimaActualizacion() }}
+                </div>
+              </div>
+              <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
+                <div class="text-center p-5 bg-gradient-to-br from-gray-700/50 to-gray-800/50 rounded-2xl border border-gray-600/50 hover:border-yellow-400/50 transition-all duration-500 hover:scale-105 group backdrop-blur-sm">
+                  <div class="text-4xl font-bold text-yellow-400 group-hover:scale-110 transition-transform duration-300 mb-2">
+                    {{ metrics.stats.tareasEnProgreso }}
+                  </div>
+                  <div class="text-gray-300 text-sm">En Progreso</div>
+                  <div class="w-full h-1 bg-gray-600 rounded-full mt-3 overflow-hidden">
+                    <div class="h-full bg-gradient-to-r from-yellow-400 to-yellow-500 rounded-full transition-all duration-1000" 
+                      [style.width]="((metrics.stats.tareasEnProgreso / metrics.stats.totalTareas) * 100) + '%'"></div>
+                  </div>
+                </div>
+                <div class="text-center p-5 bg-gradient-to-br from-gray-700/50 to-gray-800/50 rounded-2xl border border-gray-600/50 hover:border-blue-400/50 transition-all duration-500 hover:scale-105 group backdrop-blur-sm">
+                  <div class="text-4xl font-bold text-blue-400 group-hover:scale-110 transition-transform duration-300 mb-2">
+                    {{ metrics.stats.tareasCompletadas }}
+                  </div>
+                  <div class="text-gray-300 text-sm">Completadas</div>
+                  <div class="w-full h-1 bg-gray-600 rounded-full mt-3 overflow-hidden">
+                    <div class="h-full bg-gradient-to-r from-blue-400 to-blue-500 rounded-full transition-all duration-1000" 
+                      [style.width]="((metrics.stats.tareasCompletadas / metrics.stats.totalTareas) * 100) + '%'"></div>
+                  </div>
+                </div>
+                <div class="text-center p-5 bg-gradient-to-br from-gray-700/50 to-gray-800/50 rounded-2xl border border-gray-600/50 hover:border-yellow-400/50 transition-all duration-500 hover:scale-105 group backdrop-blur-sm">
+                  <div class="text-4xl font-bold text-yellow-400 group-hover:scale-110 transition-transform duration-300 mb-2">
+                    {{ metrics.stats.tareasPendientes }}
+                  </div>
+                  <div class="text-gray-300 text-sm">Pendientes</div>
+                  <div class="w-full h-1 bg-gray-600 rounded-full mt-3 overflow-hidden">
+                    <div class="h-full bg-gradient-to-r from-yellow-400 to-yellow-500 rounded-full transition-all duration-1000" 
+                      [style.width]="((metrics.stats.tareasPendientes / metrics.stats.totalTareas) * 100) + '%'"></div>
+                  </div>
+                </div>
+                <div class="text-center p-5 bg-gradient-to-br from-gray-700/50 to-gray-800/50 rounded-2xl border border-gray-600/50 hover:border-green-400/50 transition-all duration-500 hover:scale-105 group backdrop-blur-sm">
+                  <div class="text-4xl font-bold text-green-400 group-hover:scale-110 transition-transform duration-300 mb-2">
+                    {{ metrics.stats.totalTareas }}
+                  </div>
+                  <div class="text-gray-300 text-sm">Total Tareas</div>
+                  <div class="w-full h-1 bg-gray-600 rounded-full mt-3 overflow-hidden">
+                    <div class="h-full bg-gradient-to-r from-green-400 to-green-500 rounded-full"></div>
+                  </div>
+                </div>
+                <div class="text-center p-5 bg-gradient-to-br from-gray-700/50 to-gray-800/50 rounded-2xl border border-gray-600/50 hover:border-purple-400/50 transition-all duration-500 hover:scale-105 group backdrop-blur-sm">
+                  <div class="text-4xl font-bold text-purple-400 group-hover:scale-110 transition-transform duration-300 mb-2">
+                    {{ formatearPorcentaje(metrics.stats.porcentajeCompletado) }}
+                  </div>
+                  <div class="text-gray-300 text-sm">Progreso Total</div>
+                  <div class="w-full h-1 bg-gray-600 rounded-full mt-3 overflow-hidden">
+                    <div class="h-full bg-gradient-to-r from-purple-400 to-purple-500 rounded-full transition-all duration-1000" 
+                      [style.width]="metrics.stats.porcentajeCompletado + '%'"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- Sección de Gráficos Personalizables -->
-        <!-- Reemplaza toda la sección de gráficos con este código: -->
-
-        <!-- Sección de Gráficos Personalizables -->
-        @if (getChartCount() > 0) {
-        <div class="space-y-4"> <!-- Reducido de space-y-6 a space-y-4 -->
-
-          <!-- Fila 1: Gráficos principales más compactos -->
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4"> <!-- Reducido gap-6 a gap-4 -->
-
-            <!-- Gráfico de Barras -->
+        <!-- Sección de Gráficos Personalizables Ultra Mejorada -->
+        <!-- ✅ TODOS LOS GRÁFICOS VISIBLES POR DEFECTO -->
+        <div class="space-y-8">
+          <!-- Fila 1: Gráficos principales -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Gráfico de Barras Ultra Mejorado -->
             @if (isBarChartEnabled()) {
-            <div class="bg-gray-800 rounded-xl p-4 border border-gray-700"> <!-- Reducido p-6 a p-4 -->
-              <h4 class="text-md font-semibold text-white mb-3 text-center">Tareas por Estado</h4>
-              <!-- Texto más pequeño -->
-              <div class="h-60"> <!-- Reducido de h-80 a h-60 -->
-                <canvas baseChart [data]="barChartData" [options]="barChartOptions" type="bar"></canvas>
+            <div class="bg-gradient-to-br from-gray-800 via-gray-800/95 to-gray-900 rounded-3xl p-6 border border-gray-700/50 shadow-3xl hover:shadow-4xl transition-all duration-500 group relative overflow-hidden">
+              <div class="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-blue-500/10 to-blue-600/10 rounded-full transform translate-x-10 -translate-y-10"></div>
+              <div class="relative z-10">
+                <div class="flex items-center justify-between mb-6">
+                  <h4 class="text-xl font-semibold text-white bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+                    Tareas por Estado
+                  </h4>
+                  <div class="flex items-center gap-2">
+                    <div class="w-3 h-3 bg-blue-500 rounded-full animate-pulse shadow-lg"></div>
+                    <span class="text-gray-400 text-sm">Activo</span>
+                  </div>
+                </div>
+                <div class="h-80">
+                  <canvas baseChart [data]="barChartData" [options]="barChartOptions" type="bar" class="w-full h-full"></canvas>
+                </div>
               </div>
             </div>
             }
 
-            <!-- Gráfico Circular -->
+            <!-- Gráfico Circular Ultra Mejorado -->
             @if (isPieChartEnabled()) {
-            <div class="bg-gray-800 rounded-xl p-4 border border-gray-700">
-              <h4 class="text-md font-semibold text-white mb-3 text-center">Tareas por Prioridad</h4>
-              <div class="h-60">
-                <canvas baseChart [data]="pieChartData" [options]="pieChartOptions" type="pie"></canvas>
+            <div class="bg-gradient-to-br from-gray-800 via-gray-800/95 to-gray-900 rounded-3xl p-6 border border-gray-700/50 shadow-3xl hover:shadow-4xl transition-all duration-500 group relative overflow-hidden">
+              <div class="absolute top-0 left-0 w-20 h-20 bg-gradient-to-br from-purple-500/10 to-purple-600/10 rounded-full transform -translate-x-10 -translate-y-10"></div>
+              <div class="relative z-10">
+                <div class="flex items-center justify-between mb-6">
+                  <h4 class="text-xl font-semibold text-white bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+                    Distribución por Prioridad
+                  </h4>
+                  <div class="flex items-center gap-2">
+                    <div class="w-3 h-3 bg-purple-500 rounded-full animate-pulse shadow-lg"></div>
+                    <span class="text-gray-400 text-sm">Activo</span>
+                  </div>
+                </div>
+                <div class="h-80">
+                  <canvas baseChart [data]="pieChartData" [options]="pieChartOptions" type="pie" class="w-full h-full"></canvas>
+                </div>
+              </div>
+            </div>
+            }
+          </div>
+
+          <!-- Fila 2: Gráficos adicionales -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Gráfico de Área Ultra Mejorado -->
+            @if (isAreaChartEnabled()) {
+            <div class="bg-gradient-to-br from-gray-800 via-gray-800/95 to-gray-900 rounded-3xl p-6 border border-gray-700/50 shadow-3xl hover:shadow-4xl transition-all duration-500 group relative overflow-hidden">
+              <div class="absolute bottom-0 left-0 w-20 h-20 bg-gradient-to-br from-cyan-500/10 to-cyan-600/10 rounded-full transform -translate-x-10 translate-y-10"></div>
+              <div class="relative z-10">
+                <div class="flex items-center justify-between mb-6">
+                  <h4 class="text-xl font-semibold text-white bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+                    Evolución del Proyecto
+                  </h4>
+                  <div class="flex items-center gap-2">
+                    <div class="w-3 h-3 bg-cyan-500 rounded-full animate-pulse shadow-lg"></div>
+                    <span class="text-gray-400 text-sm">Activo</span>
+                  </div>
+                </div>
+                <div class="h-72">
+                  <canvas baseChart [data]="areaChartData" [options]="areaChartOptions" type="line" class="w-full h-full"></canvas>
+                </div>
               </div>
             </div>
             }
 
-          </div>
-
-          <!-- Fila 2: Gráfico de líneas más compacto -->
-          @if (isLineChartEnabled()) {
-          <div class="bg-gray-800 rounded-xl p-4 border border-gray-700">
-            <h4 class="text-md font-semibold text-white mb-3 text-center">Productividad Semanal</h4>
-            <div class="h-56"> <!-- Más compacto que los otros -->
-              <canvas baseChart [data]="lineChartData" [options]="lineChartOptions" type="line"></canvas>
-            </div>
-          </div>
-          }
-
-          <!-- Fila 3: Gráficos adicionales -->
-          @if (isDoughnutChartEnabled() || isRadarChartEnabled()) {
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-
-            <!-- Gráfico de Anillo -->
-            @if (isDoughnutChartEnabled()) {
-            <div class="bg-gray-800 rounded-xl p-4 border border-gray-700">
-              <h4 class="text-md font-semibold text-white mb-3 text-center">Eficiencia por Usuario</h4>
-              <div class="h-60">
-                <canvas baseChart [data]="doughnutChartData" [options]="doughnutChartOptions" type="doughnut"></canvas>
-              </div>
-            </div>
-            }
-
-            <!-- Gráfico Radar -->
-            @if (isRadarChartEnabled()) {
-            <div class="bg-gray-800 rounded-xl p-4 border border-gray-700">
-              <h4 class="text-md font-semibold text-white mb-3 text-center">Métricas de Calidad</h4>
-              <div class="h-60">
-                <canvas baseChart [data]="radarChartData" [options]="radarChartOptions" type="radar"></canvas>
-              </div>
-            </div>
-            }
-
-          </div>
-          }
-
+            <!-- Gráfico de Anillo Ultra Mejorado -->
+@if (isDoughnutChartEnabled()) {
+  <div class="bg-gradient-to-br from-gray-800 via-gray-800/95 to-gray-900 rounded-3xl p-6 border border-gray-700/50 shadow-3xl hover:shadow-4xl transition-all duration-500 group relative overflow-hidden">
+    <div class="relative z-10">
+      <div class="flex items-center justify-between mb-6">
+        <h4 class="text-xl font-semibold text-white bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+          Eficiencia por Usuario
+        </h4>
+        <div class="flex items-center gap-2">
+          <div class="w-3 h-3 bg-amber-500 rounded-full animate-pulse shadow-lg"></div>
+          <span class="text-gray-400 text-sm">Activo</span>
         </div>
-        } @else {
-        <!-- Estado sin gráficos - también más compacto -->
-        <div class="bg-gray-800 rounded-xl p-8 border border-gray-700 text-center"> <!-- Reducido p-12 a p-8 -->
-          <div class="w-16 h-16 mx-auto mb-4 bg-gray-700 rounded-2xl flex items-center justify-center">
-            <!-- Icono más pequeño -->
-            <svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
+      </div>
+      <div class="h-72">
+        <canvas
+          baseChart
+          [data]="doughnutChartData"
+          [options]="doughnutChartOptions"
+          type="doughnut"
+          class="w-full h-full">
+        </canvas>
+      </div>
+    </div>
+  </div>
+}
           </div>
-          <h3 class="text-lg font-bold text-white mb-2">Sin gráficos activos</h3> <!-- Texto más pequeño -->
-          <p class="text-gray-400 mb-4">Selecciona los gráficos que quieres ver en tu dashboard</p>
-          <!-- Menos margen -->
-          <button (click)="toggleChartSelector()"
-            class="bg-purple-500 hover:bg-purple-600 text-white px-5 py-2 rounded-lg font-semibold inline-flex items-center gap-2 transition-colors duration-200">
-            <!-- Botón más compacto -->
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-            Seleccionar Gráficos
-          </button>
         </div>
-        }
       </div>
       }
     </main>

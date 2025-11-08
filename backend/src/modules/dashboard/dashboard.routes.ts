@@ -30,4 +30,21 @@ router.get('/dashboard/user-info', (req, res) => {
   void dashboardController.getUserInfo(req, res);
 });
 
+// ✅ NUEVAS RUTAS PARA EXPORTACIÓN MEJORADA
+
+// Exportación de datos del proyecto
+router.get('/proyectos/:projectId/export', (req, res) => {
+  void dashboardController.exportProjectData(req, res);
+});
+
+// Reportes ejecutivos
+router.get('/proyectos/:projectId/report', (req, res) => {
+  void dashboardController.generateProjectReport(req, res);
+});
+
+// Exportación rápida del dashboard actual
+router.get('/proyectos/:projectId/export-dashboard', (req, res) => {
+  void dashboardController.getProjectDashboard(req, res); // Reutiliza el existente
+});
+
 export default router;

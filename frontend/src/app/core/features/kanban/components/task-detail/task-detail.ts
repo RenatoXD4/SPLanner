@@ -8,6 +8,8 @@ import type EditorJS from '@editorjs/editorjs';
 import { BlockService } from '../../services/block-service';
 import { EditorJSOutputData } from '../../types/block-interfaces';
 import { firstValueFrom } from 'rxjs';
+import { AiService } from '../../services/aiservice';
+import { AiPromptTool } from './ai-prompt-tool';
 
 @Component({
   selector: 'app-task-detail',
@@ -22,6 +24,7 @@ export class TaskDetail implements AfterViewInit, OnDestroy, OnChanges {
   @Input() task: Task | null = null;
   @Input() isHidden: boolean = true;
   @Output() closePanel = new EventEmitter<void>();
+  private aiService = inject(AiService)
   private blockService = inject(BlockService)
   private isEditorReady = false;
   
@@ -88,6 +91,7 @@ export class TaskDetail implements AfterViewInit, OnDestroy, OnChanges {
     const EditorJS = (await import('@editorjs/editorjs')).default;
     const Header = (await import('@editorjs/header')).default; 
     const List = (await import('@editorjs/list')).default;
+    const aiServiceInstance = this.aiService;
 
     this.editor = new EditorJS({
       holder: 'editorjs-container',
@@ -105,6 +109,14 @@ export class TaskDetail implements AfterViewInit, OnDestroy, OnChanges {
           inlineToolbar: true,
           config: {
             defaultStyle: 'unordered'
+          }
+        },
+        aiPrompt: {
+          class: AiPromptTool,
+          config: {
+            generateText: (prompt: string) => {
+              return firstValueFrom(aiServiceInstance.generateText(prompt));
+            }
           }
         }
       },

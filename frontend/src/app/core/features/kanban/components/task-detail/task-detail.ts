@@ -27,6 +27,7 @@ export class TaskDetail implements AfterViewInit, OnDestroy, OnChanges {
   private aiService = inject(AiService)
   private blockService = inject(BlockService)
   private isEditorReady = false;
+  @Input() estadoNombre: string | null = null;
   
   constructor(@Inject(PLATFORM_ID) private platformId: Object) {}
   

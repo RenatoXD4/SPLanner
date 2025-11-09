@@ -1,6 +1,9 @@
 <div class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white flex">
   <app-sidebar></app-sidebar>
-  <app-task-detail [task]="selectedTask" [isHidden]="isDetailPanelHidden" (closePanel)="hideTaskDetails()">
+  <app-task-detail 
+    [task]="selectedTask" 
+    [isHidden]="isDetailPanelHidden"
+    [estadoNombre]="selectedTaskEstadoNombre"   (closePanel)="hideTaskDetails()">
   </app-task-detail>
 
   <!-- CONTENIDO PRINCIPAL -->
@@ -58,7 +61,7 @@
               hoveredTaskId === A.id.toString()
                 ? 'ring ring-primary ring-offset-2 scale-[1.01] bg-base-100 shadow-md'
                 : ''
-            ]" (click)="showTaskDetails(A)">
+            ]" (click)="showTaskDetails(A, item)">
             <!-- Contenido principal de la tarea -->
             <span class="font-medium text-sm text-base-content break-words max-w-full">
               {{ A.title ?? '' }}

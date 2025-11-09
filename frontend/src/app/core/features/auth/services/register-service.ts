@@ -1,5 +1,5 @@
 import { Injectable, signal } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormControl, FormGroup, Validators, AbstractControl } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { catchError, tap } from 'rxjs/operators';
 import { throwError } from 'rxjs';
@@ -27,11 +27,13 @@ export class RegistroService {
   userForm: FormGroup;
   email: FormControl;
   password: FormControl;
+  confirmPassword: FormControl;
   name: FormControl;
   apellido: FormControl;
 
   emailTouched = signal(false);
   passwordTouched = signal(false);
+  confirmPasswordTouched = signal(false);
   nameTouched = signal(false);
   apellidoTouched = signal(false);
 
@@ -61,6 +63,11 @@ export class RegistroService {
       Validators.pattern(this.PASSWORD_PATTERN)
     ]);
 
+    this.confirmPassword = new FormControl('', [
+      Validators.required,
+      this.passwordMatchValidator.bind(this)
+    ]);
+
     this.name = new FormControl('', [
       Validators.required,
       Validators.minLength(2),
@@ -79,6 +86,7 @@ export class RegistroService {
     this.userForm = new FormGroup({
       email: this.email,
       password: this.password,
+      confirmPassword: this.confirmPassword,
       name: this.name,
       apellido: this.apellido
     });
@@ -86,6 +94,20 @@ export class RegistroService {
     this.email.valueChanges.subscribe(() => {
       this.emailExistsError.set(false);
     });
+
+    // Actualizar validación de confirmPassword cuando cambia password
+    this.password.valueChanges.subscribe(() => {
+      if (this.confirmPassword.touched) {
+        this.confirmPassword.updateValueAndValidity();
+      }
+    });
+  }
+
+  private passwordMatchValidator(control: FormControl): { [key: string]: boolean } | null {
+    if (this.password && control.value !== this.password.value) {
+      return { 'passwordMismatch': true };
+    }
+    return null;
   }
 
   private sameNameValidator(control: FormControl): { [key: string]: boolean } | null {
@@ -101,6 +123,10 @@ export class RegistroService {
 
   showPasswordError(): boolean {
     return this.passwordTouched() && this.password.invalid;
+  }
+
+  showConfirmPasswordError(): boolean {
+    return this.confirmPasswordTouched() && this.confirmPassword.invalid;
   }
 
   showNameError(): boolean {
@@ -129,6 +155,15 @@ export class RegistroService {
       return 'La contraseña debe tener al menos 8 caracteres';
     } else if (this.password.errors?.['pattern']) {
       return 'Debe contener: mayúsculas, minúsculas, números y caracteres especiales (@$!%*?&.)';
+    }
+    return '';
+  }
+
+  getConfirmPasswordErrorMessage(): string {
+    if (this.confirmPassword.errors?.['required']) {
+      return 'Por favor confirma tu contraseña';
+    } else if (this.confirmPassword.errors?.['passwordMismatch']) {
+      return 'Las contraseñas no coinciden';
     }
     return '';
   }
@@ -165,6 +200,9 @@ export class RegistroService {
       case 'password':
         this.passwordTouched.set(true);
         break;
+      case 'confirmPassword':
+        this.confirmPasswordTouched.set(true);
+        break;
       case 'name':
         this.nameTouched.set(true);
         break;
@@ -174,57 +212,55 @@ export class RegistroService {
     }
   }
 
- async sendVerificationEmail(): Promise<boolean> {
-  if (this.userForm.valid) {
-    this.isLoading.set(true);
-    this.errorMessage.set('');
+  async sendVerificationEmail(): Promise<boolean> {
+    if (this.userForm.valid) {
+      this.isLoading.set(true);
+      this.errorMessage.set('');
 
-    const userData = {
-      nombre: this.name.value,
-      apellido: this.apellido.value,
-      email: this.email.value,
-      password: this.password.value
-    };
+      const userData = {
+        nombre: this.name.value,
+        apellido: this.apellido.value,
+        email: this.email.value,
+        password: this.password.value
+      };
 
-    const verificationToken = Math.random().toString(36).substring(2) + Date.now().toString(36);
+      const verificationToken = Math.random().toString(36).substring(2) + Date.now().toString(36);
 
-    // GUARDAR EN LOCALSTORAGE
-    const pendingUser = {
-      ...userData,
-      verificationToken,
-      createdAt: new Date().toISOString()
-    };
+      // GUARDAR EN LOCALSTORAGE
+      const pendingUser = {
+        ...userData,
+        verificationToken,
+        createdAt: new Date().toISOString()
+      };
 
-    localStorage.setItem(`pending_${verificationToken}`, JSON.stringify(pendingUser));
+      localStorage.setItem(`pending_${verificationToken}`, JSON.stringify(pendingUser));
 
+      try {
+        const result = await this.emailVerificationService.sendVerificationEmail(
+          userData.email,
+          userData.nombre,
+          verificationToken
+        );
 
+        this.isLoading.set(false);
 
-    try {
-      const result = await this.emailVerificationService.sendVerificationEmail(
-        userData.email,
-        userData.nombre,
-        verificationToken
-      );
-
-      this.isLoading.set(false);
-
-      if (result.success) {
-        this.isVerificationSent.set(true);
-        return true;
-      } else {
-        this.errorMessage.set(result.message || 'Error al enviar correo de verificación');
+        if (result.success) {
+          this.isVerificationSent.set(true);
+          return true;
+        } else {
+          this.errorMessage.set(result.message || 'Error al enviar correo de verificación');
+          localStorage.removeItem(`pending_${verificationToken}`);
+          return false;
+        }
+      } catch (error) {
+        this.isLoading.set(false);
+        this.errorMessage.set('Error al enviar correo de verificación');
         localStorage.removeItem(`pending_${verificationToken}`);
         return false;
       }
-    } catch (error) {
-      this.isLoading.set(false);
-      this.errorMessage.set('Error al enviar correo de verificación');
-      localStorage.removeItem(`pending_${verificationToken}`);
-      return false;
     }
+    return false;
   }
-  return false;
-}
 
   registerUser() {
     if (this.userForm.valid) {
@@ -322,6 +358,7 @@ export class RegistroService {
   handleSubmit(): void {
     this.emailTouched.set(true);
     this.passwordTouched.set(true);
+    this.confirmPasswordTouched.set(true);
     this.nameTouched.set(true);
     this.apellidoTouched.set(true);
 
@@ -336,6 +373,7 @@ export class RegistroService {
   private resetTouchedStates(): void {
     this.emailTouched.set(false);
     this.passwordTouched.set(false);
+    this.confirmPasswordTouched.set(false);
     this.nameTouched.set(false);
     this.apellidoTouched.set(false);
     this.emailExistsError.set(false);

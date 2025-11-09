@@ -15,6 +15,7 @@ import { environment } from '../../../../../Environments/environment';
 })
 export class Registro implements OnInit {
   showPassword: boolean = false;
+  showConfirmPassword: boolean = false;
   showSuccessPopup: boolean = false;
   isRedirecting: boolean = false;
   isVerifying: boolean = false;
@@ -49,11 +50,9 @@ export class Registro implements OnInit {
 
   public getVerificationTokenFromUrl(): string | null {
     let token: string | null = null;
-
-    // Suscribirse a los query params de forma síncrona
     this.route.queryParams.subscribe(params => {
       token = params['token'] || null;
-    }).unsubscribe(); // Nos desuscribimos inmediatamente después de obtener el valor
+    }).unsubscribe();
 
     return token;
   }
@@ -61,8 +60,6 @@ export class Registro implements OnInit {
   verifyAccount(token: string) {
     this.isVerifying = true;
     this.verificationError = '';
-
-    // Verificar si estamos en el cliente antes de usar localStorage
     if (typeof localStorage === 'undefined') {
       this.verificationError = 'No se puede verificar en este entorno';
       this.isVerifying = false;
@@ -134,6 +131,10 @@ export class Registro implements OnInit {
     return this.registroService.showPasswordError();
   }
 
+  showConfirmPasswordError(): boolean {
+    return this.registroService.showConfirmPasswordError();
+  }
+
   showNameError(): boolean {
     return this.registroService.showNameError();
   }
@@ -150,6 +151,10 @@ export class Registro implements OnInit {
     return this.registroService.getPasswordErrorMessage();
   }
 
+  getConfirmPasswordErrorMessage(): string {
+    return this.registroService.getConfirmPasswordErrorMessage();
+  }
+
   getNameErrorMessage(): string {
     return this.registroService.getNameErrorMessage();
   }
@@ -163,57 +168,54 @@ export class Registro implements OnInit {
   }
 
   async onRegister(): Promise<void> {
-  this.registroService.handleSubmit();
+    this.registroService.handleSubmit();
 
-  if (this.registroService.userForm.valid) {
-    // Primero verificamos si el correo existe antes de enviar la verificación
-    const emailExists = await this.checkEmailExists();
+    if (this.registroService.userForm.valid) {
+      //verificamos si el correo existe antes de enviar la verificación
+      const emailExists = await this.checkEmailExists();
 
-    if (emailExists) {
-      this.registroService.emailExistsError.set(true);
-      this.registroService.emailTouched.set(true);
+      if (emailExists) {
+        this.registroService.emailExistsError.set(true);
+        this.registroService.emailTouched.set(true);
+        this.registroService.playShakeAnimation();
+        return;
+      }
+
+      // Si el correo no existe, procedemos con el envío de verificación
+      const success = await this.registroService.sendVerificationEmail();
+      if (!success) {
+        this.registroService.playShakeAnimation();
+      }
+    } else {
       this.registroService.playShakeAnimation();
-      return;
     }
-
-    // Si el correo no existe, procedemos con el envío de verificación
-    const success = await this.registroService.sendVerificationEmail();
-    if (!success) {
-      this.registroService.playShakeAnimation();
-    }
-  } else {
-    this.registroService.playShakeAnimation();
   }
-}
-private async checkEmailExists(): Promise<boolean> {
-  const email = this.registroService.email.value;
 
-  if (!email) return false;
+  private async checkEmailExists(): Promise<boolean> {
+    const email = this.registroService.email.value;
 
-  try {
+    if (!email) return false;
 
-    const response = await fetch(`${environment.apiUrl}/usuarios/check-email`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email: email })
-    });
+    try {
+      const response = await fetch(`${environment.apiUrl}/usuarios/check-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: email })
+      });
 
-    if (response.ok) {
-      const result = await response.json();
-      return result.exists;
+      if (response.ok) {
+        const result = await response.json();
+        return result.exists;
+      }
+
+      return false;
+    } catch (error) {
+      console.error('Error verificando email:', error);
+      return false;
     }
-
-    return false;
-  } catch (error) {
-    console.error('Error verificando email:', error);
-    return false;
   }
-}
-
-
-
 
   goBackToForm(): void {
     this.registroService.isVerificationSent.set(false);
@@ -221,6 +223,10 @@ private async checkEmailExists(): Promise<boolean> {
 
   togglePasswordVisibility(): void {
     this.showPassword = !this.showPassword;
+  }
+
+  toggleConfirmPasswordVisibility(): void {
+    this.showConfirmPassword = !this.showConfirmPassword;
   }
 
   get isLoading(): boolean {

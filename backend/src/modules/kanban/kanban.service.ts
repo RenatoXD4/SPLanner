@@ -1,5 +1,5 @@
 import type { BloqueContenido, Etiqueta, Tarea } from "@prisma/client";
-import type { Color, Etiqueta, Tarea } from "@prisma/client";
+import type { Color } from "@prisma/client";
 
 import { prisma } from "../../lib/prisma.js";
 import { KanbanRepository, ResponsableConUsuario, TareaConRelaciones } from "./kanban.repository.js";

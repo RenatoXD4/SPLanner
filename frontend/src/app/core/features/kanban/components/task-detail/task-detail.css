@@ -75,3 +75,41 @@
 :host ::ng-deep .ce-inline-tool--active {
   background-color: #475569;
 }
+
+
+:host ::ng-deep .ai-prompt-wrapper {
+  display: flex;
+  gap: 8px;
+  border: 1px solid #e0e0e0;
+  padding: 10px;
+  border-radius: 6px;
+  background: #2ca587;
+}
+
+:host ::ng-deep .ai-prompt-input {
+  flex-grow: 1;
+  border: 1px solid #ccc;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+:host ::ng-deep .ai-prompt-button {
+  padding: 8px 16px;
+  font-size: 14px;
+  color: white;
+  background-color: #3b82f6; /* bg-blue-600 */
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.15s ease-in-out;
+}
+
+:host ::ng-deep .ai-prompt-button:hover {
+  background-color: #2563eb; /* bg-blue-700 */
+}
+
+:host ::ng-deep .ai-prompt-button:disabled {
+  background-color: #9ca3af; /* bg-gray-400 */
+  cursor: not-allowed;
+}

@@ -109,11 +109,13 @@ export class Board implements OnInit {
 
   public selectedTask: Task | null = null;
   public isDetailPanelHidden: boolean = true;
+  public selectedTaskEstadoNombre: string | null = null;
 
-  showTaskDetails(task: Task) {
-    this.selectedTask = task;
-    this.isDetailPanelHidden = false;
-  }
+  showTaskDetails(task: Task, categoria: Categoria) { // <-- MODIFICADO
+    this.selectedTask = task;
+    this.selectedTaskEstadoNombre = categoria.nombre; // <-- NUEVO
+    this.isDetailPanelHidden = false;
+  }
 
   hideTaskDetails() {
     this.isDetailPanelHidden = true;

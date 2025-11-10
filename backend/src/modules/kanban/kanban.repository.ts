@@ -184,10 +184,19 @@ export class KanbanRepository {
     public async deleteEstado(id: number) {
         if (!id) throw new Error("ID del estado es obligatorio");
 
-        return prisma.estado.delete({
-            where: { id }
+        return prisma.$transaction(async (tx) => {
+            // Primero eliminar todas las tareas relacionadas a este estado
+            await tx.tarea.deleteMany({
+                where: { estadoId: id }
+            });
+
+            // Luego eliminar el estado
+            return tx.estado.delete({
+                where: { id }
+            });
         });
     }
+
 
     // Eliminar etiqueta por ID y proyecto, devolviendo la etiqueta eliminada
     public async deleteEtiqueta(id: number, proyectoId: string): Promise<Etiqueta> {

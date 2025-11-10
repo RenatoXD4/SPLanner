@@ -112,15 +112,15 @@ export class Board implements OnInit {
   public isDetailPanelHidden: boolean = true;
   public selectedTaskEstadoNombre: string | null = null;
 
-  showTaskDetails(task: Task, categoria: Categoria) { // <-- MODIFICADO
+  showTaskDetails(task: Task, categoria: Categoria) {
     this.selectedTask = task;
-    this.selectedTaskEstadoNombre = categoria.nombre; // <-- NUEVO
+    this.selectedTaskEstadoNombre = categoria.nombre;
     this.isDetailPanelHidden = false;
   }
 
   hideTaskDetails() {
     this.isDetailPanelHidden = true;
-    this.selectedTask = null; // Opcional: limpia la tarea seleccionada
+    this.selectedTask = null;
   }
 
   @ViewChild('kanbanContainer') kanbanContainer?: ElementRef;

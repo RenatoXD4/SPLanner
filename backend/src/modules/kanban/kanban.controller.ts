@@ -61,11 +61,6 @@ interface UpdateEstadoBody {
   posicion?: number;
 }
 
-interface UpdateColorBody {
-  codigo: string;
-  nombre: string;
-}
-
 interface UpdateEstadoBody {
   colorId?: number;
   nombre?: string;

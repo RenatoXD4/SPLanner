@@ -1,5 +1,4 @@
-import type { BloqueContenido, Etiqueta, Tarea } from "@prisma/client";
-import type { Color } from "@prisma/client";
+import type { BloqueContenido, Color, Etiqueta, Tarea } from "@prisma/client";
 
 import { prisma } from "../../lib/prisma.js";
 import { KanbanRepository, ResponsableConUsuario, TareaConRelaciones } from "./kanban.repository.js";
@@ -130,9 +129,12 @@ export class KanbanService {
   }
   // Eliminar estado por ID
   public async deleteEstado(id: number) {
-    if (!id) throw new Error("ID del estado es obligatorio");
-    return this.kanbanrepo.deleteEstado(id);
+    return prisma.$transaction(async (tx) => {
+      await tx.tarea.deleteMany({ where: { estadoId: id } });
+      return tx.estado.delete({ where: { id } });
+    });
   }
+
 
   // Eliminar etiqueta
   public async deleteEtiqueta(id: number, proyectoId: string): Promise<Etiqueta> {

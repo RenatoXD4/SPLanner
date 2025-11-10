@@ -1,5 +1,4 @@
-import { Tarea, TipoDeBloque } from "@prisma/client";
-import { Color } from "@prisma/client";
+import { Color, Tarea, TipoDeBloque  } from "@prisma/client";
 import { NextFunction, Request, Response } from "express";
 
 import { KanbanService } from "./kanban.service.js";
@@ -50,6 +49,17 @@ interface ResponsableConUsuario {
   };
 }
 
+
+interface UpdateColorBody {
+  codigo: string;
+  nombre: string;
+}
+
+interface UpdateEstadoBody {
+  colorId?: number;
+  nombre?: string;
+  posicion?: number;
+}
 
 interface UpdateColorBody {
   codigo: string;

@@ -17,6 +17,7 @@ import { ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../../../services/auth-service';
 import { ProyectoGuard } from '../../../../../guards/proyecto.guard';
 import { TaskDetail } from "../task-detail/task-detail";
+import { NgZone } from '@angular/core';
 
 export interface User {
   id: string;
@@ -126,6 +127,8 @@ export class Board implements OnInit {
   @ViewChild('listContainer') listContainer?: ElementRef;
   @ViewChild('assignedContainer') assignedContainer?: ElementRef;
   @ViewChild('thTitulo') thTitulo!: ElementRef;
+  @ViewChild('colorSelectorContainer', { static: false }) colorSelectorContainer?: ElementRef;
+
 
   currentUser: string = '';
   sidebarOpen = false;
@@ -183,8 +186,12 @@ export class Board implements OnInit {
     titulo: false,
   };
 
+  // Controla qué columnas tienen visible el selector de color
+  colorSelectorVisible: Record<string, boolean> = {};
+
   constructor(
     private cdr: ChangeDetectorRef,
+    private zone: NgZone,
     private boardService: BoardService,
     private route: ActivatedRoute,
     private router: Router,
@@ -224,6 +231,7 @@ export class Board implements OnInit {
 
       this.mostrarErrorYRedirigir('No tienes acceso a este proyecto');
     }
+
   }
 
 
@@ -450,6 +458,15 @@ export class Board implements OnInit {
   }
 
 
+  agregarEtiquetaSiNueva(nombre: string) {
+    const existe = this.etiquetasUnicas.some(e => e.nombre.trim().toLowerCase() === nombre.trim().toLowerCase());
+    if (!existe && nombre.trim().length > 0) {
+      // Acá podrías agregar la lógica para crear una nueva etiqueta
+      // Por ejemplo, llamar a tu backend y agregarla en etiquetasUnicas
+    }
+    this.tagsBusquedaTexto = '';
+    this.filtrarTags();
+  }
 
 
 
@@ -706,17 +723,17 @@ export class Board implements OnInit {
           dueDate: tareaNueva.fechaLimite ?? '',
         };
 
-        // Actualizar la vista
-        if (this.categoriaSeleccionadaForModal) {
-          this.categoriaSeleccionadaForModal.tasks.push(task);
-          this.categoriaSeleccionadaForModal.tasks.sort((a, b) => (a.posicion ?? 0) - (b.posicion ?? 0));
-        }
-
-        // Actualizar UI
-        this.generarListaResponsables();
-        this.generarListaPrioridades();
-        this.cdr.detectChanges();
-        this.cerrarModal();
+        this.zone.run(() => {
+          // Actualizar la vista
+          if (this.categoriaSeleccionadaForModal) {
+            this.categoriaSeleccionadaForModal.tasks = [...this.categoriaSeleccionadaForModal.tasks, task];
+            this.categoriaSeleccionadaForModal.tasks.sort((a, b) => (a.posicion ?? 0) - (b.posicion ?? 0));
+          }
+          this.generarListaResponsables();
+          this.generarListaPrioridades();
+          this.cdr.detectChanges();
+          this.cerrarModal();
+        });
       },
       error: (err) => {
         console.error('Error creando tarea:', err);
@@ -763,28 +780,28 @@ export class Board implements OnInit {
   }
 
   eliminarTarea(taskId: string): void {
-    if (confirm('¿Estás seguro de que deseas eliminar esta tarea?')) {
-      this.boardService.deleteTask(taskId).subscribe(
-        () => {
-          console.log('Tarea eliminada');
-          // Buscar en todas las categorías y eliminar la tarea
-          this.CategoriasK.forEach(categoria => {
-            categoria.tasks = categoria.tasks.filter(task => task.id !== taskId);
-          });
-          this.generarListaResponsables();
-          this.generarListaPrioridades();
-          this.cdr.detectChanges();  // Asegura que Angular detecte los cambios
-        },
-        (error) => {
-          console.error('Error al eliminar la tarea:', error);  // Detalle completo del error
-          if (error.message.includes("La tarea con ID")) {
-            alert(`Error: ${error.message}`);  // Mostrar mensaje amigable
-          } else {
-            alert('Error al eliminar la tarea. Por favor, intente nuevamente.');
-          }
+    //if (confirm('¿Estás seguro de que deseas eliminar esta tarea?')) {
+    this.boardService.deleteTask(taskId).subscribe(
+      () => {
+        //console.log('Tarea eliminada');
+        // Buscar en todas las categorías y eliminar la tarea
+        this.CategoriasK.forEach(categoria => {
+          categoria.tasks = categoria.tasks.filter(task => task.id !== taskId);
+        });
+        this.generarListaResponsables();
+        this.generarListaPrioridades();
+        this.cdr.detectChanges();  // Asegura que Angular detecte los cambios
+      },
+      (error) => {
+        console.error('Error al eliminar la tarea:', error);  // Detalle completo del error
+        if (error.message.includes("La tarea con ID")) {
+          //alert(`Error: ${error.message}`);  // Mostrar mensaje amigable
+        } else {
+          //alert('Error al eliminar la tarea. Por favor, intente nuevamente.');
         }
-      );
-    }
+      }
+    );
+    //}
   }
 
   editarTarea(taskId: string) {
@@ -1034,6 +1051,21 @@ export class Board implements OnInit {
     return etiqueta?.nombre ?? 'Desconocida';
   }
 
+  tagsBusquedaTexto = '';
+  tagsFiltradas = [...this.etiquetasUnicas];
+
+  filtrarTags() {
+    const texto = this.tagsBusquedaTexto.toLowerCase().trim();
+    if (!texto) {
+      this.tagsFiltradas = [...this.etiquetasUnicas];
+    } else {
+      this.tagsFiltradas = this.etiquetasUnicas.filter(tag =>
+        tag.nombre.toLowerCase().includes(texto)
+      );
+    }
+  }
+
+
   toggleResponsable(id: string) {
     const idx = this.filtroResponsable.indexOf(id);
     if (idx > -1) {
@@ -1056,7 +1088,7 @@ export class Board implements OnInit {
 
   toggleEtiqueta(id: number) {
     if (id === undefined || id === null) {
-      console.error('Intento de agregar una etiqueta con id inválido:', id);
+      //console.error('Intento de agregar una etiqueta con id inválido:', id);
       return;
     }
 
@@ -1104,7 +1136,210 @@ export class Board implements OnInit {
   }
 
 
+  toggleSelectorColor(id: string) {
+    this.colorSelectorVisible[id] = !this.colorSelectorVisible[id];
+  }
 
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    if (this.colorSelectorContainer && !this.colorSelectorContainer.nativeElement.contains(event.target)) {
+      // Cierra todos los selectores si haces clic fuera
+      this.colorSelectorVisible = {};
+      this.cdr.detectChanges();
+    }
+  }
+
+  cambiarColorColumna(id: string, color: ColorType): void {
+    const cat = this.CategoriasK.find(c => c.id === id);
+    if (!cat) return;
+
+    cat.color = color;  // Actualiza localmente para UI rápida
+    this.configurarEstilosPorEstado(this.CategoriasK);
+
+    // Oculta el selector de color
+    this.colorSelectorVisible[id] = false;
+    this.cdr.detectChanges();
+
+    // Envía solo la propiedad colorId al backend
+    this.boardService.updateEstado(Number(id), { colorId: color.id }).subscribe({
+      next: (estadoActualizado) => {
+        console.log('Estado actualizado con nuevo color:', estadoActualizado);
+        const idx = this.CategoriasK.findIndex(c => c.id === id);
+        if (idx !== -1) {
+          this.CategoriasK[idx].color = estadoActualizado.color;
+        }
+        this.cdr.detectChanges();
+        //alert('Color de columna actualizado correctamente.');
+      },
+      error: (err) => {
+        console.error('Error actualizando color columna:', err);
+        //alert('Error al actualizar color. Intenta nuevamente.');
+        this.cargarDatosProyecto(this.proyectoIdActual);
+      }
+    });
+  }
+
+
+  modalColumnaVisible: boolean = false;
+  nuevaColumnaNombre: string = '';
+  nuevaColumnaColorId: number | null = null;
+
+  abrirModalNuevaColumna() {
+    this.nuevaColumnaNombre = '';
+    this.nuevaColumnaColorId = null;
+    this.modalColumnaVisible = true;
+  }
+
+  cerrarModalNuevaColumna() {
+    this.modalColumnaVisible = false;
+  }
+
+  crearColumna(event: Event) {
+    event.preventDefault();
+    if (!this.nuevaColumnaNombre.trim() || !this.nuevaColumnaColorId) return;
+
+    const posicion = this.CategoriasK.length > 0
+      ? Math.max(...this.CategoriasK.map(c => c.posicion)) + 1
+      : 0;
+
+    this.boardService.createEstado(
+      this.nuevaColumnaNombre,
+      posicion,
+      this.proyectoIdActual,
+      this.nuevaColumnaColorId
+    ).subscribe({
+      next: (estado) => {
+        this.CategoriasK.push({
+          id: estado.id.toString(),
+          nombre: estado.nombre,
+          posicion: estado.posicion,
+          color: estado.color,
+          tasks: []
+        });
+        this.configurarEstilosPorEstado(this.CategoriasK);
+        this.cerrarModalNuevaColumna();
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        //alert('Error al crear columna: ' + err.error.message +  'Error backend');
+      }
+    });
+  }
+
+  // Variables para manejo de confirmación eliminación columna
+  modalConfirmEliminarVisible: boolean = false;
+  columnaAEliminarId: string | null = null;
+  columnaAEliminarNombre: string = '';
+
+  // Abre modal confirmación con datos de la columna a eliminar
+  abrirModalConfirmEliminar(id: string, nombre: string): void {
+    this.columnaAEliminarId = id;
+    this.columnaAEliminarNombre = nombre;
+    this.modalConfirmEliminarVisible = true;
+    this.cdr.detectChanges();
+  }
+
+  // Cierra el modal confirmación sin eliminar
+  cerrarModalConfirmEliminar(): void {
+    this.modalConfirmEliminarVisible = false;
+    this.columnaAEliminarId = null;
+    this.columnaAEliminarNombre = '';
+    this.cdr.detectChanges();
+  }
+
+  // Confirmar y eliminar la columna
+  confirmarEliminarColumna(): void {
+    if (!this.columnaAEliminarId) return;
+
+    this.boardService.deleteEstado(Number(this.columnaAEliminarId)).subscribe({
+      next: () => {
+        // Remueve localmente del array CategoriasK
+        this.CategoriasK = this.CategoriasK.filter(c => c.id !== this.columnaAEliminarId);
+        this.cdr.detectChanges();
+        //alert(`Columna "${this.columnaAEliminarNombre}" eliminada correctamente.`);
+        this.cerrarModalConfirmEliminar();
+      },
+      error: (err) => {
+        console.error('Error eliminando columna:', err);
+        //alert('Error al eliminar la columna. Intenta nuevamente.');
+      }
+    });
+  }
+
+
+  dropdownEtiquetasAbierto = false;
+  seleccionandoOpcion = false;
+
+  abrirDropdown() {
+    this.dropdownEtiquetasAbierto = true;
+  }
+
+  cerrarDropdown() {
+    if (!this.seleccionandoOpcion) {
+      this.dropdownEtiquetasAbierto = false;
+    }
+  }
+
+  // Cuando el mouse está apretado sobre el dropdown, bloquea cerrar hasta que termine el click
+  marcarSeleccionando() {
+    this.seleccionandoOpcion = true;
+  }
+  desmarcarSeleccionando() {
+    setTimeout(() => {
+      this.seleccionandoOpcion = false;
+      this.dropdownEtiquetasAbierto = false;
+    });
+  }
+
+  // Seleccionar etiqueta al hacer mouseDown para que la selección ocurra antes del blur
+  seleccionarOpcion(id: number) {
+    this.toggleEtiqueta(id);
+    this.desmarcarSeleccionando();
+  }
+
+  nuevoNombreEtiqueta = '';
+  nuevoColorEtiqueta = '#1976D2'; // código hex por defecto
+  modalEtiquetaVisible = false; // control modal
+
+  crearEtiqueta(event: Event) {
+    event.preventDefault();
+    if (!this.nuevoNombreEtiqueta.trim() || !this.nuevoColorEtiqueta) return;
+
+    const colorObj = this.colores.find(c => c.codigo === this.nuevoColorEtiqueta);
+    if (!colorObj) return;
+
+    this.boardService.createEtiqueta(
+      this.nuevoNombreEtiqueta,
+      this.proyectoIdActual,
+      colorObj.id
+    ).subscribe({
+      next: (newEtiqueta) => {
+        this.etiquetasUnicas.push(newEtiqueta);
+        this.nuevoNombreEtiqueta = '';
+        this.nuevoColorEtiqueta = '';
+        this.modalEtiquetaVisible = false;
+      }
+    });
+  }
+
+
+menuVisible = false;
+
+  // Toggle the visibility of the menu
+  toggleMenu(event: MouseEvent) {
+    // Prevent the click event from propagating
+    event.stopPropagation();
+    this.menuVisible = !this.menuVisible;
+  }
+
+  // Detect clicks outside the menu and close it
+  @HostListener('document:click', ['$event'])
+  closeMenuIfClickedOutside(event: MouseEvent) {
+    const menuElement = document.getElementById('dropdownButton');
+    if (menuElement && !menuElement.contains(event.target as Node)) {
+      this.menuVisible = false;
+    }
+  }
 
 
 }

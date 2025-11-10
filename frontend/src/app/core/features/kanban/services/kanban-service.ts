@@ -70,6 +70,12 @@ export interface Estado {
   };
 }
 
+export interface UpdateEstadoBody {
+  nombre?: string;
+  posicion?: number;
+  colorId?: number;
+}
+
 
 @Injectable({
   providedIn: 'root'
@@ -89,10 +95,7 @@ export class BoardService {
     return throwError(() => new Error('Error en la comunicación con el servidor, intente nuevamente.'));
   }
 
-  /**
-   * Obtener tareas por proyecto
-   * Cambiado a ruta RESTful del backend
-   */
+  /*Obtener tareas por proyecto*/
   getTareasPorProyecto(proyectoId: string): Observable<Task[]> {
     return this.http.get<Task[]>(`${this.apiUrl}/projects/${proyectoId}/tasks`).pipe(
       retry(2),
@@ -100,9 +103,7 @@ export class BoardService {
     );
   }
 
-  /**
-   * Obtener columnas/estados del tablero de un proyecto
-   */
+  /*Obtener columnas/estados del tablero de un proyecto*/
   getEstadosDelProyecto(proyectoId: string): Observable<Estado[]> {
     return this.http.get<Estado[]>(`${this.apiUrl}/estados/${proyectoId}`).pipe(
       retry(2),
@@ -124,19 +125,14 @@ export class BoardService {
     );
   }
 
-  /**
-   * Update parcial de una tarea (mover de columna, cambiar posición, etc)
-   * Usamos PATCH y URL correcta
-   */
+  /*Update parcial de una tarea (mover de columna, cambiar posición, etc)*/
   updateTask(taskId: string, data: Partial<Task>): Observable<Task> {
     return this.http.patch<Task>(`${this.apiUrl}/tasks/${taskId}`, data).pipe(
       catchError(this.handleError)
     );
   }
 
-  /**
-   * Eliminar una tarea
-   */
+  /* Eliminar una tarea */
   deleteTask(taskId: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/tasks/${taskId}`).pipe(
       catchError(this.handleError)
@@ -157,9 +153,7 @@ export class BoardService {
     );
   }
 
-  /**
-   * Obtener todas las etiquetas de un proyecto específico
-   */
+  /*Obtener todas las etiquetas de un proyecto específico*/
   getAllEtiquetas(proyectoId: string): Observable<Etiqueta[]> {
     return this.http.get<Etiqueta[]>(`${this.apiUrl}/etiquetas?proyectoId=${proyectoId}`).pipe(
       retry(2),
@@ -167,9 +161,7 @@ export class BoardService {
     );
   }
 
-  /**
-   * Obtener etiqueta por ID (opcionalmente por proyectoId)
-   */
+  /* Obtener etiqueta por ID (opcionalmente por proyectoId)*/
   getEtiquetaById(id: number, proyectoId?: string): Observable<Etiqueta> {
     // Construir params opcional para proyectoId
     const params = proyectoId ? { proyectoId } : undefined;
@@ -179,36 +171,30 @@ export class BoardService {
     );
   }
 
-  /**
-   * Crear una etiqueta
-   */
-  createEtiqueta(nombre: string): Observable<Etiqueta> {
-    return this.http.post<Etiqueta>(`${this.apiUrl}/etiquetas`, { nombre }).pipe(
+  /*Crear una etiqueta*/
+  createEtiqueta(nombre: string, proyectoId: string, colorId: number): Observable<Etiqueta> {
+    // Ajusta el body enviado al API
+    const body = { nombre, proyectoId, colorId };
+    return this.http.post<Etiqueta>(`${this.apiUrl}/etiquetas`, body).pipe(
       catchError(this.handleError)
     );
   }
 
-  /**
-   * Actualizar etiqueta (por ID)
-   */
+  /*Actualizar etiqueta (por ID)*/
   updateEtiqueta(id: number, nombre: string, proyectoId: string, colorId: number): Observable<Etiqueta> {
     return this.http.put<Etiqueta>(`${this.apiUrl}/etiquetas/${id}`, { nombre, proyectoId, colorId }).pipe(
       catchError(this.handleError)
     );
   }
 
-  /**
-   * Eliminar etiqueta (por ID)
-   */
+  /*Eliminar etiqueta (por ID)*/
   deleteEtiqueta(id: number): Observable<Etiqueta> {
     return this.http.delete<Etiqueta>(`${this.apiUrl}/etiquetas/${id}`).pipe(
       catchError(this.handleError)
     );
   }
 
-  /**
-   * Obtener todos los colores
-   */
+  /*Obtener todos los colores*/
   getAllColors(): Observable<Color[]> {
     return this.http.get<Color[]>(`${this.apiUrl}/colores`).pipe(
       retry(2),
@@ -260,7 +246,7 @@ export class BoardService {
   }
 
   // Actualizar estado parcialmente
-  updateEstado(id: number, data: Partial<Estado>): Observable<Estado> {
+  updateEstado(id: number, data: UpdateEstadoBody): Observable<Estado> {
     return this.http.patch<Estado>(`${this.apiUrl}/estados/${id}`, data).pipe(
       catchError(this.handleError)
     );

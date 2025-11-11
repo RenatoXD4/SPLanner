@@ -45,7 +45,12 @@ export interface DashboardData {
 interface UpdateProfileRequest {
   nombre?: string;
   apellido?: string;
+  currentPassword?: string;
   newPassword?: string;
+}
+
+interface VerifyPasswordRequest {
+  currentPassword: string;
 }
 
 @Component({
@@ -62,22 +67,26 @@ export class MenuPrincipal implements OnInit {
 
   // Variables para el modal de edición
   showEditModal: boolean = false;
-  activeTab: string = 'profile'; // 'profile' o 'password'
+  activeTab: string = 'profile';
   editFormData: {
     nombre?: string;
     apellido?: string;
+    currentPassword?: string;
     newPassword?: string;
   } = {};
   confirmNewPassword: string = '';
   editLoading: boolean = false;
-  editErrorMessage: string = '';
+
+  // Errores separados por pestaña
+  editProfileError: string = '';
+  editSecurityError: string = '';
   editSuccessMessage: string = '';
 
-  // Nuevas variables para manejar contraseñas
+  // Variables para manejar contraseñas
   showCurrentPassword: boolean = false;
   showNewPassword: boolean = false;
   showConfirmPassword: boolean = false;
-  showPasswordFields: boolean = false; // Controla si mostrar los campos de nueva contraseña
+  isCurrentPasswordVerified: boolean = false;
 
   // Validaciones de contraseña
   private readonly PASSWORD_PATTERN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.])[A-Za-z\d@$!%*?&.]{8,}$/;
@@ -101,33 +110,39 @@ export class MenuPrincipal implements OnInit {
   }
 
   ngOnInit() {
-    // Solo verificar autenticación en el navegador
     if (this.isBrowser && !this.authService.checkAuthentication()) {
       return;
     }
-
     this.loadDashboardData();
+  }
+
+  // Método para cambiar de pestaña limpiando errores
+  changeTab(tab: string): void {
+    if (this.activeTab === tab) {
+      return;
+    }
+
+    this.editProfileError = '';
+    this.editSecurityError = '';
+    this.editSuccessMessage = '';
+    this.activeTab = tab;
+
+    this.changeDetectorRef.detectChanges();
   }
 
   private getUserId(): string | null {
     const user = this.authService.getCurrentUser();
-
     if (!user) {
       return null;
     }
-
-    // Buscar el ID en diferentes propiedades posibles
     const userId = user.id || user.userId || user.sub;
-
     if (!userId) {
       this.error = 'No se pudo obtener tu información de usuario. Por favor, inicia sesión nuevamente.';
       this.loading = false;
       this.changeDetectorRef.detectChanges();
       return null;
     }
-
-    const userIdString = userId.toString();
-    return userIdString;
+    return userId.toString();
   }
 
   loadDashboardData() {
@@ -153,14 +168,99 @@ export class MenuPrincipal implements OnInit {
         this.error = 'Error de conexión con el servidor';
         this.loading = false;
         this.changeDetectorRef.detectChanges();
-
-        // Solo hacer logout en el navegador si hay error de autenticación
         if (this.isBrowser && (err.status === 401 || err.status === 403)) {
           this.authService.logout();
         }
       }
     });
   }
+
+ // Método para verificar la contraseña actual
+verifyCurrentPassword(): void {
+  if (!this.editFormData.currentPassword) {
+    this.editSecurityError = 'Por favor ingresa tu contraseña actual';
+    this.changeDetectorRef.detectChanges();
+    return;
+  }
+
+  this.editLoading = true;
+  this.editSecurityError = '';
+  this.editProfileError = '';
+  this.editSuccessMessage = '';
+
+  const userId = this.dashboardData?.userInfo?.id;
+  if (!userId) {
+    this.editSecurityError = 'No se pudo obtener el ID del usuario';
+    this.editLoading = false;
+    this.changeDetectorRef.detectChanges();
+    return;
+  }
+
+  const verifyData: VerifyPasswordRequest = {
+    currentPassword: this.editFormData.currentPassword
+  };
+
+  const token = this.authService.getToken();
+  if (!token) {
+    this.editSecurityError = 'No se encontró token de autenticación';
+    this.editLoading = false;
+    this.changeDetectorRef.detectChanges();
+    return;
+  }
+
+  const headers = new HttpHeaders({
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  });
+
+  const url = `http://localhost:9001/api-v1/usuarios/${userId}/verify-password`;
+
+  console.log('Verificando contraseña...', { userId, url });
+
+  this.http.post<{success: boolean; message: string}>(url, verifyData, { headers }).subscribe({
+    next: (response) => {
+      this.editLoading = false;
+      console.log('Respuesta de verificación:', response);
+
+      if (response && response.success === true) {
+        this.isCurrentPasswordVerified = true;
+        this.editSecurityError = '';
+        this.editSuccessMessage = 'Contraseña actual verificada correctamente';
+
+        // Limpiar mensaje de éxito después de 3 segundos
+        setTimeout(() => {
+          this.editSuccessMessage = '';
+          this.changeDetectorRef.detectChanges();
+        }, 3000);
+
+      } else {
+        this.editSecurityError = response?.message || 'Error al verificar la contraseña';
+        this.isCurrentPasswordVerified = false;
+      }
+      this.changeDetectorRef.detectChanges();
+    },
+    error: (error) => {
+      this.editLoading = false;
+      this.isCurrentPasswordVerified = false;
+      console.error('Error en verificación:', error);
+
+      // Manejar diferentes tipos de error
+      if (error.status === 401 || error.status === 400) {
+        this.editSecurityError = 'La contraseña actual es incorrecta';
+      } else if (error.status === 0) {
+        this.editSecurityError = 'No se pudo conectar con el servidor. Verifica tu conexión.';
+      } else if (error.error?.message) {
+        this.editSecurityError = error.error.message;
+      } else if (error.message) {
+        this.editSecurityError = error.message;
+      } else {
+        this.editSecurityError = 'Error al verificar la contraseña. Intenta nuevamente.';
+      }
+
+      this.changeDetectorRef.detectChanges();
+    }
+  });
+}
 
   // Métodos para el modal de edición
   openEditModal() {
@@ -170,14 +270,14 @@ export class MenuPrincipal implements OnInit {
         apellido: this.dashboardData.userInfo.apellido
       };
       this.confirmNewPassword = '';
-      this.editErrorMessage = '';
+      this.editProfileError = '';
+      this.editSecurityError = '';
       this.editSuccessMessage = '';
       this.showCurrentPassword = false;
       this.showNewPassword = false;
       this.showConfirmPassword = false;
-      this.showPasswordFields = false;
-      this.activeTab = 'profile'; // Establecer pestaña por defecto
-      // Resetear errores de contraseña
+      this.isCurrentPasswordVerified = false;
+      this.activeTab = 'profile';
       this.passwordErrors = {
         minLength: false,
         hasUpperCase: false,
@@ -193,15 +293,15 @@ export class MenuPrincipal implements OnInit {
     this.showEditModal = false;
     this.editFormData = {};
     this.confirmNewPassword = '';
-    this.editErrorMessage = '';
+    this.editProfileError = '';
+    this.editSecurityError = '';
     this.editSuccessMessage = '';
     this.editLoading = false;
     this.showCurrentPassword = false;
     this.showNewPassword = false;
     this.showConfirmPassword = false;
-    this.showPasswordFields = false;
-    this.activeTab = 'profile'; // Resetear a pestaña por defecto
-    // Resetear errores de contraseña
+    this.isCurrentPasswordVerified = false;
+    this.activeTab = 'profile';
     this.passwordErrors = {
       minLength: false,
       hasUpperCase: false,
@@ -216,12 +316,6 @@ export class MenuPrincipal implements OnInit {
     this.showCurrentPassword = !this.showCurrentPassword;
   }
 
-  verTodosProyectos(): void {
-    if (this.isBrowser) {
-      this.router.navigate(['/proyectos']);
-    }
-  }
-
   toggleNewPassword() {
     this.showNewPassword = !this.showNewPassword;
   }
@@ -230,32 +324,12 @@ export class MenuPrincipal implements OnInit {
     this.showConfirmPassword = !this.showConfirmPassword;
   }
 
-  // Método para mostrar campos de nueva contraseña
-  showChangePasswordFields() {
-    this.showPasswordFields = true;
-    // Resetear errores de contraseña
-    this.passwordErrors = {
-      minLength: false,
-      hasUpperCase: false,
-      hasLowerCase: false,
-      hasNumber: false,
-      hasSpecialChar: false
-    };
-  }
-
-  // Método para cancelar cambio de contraseña
-  cancelPasswordChange() {
-    this.showPasswordFields = false;
+  // Cuando cambia la contraseña actual, resetear la verificación
+  onCurrentPasswordChange(): void {
+    this.isCurrentPasswordVerified = false;
     this.editFormData.newPassword = '';
     this.confirmNewPassword = '';
-    // Resetear errores de contraseña
-    this.passwordErrors = {
-      minLength: false,
-      hasUpperCase: false,
-      hasLowerCase: false,
-      hasNumber: false,
-      hasSpecialChar: false
-    };
+    this.editSecurityError = '';
   }
 
   // Método para validar fortaleza de contraseña
@@ -291,33 +365,39 @@ export class MenuPrincipal implements OnInit {
   }
 
   validateEditForm(): boolean {
-    this.editErrorMessage = '';
-
-    // Validar según la pestaña activa
     if (this.activeTab === 'profile') {
-      // Para información personal, validar que al menos un campo esté lleno
-      if ((!this.editFormData.nombre || this.editFormData.nombre.trim() === '') &&
-          (!this.editFormData.apellido || this.editFormData.apellido.trim() === '')) {
-        this.editErrorMessage = 'Debes completar al menos un campo para actualizar';
+      this.editProfileError = '';
+    } else {
+      this.editSecurityError = '';
+    }
+
+    if (this.activeTab === 'profile') {
+      // Validación para información personal
+      if (this.editFormData.nombre && this.editFormData.nombre.trim().length < 2) {
+        this.editProfileError = 'El nombre debe tener al menos 2 caracteres';
+        return false;
+      }
+      if (this.editFormData.apellido && this.editFormData.apellido.trim().length < 2) {
+        this.editProfileError = 'El apellido debe tener al menos 2 caracteres';
         return false;
       }
     }
     else if (this.activeTab === 'password') {
-      // Para contraseña, validar todos los campos de contraseña
-      if (!this.editFormData.newPassword) {
-        this.editErrorMessage = 'La nueva contraseña es requerida';
-        return false;
-      }
+      if (this.editFormData.newPassword && this.editFormData.newPassword.trim() !== '') {
+        if (!this.isCurrentPasswordVerified) {
+          this.editSecurityError = 'Debes verificar tu contraseña actual primero';
+          return false;
+        }
 
-      // Validar fortaleza de la contraseña
-      if (!this.isPasswordValid()) {
-        this.editErrorMessage = this.getPasswordErrorMessage();
-        return false;
-      }
+        if (!this.isPasswordValid()) {
+          this.editSecurityError = this.getPasswordErrorMessage();
+          return false;
+        }
 
-      if (this.editFormData.newPassword !== this.confirmNewPassword) {
-        this.editErrorMessage = 'Las nuevas contraseñas no coinciden';
-        return false;
+        if (this.editFormData.newPassword !== this.confirmNewPassword) {
+          this.editSecurityError = 'Las nuevas contraseñas no coinciden';
+          return false;
+        }
       }
     }
 
@@ -330,54 +410,42 @@ export class MenuPrincipal implements OnInit {
     }
 
     this.editLoading = true;
-    this.editErrorMessage = '';
+    this.editProfileError = '';
+    this.editSecurityError = '';
     this.editSuccessMessage = '';
 
     const userId = this.dashboardData?.userInfo?.id;
     if (!userId) {
-      this.editErrorMessage = 'No se pudo obtener el ID del usuario';
+      this.editProfileError = 'No se pudo obtener el ID del usuario';
       this.editLoading = false;
       return;
     }
 
-    console.log('Enviando datos de actualización:', {
-      userId,
-      formData: this.editFormData,
-      activeTab: this.activeTab
-    });
+    const updateData: any = {};
 
-    // Preparar datos para enviar -
-    const updateData: UpdateProfileRequest = {};
-
-    // Si estamos en la pestaña de perfil, enviar nombre y apellido si tienen valor
-    if (this.activeTab === 'profile') {
-      if (this.editFormData.nombre && this.editFormData.nombre.trim() !== '') {
-        updateData.nombre = this.editFormData.nombre.trim();
-      }
-      if (this.editFormData.apellido && this.editFormData.apellido.trim() !== '') {
-        updateData.apellido = this.editFormData.apellido.trim();
-      }
+    if (this.editFormData.nombre && this.editFormData.nombre.trim() !== '') {
+      updateData.nombre = this.editFormData.nombre.trim();
+    }
+    if (this.editFormData.apellido && this.editFormData.apellido.trim() !== '') {
+      updateData.apellido = this.editFormData.apellido.trim();
     }
 
-    // Si estamos en la pestaña de contraseña, enviar la nueva contraseña
-    if (this.activeTab === 'password') {
-      if (this.editFormData.newPassword && this.editFormData.newPassword.trim() !== '') {
-        updateData.newPassword = this.editFormData.newPassword;
-      }
+    if (this.editFormData.currentPassword) {
+      updateData.currentPassword = this.editFormData.currentPassword;
+    }
+    if (this.editFormData.newPassword && this.editFormData.newPassword.trim() !== '') {
+      updateData.newPassword = this.editFormData.newPassword;
     }
 
-    // Verificar que haya al menos un campo para actualizar
     if (Object.keys(updateData).length === 0) {
-      this.editErrorMessage = 'No hay datos para actualizar';
+      this.editProfileError = 'No hay datos para actualizar';
       this.editLoading = false;
       return;
     }
-
-    console.log('Datos finales a enviar:', updateData);
 
     const token = this.authService.getToken();
     if (!token) {
-      this.editErrorMessage = 'No se encontró token de autenticación';
+      this.editProfileError = 'No se encontró token de autenticación';
       this.editLoading = false;
       return;
     }
@@ -387,21 +455,17 @@ export class MenuPrincipal implements OnInit {
       'Content-Type': 'application/json'
     });
 
-    const url = `http://localhost:9001/api-v1/users/${userId}/profile`;
-    console.log('URL de la petición:', url);
+    const url = `http://localhost:9001/api-v1/usuarios/${userId}/profile`;
 
-    this.http.put(url, updateData, {
-      headers
-    }).subscribe({
+    this.http.post(url, updateData, { headers }).subscribe({
       next: (response: any) => {
-        console.log('Respuesta del servidor:', response);
         this.editLoading = false;
 
-        // Verificar si la respuesta tiene la estructura esperada
         if (response && response.success === true) {
           this.editSuccessMessage = response.message || 'Perfil actualizado correctamente';
+          this.editProfileError = '';
+          this.editSecurityError = '';
 
-          // Actualizar los datos locales
           if (this.dashboardData && response.user) {
             this.dashboardData.userInfo = {
               ...this.dashboardData.userInfo,
@@ -409,53 +473,66 @@ export class MenuPrincipal implements OnInit {
             };
           }
 
-          console.log('Perfil actualizado exitosamente');
-
-          // Cerrar modal después de 2 segundos
           setTimeout(() => {
             this.closeEditModal();
             this.loadDashboardData();
           }, 2000);
 
         } else {
-          // Si success es false o no existe
-          this.editErrorMessage = response?.message || 'Error desconocido al actualizar el perfil';
-          console.error('Error en respuesta del servidor:', response);
+          if (this.activeTab === 'profile') {
+            this.editProfileError = response?.message || 'Error desconocido al actualizar el perfil';
+          } else {
+            this.editSecurityError = response?.message || 'Error desconocido al actualizar el perfil';
+          }
         }
       },
       error: (error) => {
         this.editLoading = false;
-        console.error('Error HTTP completo:', error);
 
-        // Manejo detallado de errores
-        if (error.status === 0) {
-          this.editErrorMessage = 'No se pudo conectar con el servidor. Verifica que esté corriendo.';
-        } else if (error.status === 404) {
-          this.editErrorMessage = 'Endpoint no encontrado. Verifica la URL del servidor.';
-        } else if (error.status === 401) {
-          this.editErrorMessage = 'No autorizado. Tu sesión puede haber expirado.';
-        } else if (error.status === 500) {
-          this.editErrorMessage = 'Error interno del servidor. Intenta nuevamente.';
+        if (error.status === 401 || error.status === 400) {
+          if (error.error?.message?.toLowerCase().includes('contraseña') ||
+              error.error?.message?.toLowerCase().includes('password') ||
+              error.error?.message?.toLowerCase().includes('incorrecta') ||
+              error.error?.message?.toLowerCase().includes('actual')) {
+            this.editSecurityError = 'La contraseña actual es incorrecta';
+            this.isCurrentPasswordVerified = false;
+          } else {
+            if (this.activeTab === 'profile') {
+              this.editProfileError = error.error?.message || 'Error de autenticación';
+            } else {
+              this.editSecurityError = error.error?.message || 'Error de autenticación';
+            }
+          }
+        } else if (error.status === 0) {
+          if (this.activeTab === 'profile') {
+            this.editProfileError = 'No se pudo conectar con el servidor';
+          } else {
+            this.editSecurityError = 'No se pudo conectar con el servidor';
+          }
         } else if (error.error?.message) {
-          this.editErrorMessage = error.error.message;
-        } else if (error.message) {
-          this.editErrorMessage = error.message;
+          if (this.activeTab === 'profile') {
+            this.editProfileError = error.error.message;
+          } else {
+            this.editSecurityError = error.error.message;
+          }
         } else {
-          this.editErrorMessage = `Error de conexión: ${error.status || 'Desconocido'}`;
+          if (this.activeTab === 'profile') {
+            this.editProfileError = `Error de conexión: ${error.status || 'Desconocido'}`;
+          } else {
+            this.editSecurityError = `Error de conexión: ${error.status || 'Desconocido'}`;
+          }
         }
-
-        console.log('Detalles del error:');
-        console.log('Status:', error.status);
-        console.log('Status Text:', error.statusText);
-        console.log('URL:', error.url);
-        console.log('Error body:', error.error);
       }
     });
   }
 
-  // AÑADIR timeout de seguridad
+  verTodosProyectos(): void {
+    if (this.isBrowser) {
+      this.router.navigate(['/proyectos']);
+    }
+  }
+
   ngAfterViewInit() {
-    // Timeout de seguridad por si la carga se queda colgada
     setTimeout(() => {
       if (this.loading && !this.dashboardData && !this.error) {
         this.loading = false;
@@ -476,10 +553,8 @@ export class MenuPrincipal implements OnInit {
     return 'En inicio';
   }
 
-  // Método para formatear fecha (solo en navegador)
   formatDate(dateString: string): string {
     if (!this.isBrowser) return dateString;
-
     try {
       return new Date(dateString).toLocaleDateString('es-ES', {
         year: 'numeric',
@@ -490,7 +565,6 @@ export class MenuPrincipal implements OnInit {
     }
   }
 
-  // Método para obtener inicial del nombre
   getUserInitial(): string {
     if (!this.dashboardData?.userInfo?.nombre) {
       return 'U';
@@ -498,12 +572,10 @@ export class MenuPrincipal implements OnInit {
     return this.dashboardData.userInfo.nombre.charAt(0).toUpperCase();
   }
 
-  // Método para recargar datos
   reloadData(): void {
     this.loadDashboardData();
   }
 
-  // Método para manejar logout
   onLogout(): void {
     if (this.isBrowser) {
       this.authService.logout();

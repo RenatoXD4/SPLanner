@@ -15,12 +15,16 @@ routerUser.post("/login", userController.login.bind(userController));
 routerUser.get("/auth/google", userController.googleAuth.bind(userController));
 routerUser.get("/auth/google/callback", userController.googleCallback.bind(userController));
 
-
-//Dashboard
+// Dashboard
 routerUser.get("/:userId/dashboard", userController.getDashboardStats.bind(userController));
-//Modificar dato
-routerUser.put('/users/:userId/profile', userController.updateProfile.bind(userController));
-//Recuperar 
+
+//modificar datos del usuario
+// Endpoint para verificar contraseña
+routerUser.post("/:userId/verify-password", userController.verifyPassword.bind(userController));
+routerUser.post("/:userId/profile", userController.updateProfile.bind(userController));
+
+// Recuperar 
 routerUser.post("/check-email", userController.checkEmail.bind(userController));
 routerUser.post("/reset-password", userController.resetPassword.bind(userController));
+
 export default routerUser;

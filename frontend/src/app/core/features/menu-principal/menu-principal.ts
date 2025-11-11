@@ -159,7 +159,10 @@ export class MenuPrincipal implements OnInit {
       } else {
         this.error = response?.message || 'Error al cargar los datos del dashboard';
         this.loading = false;
-        this.authService.logout();
+        this.changeDetectorRef.detectChanges();
+        //if (this.isBrowser && (error.status === 401 || error.status === 403)) {
+          this.authService.logout();
+
       }
       this.changeDetectorRef.detectChanges();
     },

@@ -1,3 +1,4 @@
+//RUTA: C:\Users\diego\Documents\GitHub\SPLanner\backend\src\modules\dashboard\dashboard.routes.ts
 import { Router } from 'express';
 
 import { DashboardController } from './dashboard.controller.js';

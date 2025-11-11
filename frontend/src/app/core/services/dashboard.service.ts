@@ -1,3 +1,4 @@
+ //  RUTA: \Users\diego\Documents\GitHub\SPLanner\frontend\src\app\core\services\dashboard.service.ts
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';

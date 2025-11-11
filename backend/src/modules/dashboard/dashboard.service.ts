@@ -32,6 +32,52 @@ export interface UserDashboardInfo {
   proyectosCreados: number;
 }
 
+// ✅ NUEVA INTERFACE para eficiencia de usuarios
+export interface UsuarioEficiencia {
+  nombreCompleto: string;
+  tareasCompletadas: number;
+  totalTareas: number;
+}
+
+// ✅ NUEVA INTERFACE para evolución del proyecto
+export interface EvolucionProyecto {
+  labels: string[];
+  completadas: number[];
+  enProgreso: number[];
+  pendientes: number[];
+}
+
+export interface ProjectDashboardMetrics {
+  proyecto: {
+    id: string;
+    nombre: string;
+    descripcion: string | null;
+    createdAt: string;
+  };
+  stats: {
+    totalTareas: number;
+    tareasCompletadas: number;
+    tareasPendientes: number;
+    porcentajeCompletado: number;
+    tareasEnProgreso: number;
+    tareasEnRevision: number;
+  };
+  tareasPorEstado: { estado: string; cantidad: number }[];
+  tareasPorPrioridad: { prioridad: string; cantidad: number }[];
+  actividadReciente: {
+    id: string;
+    accion: string;
+    usuario: string;
+    fecha: string;
+    tarea: string;
+  }[];
+  tendenciaUltimaSemana: { fecha: string; completadas: number }[];
+  // ✅ NUEVO: Incluir eficiencia de todos los miembros
+  usuariosEficiencia?: UsuarioEficiencia[];
+  // ✅ NUEVO: Incluir evolución real del proyecto
+  evolucionProyecto?: EvolucionProyecto;
+}
+
 export class DashboardService {
   
   async getRecentProjects(userId: string, limit = 5): Promise<ProjectDashboard[]> {
@@ -185,8 +231,7 @@ export class DashboardService {
             gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
           }
         },
-        usuarioId: userId
-      }
+        usuarioId: userId }
     });
 
     // Número de equipos únicos (proyectos distintos)
@@ -308,7 +353,8 @@ export class DashboardService {
             porEstado: dashboardData.tareasPorEstado,
             porPrioridad: dashboardData.tareasPorPrioridad
           },
-          tendencias: dashboardData.tendenciaUltimaSemana
+          tendencias: dashboardData.tendenciaUltimaSemana,
+          evolucion: dashboardData.evolucionProyecto || null
         },
         equipo: {
           totalMiembros: 0, // Podrías agregar esta métrica

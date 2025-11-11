@@ -1845,126 +1845,147 @@ export class Dashboard implements OnInit, OnDestroy {
     }
   }
 
-  actualizarGraficos(): void {
-    if (!this.metrics) return;
+actualizarGraficos(): void {
+  if (!this.metrics) return;
 
-    // 1. GRÁFICO DE BARRAS - Solo 3 estados
-    this.barChartData.datasets[0].data = [
-      this.metrics.stats.tareasPendientes,
-      this.metrics.stats.tareasEnProgreso,
-      this.metrics.stats.tareasCompletadas
+  // 1. GRÁFICO DE BARRAS - Solo 3 estados
+  this.barChartData.datasets[0].data = [
+    this.metrics.stats.tareasPendientes,
+    this.metrics.stats.tareasEnProgreso,
+    this.metrics.stats.tareasCompletadas
+  ];
+
+  // 2. GRÁFICO CIRCULAR - Distribución por Prioridad
+  if (this.metrics.tareasPorPrioridad && this.metrics.tareasPorPrioridad.length > 0) {
+    console.log('Usando datos REALES de prioridad del backend:', this.metrics.tareasPorPrioridad);
+    
+    const prioridadesMap = new Map<string, number>();
+    
+    this.metrics.tareasPorPrioridad.forEach((item: { prioridad: string; cantidad: number }) => {
+      if (item.prioridad && item.cantidad !== undefined) {
+        prioridadesMap.set(item.prioridad.toLowerCase(), item.cantidad);
+      }
+    });
+
+    const datosPrioridad = [
+      prioridadesMap.get('alta') || 0,
+      prioridadesMap.get('media') || 0,
+      prioridadesMap.get('baja') || 0
     ];
 
-    // 2. GRÁFICO CIRCULAR - Distribución por Prioridad
-    if (this.metrics.tareasPorPrioridad && this.metrics.tareasPorPrioridad.length > 0) {
-      console.log('Usando datos REALES de prioridad del backend:', this.metrics.tareasPorPrioridad);
-      
-      const prioridadesMap = new Map<string, number>();
-      
-      this.metrics.tareasPorPrioridad.forEach((item: { prioridad: string; cantidad: number }) => {
-        if (item.prioridad && item.cantidad !== undefined) {
-          prioridadesMap.set(item.prioridad.toLowerCase(), item.cantidad);
-        }
-      });
+    console.log('Datos de prioridad para gráfico:', datosPrioridad);
+    this.pieChartData.datasets[0].data = datosPrioridad;
+  } else {
+    console.log('No hay datos de prioridad del backend, mostrando ceros');
+    this.pieChartData.datasets[0].data = [0, 0, 0];
+  }
 
-      const datosPrioridad = [
-        prioridadesMap.get('alta') || 0,
-        prioridadesMap.get('media') || 0,
-        prioridadesMap.get('baja') || 0
-      ];
-
-      console.log('Datos de prioridad para gráfico:', datosPrioridad);
-      this.pieChartData.datasets[0].data = datosPrioridad;
-    } else {
-      console.log('No hay datos de prioridad del backend, mostrando ceros');
-      this.pieChartData.datasets[0].data = [0, 0, 0];
-    }
-
-    // 3. GRÁFICO DE ÁREA APILADO - Evolución General del Proyecto
+  // 3. GRÁFICO DE ÁREA APILADO - Evolución General del Proyecto (DATOS REALES)
+  if (this.metrics.evolucionProyecto) {
+    console.log('📈 Usando datos REALES de evolución del proyecto:', this.metrics.evolucionProyecto);
+    
+    // Usar los datos reales del backend
+    this.areaChartData.labels = this.metrics.evolucionProyecto.labels;
+    this.areaChartData.datasets[0].data = this.metrics.evolucionProyecto.completadas;
+    this.areaChartData.datasets[1].data = this.metrics.evolucionProyecto.enProgreso;
+    this.areaChartData.datasets[2].data = this.metrics.evolucionProyecto.pendientes;
+  } else {
+    console.log('📈 No hay datos de evolución, usando datos simulados');
+    // Fallback a datos simulados si no hay datos reales
     const datosEvolucion = this.generarEvolucionProyecto();
     this.areaChartData.labels = datosEvolucion.labels;
     this.areaChartData.datasets[0].data = datosEvolucion.completadas;
     this.areaChartData.datasets[1].data = datosEvolucion.enProgreso;
     this.areaChartData.datasets[2].data = datosEvolucion.pendientes;
-
-    // 4. GRÁFICO DE ANILLO - Eficiencia por Usuario
-    if (this.tieneUsuariosEficiencia(this.metrics) && this.metrics.usuariosEficiencia!.length > 0) {
-      console.log('Usando datos REALES de eficiencia del backend:', this.metrics.usuariosEficiencia);
-      
-      const eficienciaUsuarios = this.metrics.usuariosEficiencia!.map((usuario: UsuarioEficiencia) => {
-        let eficiencia = 0;
-        if (usuario.totalTareas > 0) {
-          eficiencia = Math.round((usuario.tareasCompletadas / usuario.totalTareas) * 100);
-        }
-        
-        return {
-          usuario: usuario.nombreCompleto,
-          eficiencia: Math.max(0, Math.min(100, eficiencia))
-        };
-      });
-
-      this.doughnutChartData.labels = eficienciaUsuarios.map((item: { usuario: string; eficiencia: number }) => item.usuario);
-      this.doughnutChartData.datasets[0].data = eficienciaUsuarios.map((item: { usuario: string; eficiencia: number }) => item.eficiencia);
-      
-      console.log('Eficiencia por usuario para gráfico:', eficienciaUsuarios);
-    } else {
-      console.log('No hay datos de eficiencia de usuarios del backend, mostrando datos básicos');
-      
-      const usuarioActual = this.authService.getCurrentUser();
-      const nombreUsuario = usuarioActual ? `${usuarioActual.nombre} ${usuarioActual.apellido}` : 'Usuario';
-      
-      const eficienciaBase = this.metrics.stats.porcentajeCompletado || 0;
-      
-      this.doughnutChartData.labels = [nombreUsuario];
-      this.doughnutChartData.datasets[0].data = [eficienciaBase];
-    }
-
-    setTimeout(() => {
-      this.cdr.detectChanges();
-    }, 50);
   }
 
-  // MÉTODO PARA GENERAR EVOLUCIÓN DEL PROYECTO
-  private generarEvolucionProyecto(): { 
-    labels: string[]; 
-    completadas: number[]; 
-    enProgreso: number[]; 
-    pendientes: number[] 
-  } {
-    if (!this.metrics) {
-      return { labels: [], completadas: [], enProgreso: [], pendientes: [] };
-    }
+  // 4. GRÁFICO DE ANILLO - Eficiencia por Usuario
+  if (this.tieneUsuariosEficiencia(this.metrics) && this.metrics.usuariosEficiencia!.length > 0) {
+    console.log('Usando datos REALES de eficiencia del backend:', this.metrics.usuariosEficiencia);
+    
+    const eficienciaUsuarios = this.metrics.usuariosEficiencia!.map((usuario: UsuarioEficiencia) => {
+      let eficiencia = 0;
+      if (usuario.totalTareas > 0) {
+        eficiencia = Math.round((usuario.tareasCompletadas / usuario.totalTareas) * 100);
+      }
+      
+      return {
+        usuario: usuario.nombreCompleto,
+        eficiencia: Math.max(0, Math.min(100, eficiencia))
+      };
+    });
 
-    const totalTareas = this.metrics.stats.totalTareas;
-    const completadasActual = this.metrics.stats.tareasCompletadas;
-    const enProgresoActual = this.metrics.stats.tareasEnProgreso;
-    const pendientesActual = this.metrics.stats.tareasPendientes;
+    this.doughnutChartData.labels = eficienciaUsuarios.map((item: { usuario: string; eficiencia: number }) => item.usuario);
+    this.doughnutChartData.datasets[0].data = eficienciaUsuarios.map((item: { usuario: string; eficiencia: number }) => item.eficiencia);
+    
+    console.log('Eficiencia por usuario para gráfico:', eficienciaUsuarios);
+  } else {
+    console.log('No hay datos de eficiencia de usuarios del backend, mostrando datos básicos');
+    
+    const usuarioActual = this.authService.getCurrentUser();
+    const nombreUsuario = usuarioActual ? `${usuarioActual.nombre} ${usuarioActual.apellido}` : 'Usuario';
+    
+    const eficienciaBase = this.metrics.stats.porcentajeCompletado || 0;
+    
+    this.doughnutChartData.labels = [nombreUsuario];
+    this.doughnutChartData.datasets[0].data = [eficienciaBase];
+  }
 
-    const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'];
-    const completadas: number[] = [];
-    const enProgreso: number[] = [];
-    const pendientes: number[] = [];
+  setTimeout(() => {
+    this.cdr.detectChanges();
+  }, 50);
+}
 
-    // Simular datos históricos
-    for (let i = 0; i < meses.length; i++) {
-      const factor = i / (meses.length - 1);
-      completadas.push(Math.round(completadasActual * factor * 0.8));
-      enProgreso.push(Math.round(enProgresoActual * (0.5 + factor * 0.5)));
-      pendientes.push(Math.max(0, totalTareas - completadas[i] - enProgreso[i]));
-    }
-
-    // Asegurar que el último punto coincida con los datos actuales
-    completadas[meses.length - 1] = completadasActual;
-    enProgreso[meses.length - 1] = enProgresoActual;
-    pendientes[meses.length - 1] = pendientesActual;
-
-    return {
-      labels: meses,
-      completadas,
-      enProgreso,
-      pendientes
+// MÉTODO PARA GENERAR EVOLUCIÓN DEL PROYECTO (SOLO COMO FALLBACK)
+private generarEvolucionProyecto(): { 
+  labels: string[]; 
+  completadas: number[]; 
+  enProgreso: number[]; 
+  pendientes: number[] 
+} {
+  if (!this.metrics) {
+    return { 
+      labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'], 
+      completadas: Array(12).fill(0), 
+      enProgreso: Array(12).fill(0), 
+      pendientes: Array(12).fill(0) 
     };
   }
+
+  const totalTareas = this.metrics.stats.totalTareas;
+  const completadasActual = this.metrics.stats.tareasCompletadas;
+  const enProgresoActual = this.metrics.stats.tareasEnProgreso;
+  const pendientesActual = this.metrics.stats.tareasPendientes;
+
+  const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+  const completadas: number[] = Array(12).fill(0);
+  const enProgreso: number[] = Array(12).fill(0);
+  const pendientes: number[] = Array(12).fill(0);
+
+  // Simular distribución a lo largo del año (solo como fallback)
+  const mesActual = new Date().getMonth();
+  
+  for (let i = 0; i <= mesActual && i < 12; i++) {
+    const factor = i / Math.max(1, mesActual);
+    completadas[i] = Math.round(completadasActual * factor * 0.8);
+    enProgreso[i] = Math.round(enProgresoActual * (0.3 + factor * 0.7));
+    pendientes[i] = Math.max(0, totalTareas - completadas[i] - enProgreso[i]);
+  }
+
+  // Asegurar que el mes actual coincida con los datos reales
+  if (mesActual < 12) {
+    completadas[mesActual] = completadasActual;
+    enProgreso[mesActual] = enProgresoActual;
+    pendientes[mesActual] = pendientesActual;
+  }
+
+  return {
+    labels: meses,
+    completadas,
+    enProgreso,
+    pendientes
+  };
+}
 
   // MÉTODOS AUXILIARES
   getNombreUsuario(): string {

@@ -2,6 +2,21 @@ import { PrismaClient, Usuario } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+// Interface para eficiencia de usuarios
+interface UsuarioEficiencia {
+  nombreCompleto: string;
+  tareasCompletadas: number;
+  totalTareas: number;
+}
+
+// Interface para evolución del proyecto
+interface EvolucionProyecto {
+  labels: string[];
+  completadas: number[];
+  enProgreso: number[];
+  pendientes: number[];
+}
+
 export class UserRepository {
   
   // Crear nuevo usuario
@@ -108,9 +123,143 @@ export class UserRepository {
     });
   }
 
-  // Obtener estadísticas del dashboard para un usuario - CORREGIDO
+  // ✅ NUEVO MÉTODO: Obtener eficiencia de TODOS los miembros del proyecto
+  async getEficienciaPorMiembro(projectId: string): Promise<UsuarioEficiencia[]> {
+    try {
+      console.log('📊 Obteniendo eficiencia para TODOS los miembros del proyecto:', projectId);
+      
+      // Obtener todos los miembros del proyecto
+      const miembros = await prisma.miembro.findMany({
+        where: { 
+          proyectoId: projectId 
+        },
+        include: {
+          usuario: {
+            select: {
+              id: true,
+              nombre: true,
+              apellido: true
+            }
+          }
+        }
+      });
+
+      console.log(`👥 Miembros encontrados en el proyecto: ${miembros.length}`);
+
+      // Para cada miembro, obtener sus tareas y calcular eficiencia
+      const eficienciaPromises = miembros.map(async (miembro) => {
+        // Obtener todas las tareas donde este usuario es responsable en este proyecto
+        const tareasResponsable = await prisma.responsable.findMany({
+          where: {
+            usuarioId: miembro.usuarioId,
+            tarea: {
+              proyectoId: projectId
+            }
+          },
+          include: {
+            tarea: {
+              include: {
+                estado: true
+              }
+            }
+          }
+        });
+
+        const totalTareas = tareasResponsable.length;
+        
+        // Contar tareas completadas
+        const tareasCompletadas = tareasResponsable.filter(responsable => 
+          this.isTaskCompleted(responsable.tarea.estado.nombre)
+        ).length;
+
+        const nombreCompleto = `${miembro.usuario.nombre} ${miembro.usuario.apellido}`;
+        
+        console.log(`📈 ${nombreCompleto}: ${tareasCompletadas}/${totalTareas} tareas completadas`);
+
+        return {
+          nombreCompleto,
+          tareasCompletadas,
+          totalTareas
+        };
+      });
+
+      const eficienciaMiembros = await Promise.all(eficienciaPromises);
+      
+      // Filtrar miembros que tienen al menos una tarea asignada
+      const miembrosConTareasAsignadas = eficienciaMiembros.filter(miembro => miembro.totalTareas > 0);
+      
+      console.log('✅ Eficiencia por miembro calculada:', miembrosConTareasAsignadas);
+      return miembrosConTareasAsignadas;
+
+    } catch (error) {
+      console.error('❌ Error obteniendo eficiencia por miembro:', error);
+      return [];
+    }
+  }
+
+  // ✅ NUEVO MÉTODO: Obtener evolución real del proyecto basada en fechas límite
+  async getEvolucionProyecto(projectId: string): Promise<EvolucionProyecto> {
+    try {
+      console.log('📈 Obteniendo evolución real del proyecto:', projectId);
+      
+      // Obtener todas las tareas del proyecto con sus estados y fechas
+      const tareas = await prisma.tarea.findMany({
+        where: { proyectoId: projectId },
+        include: {
+          estado: true
+        },
+        orderBy: {
+          fechaLimite: 'asc'
+        }
+      });
+
+      // Crear estructura para los 12 meses
+      const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+      const evolucion: EvolucionProyecto = {
+        labels: meses,
+        completadas: Array(12).fill(0),
+        enProgreso: Array(12).fill(0),
+        pendientes: Array(12).fill(0)
+      };
+
+      // Contar tareas por mes según su estado y fecha límite
+      tareas.forEach(tarea => {
+        if (!tarea.fechaLimite) return; // Saltar tareas sin fecha límite
+        
+        const fecha = new Date(tarea.fechaLimite);
+        const mes = fecha.getMonth(); // 0 = Enero, 11 = Diciembre
+        
+        if (mes >= 0 && mes < 12) {
+          const estadoNombre = tarea.estado.nombre.toLowerCase();
+          
+          if (this.isTaskCompleted(estadoNombre)) {
+            evolucion.completadas[mes]++;
+          } else if (this.isTaskInProgress(estadoNombre)) {
+            evolucion.enProgreso[mes]++;
+          } else if (this.isTaskPending(estadoNombre)) {
+            evolucion.pendientes[mes]++;
+          }
+        }
+      });
+
+      console.log('✅ Evolución del proyecto calculada:', evolucion);
+      return evolucion;
+
+    } catch (error) {
+      console.error('❌ Error obteniendo evolución del proyecto:', error);
+      // Fallback: retornar estructura vacía
+      return {
+        labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+        completadas: Array(12).fill(0),
+        enProgreso: Array(12).fill(0),
+        pendientes: Array(12).fill(0)
+      };
+    }
+  }
+
+  // Obtener estadísticas del dashboard para un usuario
   async getUserDashboardStats(userId: string) {
-    console.log('🔄 getUserDashboardStats CORREGIDO para user:', userId);
+    console.log('🔄 getUserDashboardStats para user:', userId);
     
     const user = await prisma.usuario.findUnique({
       include: {
@@ -166,14 +315,14 @@ export class UserRepository {
       index === self.findIndex(p => p.id === project.id)
     );
 
-    // Calcular estadísticas CORREGIDAS
+    // Calcular estadísticas
     const totalProjects = uniqueProjects.length;
     
     // Todas las tareas de todos los proyectos
     const allTasks = uniqueProjects.flatMap(project => project.tareas);
     const totalTasks = allTasks.length;
     
-    // ✅ CONTEO CORREGIDO: Contar tareas por estado real
+    // Contar tareas por estado real
     const completedTasks = allTasks.filter(task => 
       this.isTaskCompleted(task.estado.nombre)
     ).length;
@@ -199,7 +348,7 @@ export class UserRepository {
         .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
         .slice(0, 5)
         .map(project => {
-          // ✅ CONTEO CORREGIDO para cada proyecto
+          // Contar para cada proyecto
           const tareasCompletadas = project.tareas.filter(t => 
             this.isTaskCompleted(t.estado.nombre)
           ).length;
@@ -334,7 +483,7 @@ export class UserRepository {
     }
   }
 
-  // ✅ NUEVO MÉTODO: Obtener conteo de tareas por estado real
+  // ✅ MÉTODO: Obtener conteo de tareas por estado real
   async getTareasPorEstado(projectId: string): Promise<{ cantidad: number; estado: string; }[]> {
     try {
       console.log('📊 Obteniendo tareas por estado para proyecto:', projectId);
@@ -380,7 +529,7 @@ export class UserRepository {
     }
   }
 
-  // ✅ NUEVO MÉTODO: Obtener conteo de tareas en revisión
+  // ✅ MÉTODO: Obtener conteo de tareas en revisión
   async getTareasEnRevisionCount(projectId: string): Promise<number> {
     try {
       const count = await prisma.tarea.count({
@@ -462,7 +611,7 @@ export class UserRepository {
     return 'unknown';
   }
 
-  // ✅ NUEVO MÉTODO: Datos completos para exportación
+  // ✅ MÉTODO: Datos completos para exportación
   async getProjectExportData(projectId: string): Promise<any> {
     try {
       console.log('📤 Obteniendo datos completos para exportación del proyecto:', projectId);
@@ -575,6 +724,11 @@ export class UserRepository {
         throw new Error('Proyecto no encontrado');
       }
 
+      // Obtener eficiencia de miembros
+      const usuariosEficiencia = await this.getEficienciaPorMiembro(projectId);
+      // Obtener evolución del proyecto
+      const evolucionProyecto = await this.getEvolucionProyecto(projectId);
+
       // Estructurar datos para exportación
       const exportData = {
         metadata: {
@@ -625,6 +779,8 @@ export class UserRepository {
             cantidad: proyecto.tareas.filter(t => t.estadoId === estado.id).length
           })),
           tareasPorPrioridad: await this.getTareasPorPrioridad(projectId),
+          eficienciaPorUsuario: usuariosEficiencia,
+          evolucionProyecto: evolucionProyecto,
           progresoGeneral: {
             totalTareas: proyecto.tareas.length,
             tareasCompletadas: proyecto.tareas.filter(t => 
@@ -647,7 +803,7 @@ export class UserRepository {
     }
   }
 
-  // ✅ NUEVO MÉTODO: Datos resumidos para reportes rápidos
+  // ✅ MÉTODO: Datos resumidos para reportes rápidos
   async getProjectSummary(projectId: string): Promise<any> {
     try {
       const proyecto = await prisma.proyectos.findUnique({
@@ -681,6 +837,11 @@ export class UserRepository {
         throw new Error('Proyecto no encontrado');
       }
 
+      // Obtener eficiencia de miembros
+      const usuariosEficiencia = await this.getEficienciaPorMiembro(projectId);
+      // Obtener evolución del proyecto
+      const evolucionProyecto = await this.getEvolucionProyecto(projectId);
+
       const tareasCompletadas = proyecto.tareas.filter(t => 
         this.isTaskCompleted(t.estado.nombre)
       ).length;
@@ -705,7 +866,9 @@ export class UserRepository {
           porcentajeCompletado: proyecto._count.tareas > 0 ? 
             Math.round((tareasCompletadas / proyecto._count.tareas) * 100) : 0,
           tareasConVencimiento,
-          tareasVencidas
+          tareasVencidas,
+          eficienciaMiembros: usuariosEficiencia,
+          evolucionProyecto: evolucionProyecto
         },
         exportDate: new Date().toISOString()
       };

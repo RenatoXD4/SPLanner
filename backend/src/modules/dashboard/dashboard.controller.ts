@@ -48,7 +48,7 @@ export class DashboardController {
   }
 
   /**
-   * Obtener dashboard de un proyecto específico - CORREGIDO
+   * Obtener dashboard de un proyecto específico - ACTUALIZADO CON EVOLUCIÓN REAL
    */
   public async getProjectDashboard(
     req: Request,
@@ -100,15 +100,24 @@ export class DashboardController {
         return;
       }
 
-      // ✅ CORRECCIÓN: Usar métodos reales en lugar de datos vacíos
-      const [tareasPorEstado, tareasPorPrioridad, actividadReciente, tareasEnRevision] = await Promise.all([
+      // ✅ OBTENER DATOS REALES incluyendo evolución basada en fechas límite
+      const [
+        tareasPorEstado, 
+        tareasPorPrioridad, 
+        actividadReciente, 
+        tareasEnRevision, 
+        usuariosEficiencia,
+        evolucionProyecto  // ✅ NUEVO: Datos reales de evolución
+      ] = await Promise.all([
         this.getTareasPorEstado(projectId),
         this.getTareasPorPrioridad(projectId),
         this.getActividadReciente(projectId),
-        this.userRepository.getTareasEnRevisionCount(projectId)
+        this.userRepository.getTareasEnRevisionCount(projectId),
+        this.userRepository.getEficienciaPorMiembro(projectId),
+        this.userRepository.getEvolucionProyecto(projectId) // ✅ NUEVO
       ]);
 
-      // ✅ CORRECCIÓN: Usar datos reales en lugar de fórmulas fijas
+      // Usar datos reales en lugar de fórmulas fijas
       const tareasEnProgreso = 'tareasEnProgreso' in proyectoEspecifico 
         ? (proyectoEspecifico as any).tareasEnProgreso 
         : Math.floor(proyectoEspecifico.totalTareas * 0.3);
@@ -134,14 +143,20 @@ export class DashboardController {
           tareasPendientes: tareasPendientes,
           totalTareas: proyectoEspecifico.totalTareas
         },
-        // ✅ CORREGIDO: Estos ahora son datos REALES del repository
+        // ✅ Estos ahora son datos REALES del repository
         tareasPorEstado,
         tareasPorPrioridad,
-        tendenciaUltimaSemana: this.generateTrendData(proyectoEspecifico.tareasCompletadas)
+        tendenciaUltimaSemana: this.generateTrendData(proyectoEspecifico.tareasCompletadas),
+        // ✅ NUEVO: Incluir eficiencia de todos los miembros
+        usuariosEficiencia: usuariosEficiencia,
+        // ✅ NUEVO: Incluir evolución real del proyecto
+        evolucionProyecto: evolucionProyecto
       };
 
       console.log('📊 Dashboard final - Tareas por prioridad:', tareasPorPrioridad);
       console.log('📊 Dashboard final - Tareas por estado:', tareasPorEstado);
+      console.log('👥 Dashboard final - Eficiencia miembros:', usuariosEficiencia);
+      console.log('📈 Dashboard final - Evolución proyecto:', evolucionProyecto);
 
       res.json({
         data: projectDashboard,

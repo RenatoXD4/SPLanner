@@ -159,15 +159,12 @@ export class MenuPrincipal implements OnInit {
       } else {
         this.error = response?.message || 'Error al cargar los datos del dashboard';
         this.loading = false;
-        this.changeDetectorRef.detectChanges();
-        if (this.isBrowser && (err.status === 401 || err.status === 403)) {
-          this.authService.logout();
-        }
+        this.authService.logout();
       }
       this.changeDetectorRef.detectChanges();
     },
     error: (err) => {
-      console.error('❌ API Error:', err);
+      console.error(' API Error:', err);
       this.error = 'Error de conexión con el servidor';
       this.loading = false;
       this.changeDetectorRef.detectChanges();

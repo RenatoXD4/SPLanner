@@ -30,3 +30,25 @@
   opacity: 0;
   transition: opacity 0.3s ease-in-out;
 }
+
+app-sidebar aside {
+  height: 100vh !important;
+  top: 0 !important;
+  left: 0 !important;
+  z-index: 60 !important;
+  position: static;
+}
+
+/* Scrollbar opcional */
+app-sidebar aside::-webkit-scrollbar {
+  width: 6px;
+}
+
+app-sidebar aside::-webkit-scrollbar-track {
+  background: #1F2937;
+}
+
+app-sidebar aside::-webkit-scrollbar-thumb {
+  background: #4B5563;
+  border-radius: 3px;
+}

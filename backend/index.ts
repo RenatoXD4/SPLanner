@@ -4,13 +4,14 @@ import express, { NextFunction, Request, Response } from "express";
 
 config();
 
+import routerDashboard from "./src/modules/dashboard/dashboard.routes.js";
 import aiRouter from "./src/modules/ai-text-editor/ai.routes.js";
 import blocksRouter from "./src/modules/blocks/blocks.routes.js";
 import { KanbanRepository } from "./src/modules/kanban/kanban.repository.js";
 import routerKanbantask from "./src/modules/kanban/kanban.routes.js";
 import routerMiembro from "./src/modules/miembro/miembro.routes.js";
 import routerProject from "./src/modules/projects/projects.routes.js";
-import routerUser from "./src/modules/usuario/user.routes.js";
+import routerUser from "./src/modules/usuario/user.routes.js"; 
 
 const app = express();
 const port = process.env.PORT ?? "9001";
@@ -50,6 +51,7 @@ app.use(`/${api}/usuarios`, routerUser);
  
 app.use(`/${api}`, routerUser);
 app.use(`/${api}`, routerMiembro); 
+app.use(`/${api}`, routerDashboard); 
 app.use(`/${api}/blocks`, blocksRouter)
 app.use(`/${api}/ai`, aiRouter)
 
@@ -74,6 +76,10 @@ app.use((err: unknown, req: Request, res: Response) => {
   });
 });
 
+// Inicia el servidor
+app.listen(port, () => {
+  console.log(`Servidor escuchando en puerto ${port}`);
+});
 // Middleware para rutas no encontradas (404)
 app.use((req: Request, res: Response) => {
   res.status(404).json({

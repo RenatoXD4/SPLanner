@@ -1,3 +1,4 @@
+//RUTA: C:\Users\diego\Documents\GitHub\SPLanner\frontend\src\app\core\features\vistas\dashboard\dashboard.spec.ts
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { Dashboard } from './dashboard';

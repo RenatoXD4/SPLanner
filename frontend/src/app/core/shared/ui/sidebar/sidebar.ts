@@ -1,13 +1,5 @@
 import { Component, Inject, PLATFORM_ID } from '@angular/core';
-import {
-  CdkDragDrop,
-  moveItemInArray,
-  transferArrayItem,
-  CdkDrag,
-  CdkDropList,
-} from '@angular/cdk/drag-drop';
 import { CommonModule } from '@angular/common';
-import { ElementRef, ViewChild, ChangeDetectorRef, HostListener } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../services/auth-service';
 import { Router } from '@angular/router';
@@ -16,6 +8,7 @@ import { ProyectoGuard } from '../../../../guards/proyecto.guard';
 
 @Component({
   selector: 'app-sidebar',
+  standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.css'
@@ -56,11 +49,11 @@ export class Sidebar {
     } else if (currentRoute.includes('/miembros')) {
       this.activeItem = 'compartidos';
     }
-    // Puedes agregar más rutas según necesites
+
   }
 
   toggleAjustes() {
-    // Tu lógica existente
+//Opciones o logica para la opcion de ajustes
   }
 
   openSidebarMobile() {

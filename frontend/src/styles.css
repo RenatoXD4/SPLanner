@@ -10,7 +10,7 @@
 @import "tailwindcss";
 @plugin "flyonui";
 @import "flyonui/variants.css";
-@source "../node_modules/flyonui/flyonui.js"; 
+@source "../node_modules/flyonui/flyonui.js";
 
 /* Import Third-party override css */
 /* @import "flyonui/src/vendor/flatpickr.css"; */
@@ -20,13 +20,13 @@
 /* @import "flyonui/src/vendor/fullcalendar.css"; */
 /* @import "flyonui/src/vendor/raty.css"; */
 /* @import "flyonui/src/vendor/waves.css"; */
-/* @import "flyonui/src/vendor/apexcharts.css"; */        
+/* @import "flyonui/src/vendor/apexcharts.css"; */
 
 
 
 /*
         FRAMEWORK Daisy
-        
+
 */
 
 @plugin "daisyui";

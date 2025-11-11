@@ -10,6 +10,29 @@
             </svg>
       </button>
 
+        <button 
+    (click)="saveEditorData()"
+    class="
+      px-4 py-2 
+      font-semibold 
+      text-sm 
+      text-white 
+      bg-blue-600 
+      rounded-md 
+      shadow-sm 
+      hover:bg-blue-700 
+      focus:outline-none 
+      focus:ring-2 
+      focus:ring-blue-500 
+      focus:ring-offset-2
+      transition 
+      duration-150 
+      ease-in-out
+    "
+  >
+    Guardar
+  </button>
+
       <h1 class="text-4xl font-bold text-white mb-6 break-words pr-8">
         {{ task?.titulo }}
       </h1>
@@ -17,18 +40,25 @@
       <div class="grid grid-cols-2 md:grid-cols-3 gap-6 text-sm">
         <div class="flex flex-col gap-2">
           <h2 class="text-gray-300 font-medium uppercase tracking-wider">Creador</h2>
-          <div class="flex items-center gap-2">
-              <img 
-                alt="Avatar" 
-                class="w-6 h-6 rounded-full bg-slate-700">
-              <span class="text-white font-semibold">Renato Chicahual</span>
-          </div>
+        @if (task?.responsables && task?.responsables?.length) {
+          @for (user of task?.responsables; track user.usuario.id) {
+            <div class="flex items-center gap-2">
+                <div
+                  class="w-8 h-8 bg-green-500 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-green-500/25">
+                  <span class="text-white text-xs font-bold">{{user.usuario.nombre.charAt(0)}}</span>
+                </div> 
+                <span class="text-white font-semibold">{{ user.usuario.nombre }} {{ user.usuario.apellido }}</span>
+            </div>
+          }
+        } @else {
+          <span class="text-gray-400">No asignado</span>
+        }
         </div>
 
         <div class="flex flex-col gap-2">
           <h2 class="text-gray-300 font-medium uppercase tracking-wider">Estado</h2>
           <span class="text-white font-semibold px-3 py-1 rounded-full w-fit" >
-            {{ task?.estadoId }}
+            {{ estadoNombre }}
           </span>
         </div>
 

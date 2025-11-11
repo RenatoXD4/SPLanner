@@ -14,13 +14,12 @@ export interface EmailParams {
   providedIn: 'root'
 })
 export class EmailService {
-  // TUS CREDENCIALES - REEMPLAZA CON LAS TUYAS
   private serviceId = 'service_38kl5yn';
   private templateId = 'template_3gt9gvk';
   private publicKey = 'qagJDWc32IzRRf0Lv';
 
   constructor() {
-    // Inicializar EmailJS con tu public key
+    // Inicializar EmailJS
     emailjs.init(this.publicKey);
   }
 

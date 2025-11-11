@@ -1,97 +1,199 @@
-/* Estilos para Editor.js
-  Copia y pega este contenido en tu archivo 'task-detail.css'
-*/
+
 
 /* Contenedor principal del editor */
 :host ::ng-deep .codex-editor {
-  font-family: 'Inter', sans-serif; 
+  font-family: 'Inter', sans-serif;
+  padding: 0 4px;
 }
 
+/* Placeholder (texto de ayuda) */
 :host ::ng-deep .codex-editor [data-placeholder-active]:empty:before,
 :host ::ng-deep .codex-editor [data-placeholder-active][data-empty=true]:before {
-  color: #b3b3b3 !important; 
+  /* MEJORADO: Tono de gris (slate-500) más alineado al tema */
+  color: #6b7280 !important;
   font-weight: 400 !important;
   font-style: normal !important;
   transition: color 0.2s ease-in-out;
-  pointer-events: none; 
-  cursor: text; 
+  pointer-events: none;
+  cursor: text;
 }
 
 /* Estilos para los párrafos */
 :host ::ng-deep .ce-paragraph {
   font-size: 1rem;
   line-height: 1.6;
-  color: #ffffff; 
-}
-
-:host ::ng-deep .ce-header {
   color: #ffffff;
-  font-weight: 600;
-  margin: 0;
-  padding: 1.25em 0 0.5em 0;
 }
 
-:host ::ng-deep .ce-header[data-level="2"] {
-  font-size: 1.5rem;
+
+:host ::ng-deep .ce-toolbar__plus, 
+:host ::ng-deep .ce-toolbar__settings-btn {
+  color: #ffffff !important;
 }
 
-:host ::ng-deep .ce-header[data-level="3"] {
-  font-size: 1.25rem;
+/* NUEVO: Estilo para enlaces (links) dentro de los párrafos */
+:host ::ng-deep .ce-paragraph a {
+  color: #60a5fa; /* (Tailwind blue-400) */
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-color: rgba(96, 165, 250, 0.4); /* Decorado sutil */
+  transition: all 0.2s ease;
+  border-radius: 3px;
+}
+:host ::ng-deep .ce-paragraph a:hover {
+  color: #93c5fd; /* (Tailwind blue-300) */
+  text-decoration-color: rgba(147, 197, 253, 1);
+  background-color: rgba(96, 165, 250, 0.1);
 }
 
-:host ::ng-deep .ce-header[data-level="4"] {
-  font-size: 1.1rem;
+:host ::ng-deep .ce-block__content .ce-header {
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  margin: 0 !important;
+  padding: 1.25em 0 0.5em 0 !important;
 }
 
-/* Estilos para las listas */
+/* Estilos para las listas (ordenadas y desordenadas) */
 :host ::ng-deep .ce-list__item {
   padding: 0.3em 0;
   color: #e2e8f0;
   font-size: 1rem;
   line-height: 1.6;
 }
-
-/* Color de los puntos/números de la lista */
 :host ::ng-deep .ce-list__item-marker {
   color: #94a3b8;
 }
 
-/* Estilos para la barra de herramientas en línea (negrita, cursiva, etc.) */
-:host ::ng-deep .ce-inline-toolbar {
-  background-color: #1e293b;
+:host ::ng-deep .ce-popover__search {
+  position: relative;
+  margin-bottom: 8px;
+}
+
+:host ::ng-deep .cdx-search-field_icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+:host ::ng-deep .cdx-search-field_icon svg {
+  width: 16px;
+  height: 16px;
+  stroke: #6b7280; /* (slate-500) */
+  stroke-width: 2;
+}
+
+/* Campo de input del buscador */
+:host ::ng-deep .cdx-search-field__input {
+  width: 100%;
+  border-radius: 8px !important; 
+  color: #000000 !important; 
+  font-size: 14px;
+  outline: none !important;
+  box-shadow: none !important;
+  transition: all 0.2s ease;
+}
+
+/* Foco del input */
+:host ::ng-deep .cdx-search-field__input:focus {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4) !important; 
+}
+
+/* Placeholder del input */
+:host ::ng-deep .cdx-search-field__input::placeholder {
+  color: #6b7280; 
+  opacity: 1;
+}
+
+
+:host ::ng-deep .ce-popover__items {
+  max-height: 200px; 
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #475569 #1e293b;
+}
+
+:host ::ng-deep .ce-popover__item {
+  display: flex !important;
+  align-items: center;
+  padding: 8px 12px;
   border-radius: 6px;
-  border: 1px solid #334155;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
 }
 
-:host ::ng-deep .ce-inline-tool {
-  color: #cbd5e1;
+:host ::ng-deep .ce-popover__item-icon {
+  color: #94a3b8;
+  margin-right: 12px;
+  width: 20px;
+  height: 20px;
+  transition: all 0.15s ease-in-out;
 }
 
-:host ::ng-deep .ce-inline-tool:hover {
-  background-color: #334155;
+:host ::ng-deep .ce-popover__item-title {
+  color: #cbd5e1; 
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.15s ease-in-out;
 }
 
-:host ::ng-deep .ce-inline-tool--active {
-  background-color: #475569;
+/* Hover de los ítems */
+:host ::ng-deep .ce-popover__item:hover {
+  background-color: #334155 !important;
+}
+:host ::ng-deep .ce-popover__item:hover .ce-popover__item-title,
+:host ::ng-deep .ce-popover__item:hover .ce-popover__item-icon {
+  color: #ffffff !important;
 }
 
+/* Ítem activo/seleccionado */
+:host ::ng-deep .ce-popover__item--active {
+  background-color: #3b82f6 !important; 
+}
+:host ::ng-deep .ce-popover__item--active .ce-popover__item-title,
+:host ::ng-deep .ce-popover__item--active .ce-popover__item-icon {
+  color: #ffffff !important;
+}
+
+:host ::ng-deep .ce-popover__nothing-found-message {
+  padding: 12px 16px;
+  text-align: center;
+  color: #94a3b8; 
+  font-size: 14px;
+}
+
+:host ::ng-deep .ce-block--selected > .ce-block__content {
+  border-radius: 6px;
+  box-shadow: inset 3px 0 0 0 #3b82f6;
+}
 
 :host ::ng-deep .ai-prompt-wrapper {
   display: flex;
   gap: 8px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid #334155;
   padding: 10px;
   border-radius: 6px;
-  background: #2ca587;
+  background: #1e293b; /* (slate-800) */
+  margin-top: 10px;
 }
 
 :host ::ng-deep .ai-prompt-input {
   flex-grow: 1;
-  border: 1px solid #ccc;
+  border: 1px solid #334155; /* (slate-700) */
+  background-color: #0f172a; /* (slate-900) */
+  color: #cbd5e1; /* (slate-300) */
   padding: 8px 12px;
   border-radius: 4px;
   font-size: 14px;
+}
+:host ::ng-deep .ai-prompt-input::placeholder {
+  color: #6b7280; /* (slate-500) */
+}
+:host ::ng-deep .ai-prompt-input:focus {
+  outline: none;
+  border-color: #3b82f6; /* (blue-600) */
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4);
 }
 
 :host ::ng-deep .ai-prompt-button {

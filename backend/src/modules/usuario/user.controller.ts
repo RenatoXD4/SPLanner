@@ -43,12 +43,6 @@ interface ResetPasswordRequestBody {
   newPassword: string;
 }
 
-interface UpdateProfileRequestBody {
-  apellido?: string;
-  newPassword?: string;
-  nombre?: string;
-}
-
 interface UserResponse {
   apellido: string;
   createdAt?: string;
@@ -480,58 +474,136 @@ export class UserController {
   }
 
   // Actualizar perfil de usuario
-  public async updateProfile(
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> {
-    try {
-      const { userId } = req.params;
-      const { apellido, newPassword, nombre } = req.body as UpdateProfileRequestBody;
-      if (!userId) {
-        res.status(400).json({ 
-          message: "ID de usuario es requerido",
-          success: false 
-        });
-        return;
-      }
-      // Validar que al menos un campo sea proporcionado
-      if (!nombre && !apellido && !newPassword) {
-        res.status(400).json({ 
-          message: "Al menos un campo debe ser proporcionado para actualizar",
-          success: false 
-        });
-        return;
-      }
-      const updatedUser = await this.userService.updateUserProfile(userId, {
-        apellido,
-        newPassword,
-        nombre
+public async updateProfile(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const { userId } = req.params;
+    const { apellido, currentPassword, newPassword, nombre } = req.body as {
+      apellido?: string;
+      currentPassword?: string;
+      newPassword?: string;
+      nombre?: string;
+    };
+
+    console.log(' DEBUG updateProfile - Iniciando:', {
+      apellido: apellido ?? 'No proporcionado',
+      hasCurrentPassword: !!currentPassword,
+      hasNewPassword: !!newPassword,
+      nombre: nombre ?? 'No proporcionado',
+      userId
+    });
+
+    if (!userId) {
+      console.log(' ERROR: userId no proporcionado');
+      res.status(400).json({ 
+        message: "ID de usuario es requerido",
+        success: false 
       });
-      const userResponse: UserResponse = {
-        apellido: updatedUser.apellido,
-        email: updatedUser.email,
-        id: updatedUser.id,
-        nombre: updatedUser.nombre
-      };
-      res.status(200).json({
-        message: "Perfil actualizado exitosamente",
-        success: true,
-        user: userResponse
-      });
-    } catch (error) {
-      if (error instanceof Error) {
-        if (error.message.includes('contraseña actual') || 
-            error.message.includes('Usuario no encontrado')) {
-          res.status(400).json({ 
-            message: error.message,
-            success: false 
-          });
-          return;
-        }
-      }
-      console.error('Error en updateProfile:', error);
-      next(error);
+      return;
     }
+    // Solo validar contraseña actual si se quiere cambiar la contraseña
+    if (newPassword && newPassword.trim() !== '') {
+      if (!currentPassword || currentPassword.trim() === '') {
+        console.log(' ERROR: Contraseña actual requerida para cambiar contraseña');
+        res.status(400).json({ 
+          message: "La contraseña actual es requerida para cambiar la contraseña",
+          success: false 
+        });
+        return;
+      }
+
+      console.log(' Validando contraseña actual para usuario:', userId);
+    }
+
+    console.log(' Pasó todas las validaciones, llamando al servicio...');
+
+    const updatedUser = await this.userService.updateUserProfile(userId, {
+      apellido,
+      currentPassword,
+      newPassword,
+      nombre
+    });
+
+    const userResponse: UserResponse = {
+      apellido: updatedUser.apellido,
+      email: updatedUser.email,
+      id: updatedUser.id,
+      nombre: updatedUser.nombre
+    };
+
+    console.log('Perfil actualizado exitosamente');
+    res.status(200).json({
+      message: "Perfil actualizado exitosamente",
+      success: true,
+      user: userResponse
+    });
+
+  } catch (error) {
+    console.error(' ERROR en updateProfile:', error);
+    if (error instanceof Error) {
+      console.error(' Mensaje de error:', error.message);
+      if (error.message.includes('contraseña actual') || 
+          error.message.includes('Usuario no encontrado') ||
+          error.message.includes('Contraseña actual incorrecta')) {
+        res.status(400).json({ 
+          message: error.message,
+          success: false 
+        });
+        return;
+      }
+    }
+    next(error);
   }
+}
+
+  // Método para verificar contraseña
+// Método para verificar contraseña
+public async verifyPassword(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const { userId } = req.params;
+    const { currentPassword } = req.body as {
+      currentPassword?: string;
+    };
+    // Validaciones con tipos seguros
+    if (!userId) {
+      res.status(400).json({
+        message: "ID de usuario es requerido",
+        success: false
+      });
+      return;
+    }
+    if (!currentPassword || typeof currentPassword !== 'string' || currentPassword.trim() === '') {
+      res.status(400).json({
+        message: "La contraseña actual es requerida",
+        success: false
+      });
+      return;
+    }
+    // Usar el servicio para verificar la contraseña
+    const isValid = await this.userService.verifyCurrentPassword(userId, currentPassword);
+    
+    if (isValid) {
+      res.json({
+        message: "Contraseña verificada correctamente",
+        success: true
+      });
+    } else {
+      res.status(401).json({
+        message: "Contraseña actual incorrecta",
+        success: false
+      });
+    }
+
+  } catch (error) {
+    console.error('Error verificando contraseña:', error);
+    next(error);
+  }
+}
 }

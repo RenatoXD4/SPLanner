@@ -15,7 +15,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
-          
+
           <div class="min-w-0 flex-1">
             <div class="flex items-center gap-4">
               <div class="relative">
@@ -176,7 +176,7 @@
             <div class="text-center sm:text-left">
               <span class="text-gray-400 text-sm">{{ getChartCount() }} de {{ availableCharts.length }} gráficos activos</span>
               <div class="w-32 h-2 bg-gray-700 rounded-full mt-2 overflow-hidden">
-                <div class="h-full bg-gradient-to-r from-purple-500 to-purple-600 rounded-full transition-all duration-500" 
+                <div class="h-full bg-gradient-to-r from-purple-500 to-purple-600 rounded-full transition-all duration-500"
                   [style.width]="(getChartCount() / availableCharts.length) * 100 + '%'"></div>
               </div>
             </div>
@@ -360,7 +360,7 @@
                   </div>
                   <div class="text-gray-300 text-sm">En Progreso</div>
                   <div class="w-full h-1 bg-gray-600 rounded-full mt-3 overflow-hidden">
-                    <div class="h-full bg-gradient-to-r from-yellow-400 to-yellow-500 rounded-full transition-all duration-1000" 
+                    <div class="h-full bg-gradient-to-r from-yellow-400 to-yellow-500 rounded-full transition-all duration-1000"
                       [style.width]="((metrics.stats.tareasEnProgreso / metrics.stats.totalTareas) * 100) + '%'"></div>
                   </div>
                 </div>
@@ -370,7 +370,7 @@
                   </div>
                   <div class="text-gray-300 text-sm">Completadas</div>
                   <div class="w-full h-1 bg-gray-600 rounded-full mt-3 overflow-hidden">
-                    <div class="h-full bg-gradient-to-r from-blue-400 to-blue-500 rounded-full transition-all duration-1000" 
+                    <div class="h-full bg-gradient-to-r from-blue-400 to-blue-500 rounded-full transition-all duration-1000"
                       [style.width]="((metrics.stats.tareasCompletadas / metrics.stats.totalTareas) * 100) + '%'"></div>
                   </div>
                 </div>
@@ -380,7 +380,7 @@
                   </div>
                   <div class="text-gray-300 text-sm">Pendientes</div>
                   <div class="w-full h-1 bg-gray-600 rounded-full mt-3 overflow-hidden">
-                    <div class="h-full bg-gradient-to-r from-yellow-400 to-yellow-500 rounded-full transition-all duration-1000" 
+                    <div class="h-full bg-gradient-to-r from-yellow-400 to-yellow-500 rounded-full transition-all duration-1000"
                       [style.width]="((metrics.stats.tareasPendientes / metrics.stats.totalTareas) * 100) + '%'"></div>
                   </div>
                 </div>
@@ -399,7 +399,7 @@
                   </div>
                   <div class="text-gray-300 text-sm">Progreso Total</div>
                   <div class="w-full h-1 bg-gray-600 rounded-full mt-3 overflow-hidden">
-                    <div class="h-full bg-gradient-to-r from-purple-400 to-purple-500 rounded-full transition-all duration-1000" 
+                    <div class="h-full bg-gradient-to-r from-purple-400 to-purple-500 rounded-full transition-all duration-1000"
                       [style.width]="metrics.stats.porcentajeCompletado + '%'"></div>
                   </div>
                 </div>
@@ -440,7 +440,7 @@
               <div class="absolute top-0 left-0 w-20 h-20 bg-gradient-to-br from-purple-500/10 to-purple-600/10 rounded-full transform -translate-x-10 -translate-y-10"></div>
               <div class="relative z-10">
                 <div class="flex items-center justify-between mb-6">
-                  <h4 class="text-xl font-semibold text-white bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+                  <h4 class="text-xl font-semibold text-white bg-gradient-to-r from-white to-gray-300 bg-clip-text">
                     Distribución por Prioridad
                   </h4>
                   <div class="flex items-center gap-2">
@@ -464,7 +464,7 @@
               <div class="absolute bottom-0 left-0 w-20 h-20 bg-gradient-to-br from-cyan-500/10 to-cyan-600/10 rounded-full transform -translate-x-10 translate-y-10"></div>
               <div class="relative z-10">
                 <div class="flex items-center justify-between mb-6">
-                  <h4 class="text-xl font-semibold text-white bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+                  <h4 class="text-xl font-semibold text-white bg-gradient-to-r from-white to-gray-300 bg-clip-text">
                     Evolución del Proyecto
                   </h4>
                   <div class="flex items-center gap-2">
@@ -484,7 +484,7 @@
   <div class="bg-gradient-to-br from-gray-800 via-gray-800/95 to-gray-900 rounded-3xl p-6 border border-gray-700/50 shadow-3xl hover:shadow-4xl transition-all duration-500 group relative overflow-hidden">
     <div class="relative z-10">
       <div class="flex items-center justify-between mb-6">
-        <h4 class="text-xl font-semibold text-white bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+        <h4 class="text-xl font-semibold text-white bg-gradient-to-r from-white to-gray-300 bg-clip-text">
           Eficiencia por Usuario
         </h4>
         <div class="flex items-center gap-2">

@@ -11,6 +11,14 @@ export interface DashboardStats {
   totalTasks: number;
 }
 
+// ✅ INTERFACE para evolución del proyecto
+export interface EvolucionProyecto {
+  completadas: number[];
+  enProgreso: number[];
+  labels: string[];
+  pendientes: number[];
+}
+
 export interface ProjectDashboard {
   createdAt: Date;
   descripcion?: string;
@@ -20,6 +28,37 @@ export interface ProjectDashboard {
   progress: number;
   status: string;
   tareasCount: number;
+}
+
+export interface ProjectDashboardMetrics {
+  actividadReciente: {
+    accion: string;
+    fecha: string;
+    id: string;
+    tarea: string;
+    usuario: string;
+  }[];
+  // ✅ NUEVO: Incluir evolución real del proyecto
+  evolucionProyecto?: EvolucionProyecto;
+  proyecto: {
+    createdAt: string;
+    descripcion: null | string;
+    id: string;
+    nombre: string;
+  };
+  stats: {
+    porcentajeCompletado: number;
+    tareasCompletadas: number;
+    tareasEnProgreso: number;
+    tareasEnRevision: number;
+    tareasPendientes: number;
+    totalTareas: number;
+  };
+  tareasPorEstado: { cantidad: number; estado: string; }[];
+  tareasPorPrioridad: { cantidad: number; prioridad: string; }[];
+  tendenciaUltimaSemana: { completadas: number; fecha: string; }[];
+  // ✅ NUEVO: Incluir eficiencia de todos los miembros
+  usuariosEficiencia?: UsuarioEficiencia[];
 }
 
 export interface UserDashboardInfo {
@@ -32,54 +71,137 @@ export interface UserDashboardInfo {
   proyectosCreados: number;
 }
 
-// ✅ NUEVA INTERFACE para eficiencia de usuarios
+// ✅ INTERFACE para eficiencia de usuarios
 export interface UsuarioEficiencia {
   nombreCompleto: string;
   tareasCompletadas: number;
   totalTareas: number;
 }
 
-// ✅ NUEVA INTERFACE para evolución del proyecto
-export interface EvolucionProyecto {
-  labels: string[];
-  completadas: number[];
-  enProgreso: number[];
-  pendientes: number[];
+// ✅ Interface para datos de exportación
+interface ExportData {
+  data: {
+    [key: string]: unknown;
+    exportMetadata: {
+      exportedBy: string;
+      format: string;
+      generatedAt: string;
+    };
+    exportSummary: unknown;
+  };
+  success: boolean;
 }
 
-export interface ProjectDashboardMetrics {
-  proyecto: {
-    id: string;
-    nombre: string;
-    descripcion: string | null;
-    createdAt: string;
+// ✅ Interface para datos de reporte
+interface ReportData {
+  data: {
+    equipo: {
+      eficiencia: UsuarioEficiencia[];
+      totalMiembros: number;
+    };
+    metadata: {
+      format: string;
+      generated: string;
+      title: string;
+      version: string;
+    };
+    metricas: {
+      distribucion: {
+        porEstado: { cantidad: number; estado: string }[];
+        porPrioridad: { cantidad: number; prioridad: string }[];
+      };
+      evolucion: EvolucionProyecto | null;
+      progreso: {
+        porcentajeCompletado: number;
+        tareasCompletadas: number;
+        tareasEnProgreso: number;
+        tareasEnRevision: number;
+        tareasPendientes: number;
+        totalTareas: number;
+      };
+      tendencias: { completadas: number; fecha: string }[];
+    };
+    proyecto: {
+      createdAt: string;
+      descripcion: null | string;
+      id: string;
+      nombre: string;
+    };
   };
-  stats: {
-    totalTareas: number;
-    tareasCompletadas: number;
-    tareasPendientes: number;
-    porcentajeCompletado: number;
-    tareasEnProgreso: number;
-    tareasEnRevision: number;
-  };
-  tareasPorEstado: { estado: string; cantidad: number }[];
-  tareasPorPrioridad: { prioridad: string; cantidad: number }[];
-  actividadReciente: {
-    id: string;
-    accion: string;
-    usuario: string;
-    fecha: string;
-    tarea: string;
-  }[];
-  tendenciaUltimaSemana: { fecha: string; completadas: number }[];
-  // ✅ NUEVO: Incluir eficiencia de todos los miembros
-  usuariosEficiencia?: UsuarioEficiencia[];
-  // ✅ NUEVO: Incluir evolución real del proyecto
-  evolucionProyecto?: EvolucionProyecto;
+  success: boolean;
 }
 
 export class DashboardService {
   
+  // ✅ MÉTODO CORREGIDO: Generar datos para exportación
+  async getProjectExportData(projectId: string): Promise<ExportData> {
+  try {
+    const projectData = await this.getProjectDashboardData(projectId);
+    const summary = await this.getProjectSummary();
+    
+    // Convertir projectData a un objeto seguro para el spread
+    const safeProjectData = projectData && typeof projectData === 'object' 
+      ? { ...projectData as Record<string, unknown> } 
+      : {};
+    
+    return {
+      data: {
+        ...safeProjectData,
+        exportMetadata: {
+          exportedBy: 'Sistema',
+          format: 'JSON',
+          generatedAt: new Date().toISOString()
+        },
+        exportSummary: summary
+      },
+      success: true
+    };
+  } catch (error) {
+    console.error('Error en getProjectExportData:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+    throw new Error(`Error al exportar datos del proyecto: ${errorMessage}`);
+  }
+}
+
+  // ✅ MÉTODO CORREGIDO: Datos para PDF/Excel
+  async getProjectReportData(projectId: string, format: 'excel' | 'json' | 'pdf' = 'json'): Promise<ReportData> {
+    try {
+      const dashboardData = await this.getProjectDashboardData(projectId) as ProjectDashboardMetrics;
+      
+      // Estructura optimizada para reportes
+      const reportData = {
+        equipo: {
+          eficiencia: dashboardData.usuariosEficiencia ?? [],
+          totalMiembros: 0
+        },
+        metadata: {
+          format: format,
+          generated: new Date().toISOString(),
+          title: `Reporte - ${dashboardData.proyecto.nombre}`,
+          version: '1.0'
+        },
+        metricas: {
+          distribucion: {
+            porEstado: dashboardData.tareasPorEstado,
+            porPrioridad: dashboardData.tareasPorPrioridad
+          },
+          evolucion: dashboardData.evolucionProyecto ?? null,
+          progreso: dashboardData.stats,
+          tendencias: dashboardData.tendenciaUltimaSemana
+        },
+        proyecto: dashboardData.proyecto
+      };
+
+      return {
+        data: reportData,
+        success: true
+      };
+    } catch (error) {
+      console.error('Error generando datos de reporte:', error);
+      throw new Error(`Error al generar reporte: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+    }
+  }
+
   async getRecentProjects(userId: string, limit = 5): Promise<ProjectDashboard[]> {
     try {
       const recentProjects = await prisma.miembro.findMany({
@@ -135,7 +257,7 @@ export class DashboardService {
 
     } catch (error) {
       console.error('Error en getRecentProjects:', error);
-      throw error;
+      throw new Error(`Error al obtener proyectos recientes: ${error instanceof Error ? error.message : 'Error desconocido'}`);
     }
   }
 
@@ -251,13 +373,25 @@ export class DashboardService {
     };
   }
 
+  private calculateLastUpdate(createdAt: Date): string {
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - createdAt.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 1) return 'hoy';
+    if (diffDays === 2) return 'ayer';
+    if (diffDays <= 7) return `hace ${(diffDays - 1).toString()} días`;
+    if (diffDays <= 30) return `hace ${Math.floor(diffDays / 7).toString()} semanas`;
+    return `hace ${Math.floor(diffDays / 30).toString()} meses`;
+  }
+
   // MÉTODO AUXILIAR NUEVO: Contar tareas completadas de forma más precisa
   private async contarTareasCompletadas(proyectoId: string): Promise<number> {
     try {
       // Obtener todas las tareas del proyecto con sus estados
       const tareas = await prisma.tarea.findMany({
-        where: { proyectoId: proyectoId },
-        include: { estado: true }
+        include: { estado: true },
+        where: { proyectoId: proyectoId }
       });
 
       // Contar tareas completadas con criterio más amplio
@@ -283,8 +417,8 @@ export class DashboardService {
       console.error('Error contando tareas completadas:', error);
       // Fallback: usar el método antiguo si hay error
       const tareas = await prisma.tarea.findMany({
-        where: { proyectoId: proyectoId },
-        include: { estado: true }
+        include: { estado: true },
+        where: { proyectoId: proyectoId }
       });
       
       return tareas.filter(task => 
@@ -295,100 +429,23 @@ export class DashboardService {
     }
   }
 
-  private calculateLastUpdate(createdAt: Date): string {
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - createdAt.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays === 1) return 'hoy';
-    if (diffDays === 2) return 'ayer';
-    if (diffDays <= 7) return `hace ${(diffDays - 1).toString()} días`;
-    if (diffDays <= 30) return `hace ${Math.floor(diffDays / 7).toString()} semanas`;
-    return `hace ${Math.floor(diffDays / 30).toString()} meses`;
-  }
-
-  // ✅ NUEVO MÉTODO: Generar datos para exportación
-  async getProjectExportData(projectId: string): Promise<any> {
-    try {
-      // Aquí inyectarías el UserRepository o moverías la lógica
-      // Por ahora simulamos la respuesta basada en los datos existentes
-      const projectData = await this.getProjectDashboardData(projectId);
-      const summary = await this.getProjectSummary(projectId);
-      
-      return {
-        success: true,
-        data: {
-          ...projectData,
-          exportSummary: summary,
-          exportMetadata: {
-            generatedAt: new Date().toISOString(),
-            exportedBy: 'Sistema',
-            format: 'JSON'
-          }
-        }
-      };
-    } catch (error) {
-      console.error('Error en getProjectExportData:', error);
-      throw error;
-    }
-  }
-
-  // ✅ NUEVO MÉTODO: Datos para PDF/Excel
-  async getProjectReportData(projectId: string, format: 'pdf' | 'excel' | 'json' = 'json'): Promise<any> {
-    try {
-      const dashboardData = await this.getProjectDashboardData(projectId);
-      
-      // Estructura optimizada para reportes
-      const reportData = {
-        metadata: {
-          title: `Reporte - ${dashboardData.proyecto.nombre}`,
-          format: format,
-          generated: new Date().toISOString(),
-          version: '1.0'
-        },
-        proyecto: dashboardData.proyecto,
-        metricas: {
-          progreso: dashboardData.stats,
-          distribucion: {
-            porEstado: dashboardData.tareasPorEstado,
-            porPrioridad: dashboardData.tareasPorPrioridad
-          },
-          tendencias: dashboardData.tendenciaUltimaSemana,
-          evolucion: dashboardData.evolucionProyecto || null
-        },
-        equipo: {
-          totalMiembros: 0, // Podrías agregar esta métrica
-          eficiencia: dashboardData.usuariosEficiencia || []
-        }
-      };
-
-      return {
-        success: true,
-        data: reportData
-      };
-    } catch (error) {
-      console.error('Error generando datos de reporte:', error);
-      throw error;
-    }
-  }
-
   // ✅ MÉTODO AUXILIAR: Obtener datos base del proyecto (si no existe)
-  private async getProjectDashboardData(projectId: string): Promise<any> {
+  private async getProjectDashboardData(projectId: string): Promise<unknown> {
     // Este método probablemente ya existe en tu servicio
     // Si no, aquí iría la lógica para obtener datos del proyecto
     return await this.getUserStats(projectId); // Usamos getUserStats como base
   }
 
   // ✅ MÉTODO AUXILIAR: Obtener resumen (si no existe)
-  private async getProjectSummary(projectId: string): Promise<any> {
-    // Lógica para obtener resumen ejecutivo
-    return {
-      resumenEjecutivo: {
-        estado: 'En progreso',
-        salud: 'Buena',
-        proximosDesafios: [],
-        logros: []
-      }
-    };
-  }
+private getProjectSummary(): Promise<unknown> {
+  // Lógica para obtener resumen ejecutivo
+  return Promise.resolve({
+    resumenEjecutivo: {
+      estado: 'En progreso',
+      logros: [],
+      proximosDesafios: [],
+      salud: 'Buena'
+    }
+  });
+}
 }

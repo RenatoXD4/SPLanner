@@ -3,6 +3,19 @@ import { Request, Response } from 'express';
 import { UserRepository } from './dashboard.repository.js';
 import { DashboardService } from './dashboard.service.js';
 
+// Interface para proyecto específico con propiedades opcionales
+interface ProyectoEspecifico {
+  createdAt: Date;
+  descripcion: null|string;
+  id: string;
+  nombre: string;
+  porcentajeCompletado: number;
+  tareasCompletadas: number;
+  tareasEnProgreso?: number;
+  tareasPendientes?: number;
+  totalTareas: number;
+}
+
 export class DashboardController {
   private dashboardService: DashboardService;
   private userRepository: UserRepository;
@@ -10,6 +23,98 @@ export class DashboardController {
   constructor() {
     this.dashboardService = new DashboardService();
     this.userRepository = new UserRepository();
+  }
+
+  /**
+   * Exportar datos completos del proyecto
+   */
+  public async exportProjectData(
+    req: Request,
+    res: Response
+  ): Promise<void> {
+    try {
+      const projectId = req.params.projectId;
+      const format = req.query.format as string || 'json';
+      
+      if (!projectId) {
+        res.status(400).json({ 
+          error: 'projectId es requerido',
+          success: false 
+        });
+        return;
+      }
+
+      console.log('📤 Exportando datos del proyecto:', projectId, 'Formato:', format);
+      
+      // Obtener datos completos para exportación
+      const exportData = await this.userRepository.getProjectExportData(projectId);
+      
+      // Diferentes respuestas según el formato solicitado
+      switch (format.toLowerCase()) {
+        case 'json':
+          res.setHeader('Content-Type', 'application/json');
+          res.setHeader('Content-Disposition', `attachment; filename="proyecto-${projectId}-${new Date().toISOString().split('T')[0]}.json"`);
+          res.json({
+            data: exportData,
+            success: true
+          });
+          break;
+
+        default:
+          res.json({
+            data: exportData,
+            format: 'json',
+            note: `Formato ${format} no implementado. Se devuelve JSON.`,
+            success: true
+          });
+      }
+
+    } catch (error) {
+      console.error('Error exporting project data:', error);
+      res.status(500).json({ 
+        error: 'Error interno del servidor al exportar datos',
+        success: false 
+      });
+    }
+  }
+
+  /**
+   * Generar reporte ejecutivo del proyecto
+   */
+  public async generateProjectReport(
+    req: Request,
+    res: Response
+  ): Promise<void> {
+    try {
+      const projectId = req.params.projectId;
+      const reportType = req.query.type as string || 'summary';
+      
+      if (!projectId) {
+        res.status(400).json({ 
+          error: 'projectId es requerido',
+          success: false 
+        });
+        return;
+      }
+
+      console.log('📊 Generando reporte del proyecto:', projectId, 'Tipo:', reportType);
+      
+      const reportData = await this.userRepository.getProjectSummary(projectId);
+      
+      res.json({
+        data: reportData,
+        generatedAt: new Date().toISOString(),
+        reportType: reportType,
+        success: true
+      });
+
+    } catch (error) {
+      console.error('Error generating project report:', error);
+      res.status(500).json({ 
+        error: 'Error interno del servidor al generar reporte',
+        success: false 
+      });
+    }
   }
 
   /**
@@ -111,24 +216,22 @@ export class DashboardController {
       ] = await Promise.all([
         this.getTareasPorEstado(projectId),
         this.getTareasPorPrioridad(projectId),
-        this.getActividadReciente(projectId),
+        this.getActividadReciente(),
         this.userRepository.getTareasEnRevisionCount(projectId),
         this.userRepository.getEficienciaPorMiembro(projectId),
         this.userRepository.getEvolucionProyecto(projectId) // ✅ NUEVO
       ]);
 
-      // Usar datos reales en lugar de fórmulas fijas
-      const tareasEnProgreso = 'tareasEnProgreso' in proyectoEspecifico 
-        ? (proyectoEspecifico as any).tareasEnProgreso 
-        : Math.floor(proyectoEspecifico.totalTareas * 0.3);
-      
-      const tareasPendientes = 'tareasPendientes' in proyectoEspecifico 
-        ? (proyectoEspecifico as any).tareasPendientes 
-        : proyectoEspecifico.totalTareas - proyectoEspecifico.tareasCompletadas;
+      // ✅ CORREGIDO: Usar valores de forma segura sin 'any'
+      const proyecto = proyectoEspecifico as ProyectoEspecifico;
+      const tareasEnProgreso = proyecto.tareasEnProgreso ?? Math.floor(proyecto.totalTareas * 0.3);
+      const tareasPendientes = proyecto.tareasPendientes ?? (proyecto.totalTareas - proyecto.tareasCompletadas);
 
       // Estructurar la respuesta para el dashboard del proyecto
       const projectDashboard = {
         actividadReciente,
+        // ✅ NUEVO: Incluir evolución real del proyecto
+        evolucionProyecto: evolucionProyecto,
         proyecto: {
           createdAt: proyectoEspecifico.createdAt,
           descripcion: proyectoEspecifico.descripcion,
@@ -148,15 +251,10 @@ export class DashboardController {
         tareasPorPrioridad,
         tendenciaUltimaSemana: this.generateTrendData(proyectoEspecifico.tareasCompletadas),
         // ✅ NUEVO: Incluir eficiencia de todos los miembros
-        usuariosEficiencia: usuariosEficiencia,
-        // ✅ NUEVO: Incluir evolución real del proyecto
-        evolucionProyecto: evolucionProyecto
+        usuariosEficiencia: usuariosEficiencia
       };
 
-      console.log('📊 Dashboard final - Tareas por prioridad:', tareasPorPrioridad);
-      console.log('📊 Dashboard final - Tareas por estado:', tareasPorEstado);
-      console.log('👥 Dashboard final - Eficiencia miembros:', usuariosEficiencia);
-      console.log('📈 Dashboard final - Evolución proyecto:', evolucionProyecto);
+
 
       res.json({
         data: projectDashboard,
@@ -293,98 +391,6 @@ export class DashboardController {
     }
   }
 
-  /**
-   * Exportar datos completos del proyecto
-   */
-  public async exportProjectData(
-    req: Request,
-    res: Response
-  ): Promise<void> {
-    try {
-      const projectId = req.params.projectId;
-      const format = req.query.format as string || 'json';
-      
-      if (!projectId) {
-        res.status(400).json({ 
-          error: 'projectId es requerido',
-          success: false 
-        });
-        return;
-      }
-
-      console.log('📤 Exportando datos del proyecto:', projectId, 'Formato:', format);
-      
-      // Obtener datos completos para exportación
-      const exportData = await this.userRepository.getProjectExportData(projectId);
-      
-      // Diferentes respuestas según el formato solicitado
-      switch (format.toLowerCase()) {
-        case 'json':
-          res.setHeader('Content-Type', 'application/json');
-          res.setHeader('Content-Disposition', `attachment; filename="proyecto-${projectId}-${new Date().toISOString().split('T')[0]}.json"`);
-          res.json({
-            success: true,
-            data: exportData
-          });
-          break;
-
-        default:
-          res.json({
-            success: true,
-            data: exportData,
-            format: 'json',
-            note: `Formato ${format} no implementado. Se devuelve JSON.`
-          });
-      }
-
-    } catch (error) {
-      console.error('Error exporting project data:', error);
-      res.status(500).json({ 
-        error: 'Error interno del servidor al exportar datos',
-        success: false 
-      });
-    }
-  }
-
-  /**
-   * Generar reporte ejecutivo del proyecto
-   */
-  public async generateProjectReport(
-    req: Request,
-    res: Response
-  ): Promise<void> {
-    try {
-      const projectId = req.params.projectId;
-      const reportType = req.query.type as string || 'summary';
-      
-      if (!projectId) {
-        res.status(400).json({ 
-          error: 'projectId es requerido',
-          success: false 
-        });
-        return;
-      }
-
-      console.log('📊 Generando reporte del proyecto:', projectId, 'Tipo:', reportType);
-      
-      const reportData = await this.userRepository.getProjectSummary(projectId);
-      
-      res.json({
-        success: true,
-        data: reportData,
-        reportType: reportType,
-        generatedAt: new Date().toISOString()
-      });
-
-    } catch (error) {
-      console.error('Error generating project report:', error);
-      res.status(500).json({ 
-        error: 'Error interno del servidor al generar reporte',
-        success: false 
-      });
-    }
-  }
-
   // ========== MÉTODOS PRIVADOS AUXILIARES ACTUALIZADOS ==========
 
   /**
@@ -413,7 +419,7 @@ export class DashboardController {
   /**
    * Obtener actividad reciente del proyecto - ACTUALIZADO
    */
-  private async getActividadReciente(projectId: string): Promise<{
+  private async getActividadReciente(): Promise<{
     accion: string;
     fecha: string;
     id: string;

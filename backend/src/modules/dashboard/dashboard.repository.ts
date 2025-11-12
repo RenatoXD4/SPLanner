@@ -2,19 +2,19 @@ import { PrismaClient, Usuario } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+// Interface para evolución del proyecto
+interface EvolucionProyecto {
+  completadas: number[];
+  enProgreso: number[];
+  labels: string[];
+  pendientes: number[];
+}
+
 // Interface para eficiencia de usuarios
 interface UsuarioEficiencia {
   nombreCompleto: string;
   tareasCompletadas: number;
   totalTareas: number;
-}
-
-// Interface para evolución del proyecto
-interface EvolucionProyecto {
-  labels: string[];
-  completadas: number[];
-  enProgreso: number[];
-  pendientes: number[];
 }
 
 export class UserRepository {
@@ -63,6 +63,543 @@ export class UserRepository {
         proyectosCreados: true
       }
     });
+  }
+
+  // ✅ NUEVO MÉTODO: Obtener eficiencia de TODOS los miembros del proyecto
+  async getEficienciaPorMiembro(projectId: string): Promise<UsuarioEficiencia[]> {
+    try {
+      console.log('📊 Obteniendo eficiencia para TODOS los miembros del proyecto:', projectId);
+      
+      // Obtener todos los miembros del proyecto
+      const miembros = await prisma.miembro.findMany({
+        include: {
+          usuario: {
+            select: {
+              apellido: true,
+              id: true,
+              nombre: true
+            }
+          }
+        },
+        where: { 
+          proyectoId: projectId 
+        }
+      });
+
+      // Para cada miembro, obtener sus tareas y calcular eficiencia
+      const eficienciaPromises = miembros.map(async (miembro) => {
+        // Obtener todas las tareas donde este usuario es responsable en este proyecto
+        const tareasResponsable = await prisma.responsable.findMany({
+          include: {
+            tarea: {
+              include: {
+                estado: true
+              }
+            }
+          },
+          where: {
+            tarea: {
+              proyectoId: projectId
+            },
+            usuarioId: miembro.usuarioId
+          }
+        });
+
+        const totalTareas = tareasResponsable.length;
+        
+        // Contar tareas completadas
+        const tareasCompletadas = tareasResponsable.filter(responsable => 
+          this.isTaskCompleted(responsable.tarea.estado.nombre)
+        ).length;
+
+        const nombreCompleto = `${miembro.usuario.nombre} ${miembro.usuario.apellido}`;
+      
+        return {
+          nombreCompleto,
+          tareasCompletadas,
+          totalTareas
+        };
+      });
+
+      const eficienciaMiembros = await Promise.all(eficienciaPromises);
+      
+      // Filtrar miembros que tienen al menos una tarea asignada
+      const miembrosConTareasAsignadas = eficienciaMiembros.filter(miembro => miembro.totalTareas > 0);
+      
+      console.log(' Eficiencia por miembro calculada:', miembrosConTareasAsignadas);
+      return miembrosConTareasAsignadas;
+
+    } catch (error) {
+      console.error(' Error obteniendo eficiencia por miembro:', error);
+      return [];
+    }
+  }
+
+  //  NUEVO MÉTODO: Obtener evolución real del proyecto basada en fechas límite
+ async getEvolucionProyecto(projectId: string): Promise<EvolucionProyecto> {
+  try {
+    console.log(' Obteniendo evolución real del proyecto:', projectId);
+    
+    // Obtener todas las tareas del proyecto con sus estados y fechas
+    const tareas = await prisma.tarea.findMany({
+      include: {
+        estado: true
+      },
+      orderBy: {
+        fechaLimite: 'asc'
+      },
+      where: { proyectoId: projectId }
+    });
+
+    // Crear estructura para los 12 meses
+    const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    const evolucion: EvolucionProyecto = {
+      completadas: Array.from<number>({ length: 12 }).fill(0),
+      enProgreso: Array.from<number>({ length: 12 }).fill(0),
+      labels: meses,
+      pendientes: Array.from<number>({ length: 12 }).fill(0)
+    };
+
+    // Contar tareas por mes según su estado y fecha límite
+    tareas.forEach(tarea => {
+      if (!tarea.fechaLimite) return; // Saltar tareas sin fecha límite
+      
+      const fecha = new Date(tarea.fechaLimite);
+      const mes = fecha.getMonth(); // 0 = Enero, 11 = Diciembre
+      
+      if (mes >= 0 && mes < 12) {
+        const estadoNombre = tarea.estado.nombre.toLowerCase();
+        
+        if (this.isTaskCompleted(estadoNombre)) {
+          evolucion.completadas[mes]++;
+        } else if (this.isTaskInProgress(estadoNombre)) {
+          evolucion.enProgreso[mes]++;
+        } else if (this.isTaskPending(estadoNombre)) {
+          evolucion.pendientes[mes]++;
+        }
+      }
+    });
+
+    return evolucion;
+
+  } catch (error) {
+    console.error(' Error obteniendo evolución del proyecto:', error);
+    
+    // Fallback: retornar estructura vacía
+    return {
+      completadas: Array.from<number>({ length: 12 }).fill(0),
+      enProgreso: Array.from<number>({ length: 12 }).fill(0),
+      labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+      pendientes: Array.from<number>({ length: 12 }).fill(0)
+    };
+  }
+}
+
+
+
+
+
+  // ✅ MÉTODO: Datos completos para exportación
+  async getProjectExportData(projectId: string): Promise<unknown> {
+    try {
+      console.log('📤 Obteniendo datos completos para exportación del proyecto:', projectId);
+      
+      const proyecto = await prisma.proyectos.findUnique({
+        include: {
+          // Información básica del proyecto
+          creadoPor: {
+            select: {
+              apellido: true,
+              email: true,
+              id: true,
+              nombre: true
+            }
+          },
+          // Estados disponibles
+          estados: {
+            orderBy: {
+              posicion: 'asc'
+            },
+            select: {
+              id: true,
+              nombre: true,
+              posicion: true
+            }
+          },
+          // Etiquetas del proyecto
+          etiquetas: {
+            select: {
+              _count: {
+                select: {
+                  tareas: true
+                }
+              },
+              id: true,
+              nombre: true
+            }
+          },
+          // Miembros del proyecto
+          miembros: {
+            include: {
+              rol: {
+                select: {
+                  nombre: true
+                }
+              },
+              usuario: {
+                select: {
+                  apellido: true,
+                  email: true,
+                  id: true,
+                  nombre: true
+                }
+              }
+            }
+          },
+          // Todas las tareas con información completa
+          tareas: {
+            include: {
+              comentarios: {
+                include: {
+                  autor: {
+                    select: {
+                      apellido: true,
+                      nombre: true
+                    }
+                  }
+                },
+                orderBy: {
+                  createdAt: 'desc'
+                }
+              },
+              estado: {
+                select: {
+                  nombre: true
+                }
+              },
+              etiquetas: {
+                include: {
+                  etiqueta: {
+                    select: {
+                      nombre: true
+                    }
+                  }
+                }
+              },
+              responsables: {
+                include: {
+                  usuario: {
+                    select: {
+                      apellido: true,
+                      email: true,
+                      id: true,
+                      nombre: true
+                    }
+                  }
+                }
+              }
+            },
+            orderBy: [
+              { estadoId: 'asc' },
+              { posicion: 'asc' }
+            ]
+          }
+        },
+        where: { id: projectId }
+      });
+
+      if (!proyecto) {
+        throw new Error('Proyecto no encontrado');
+      }
+
+      // Obtener eficiencia de miembros
+      const usuariosEficiencia = await this.getEficienciaPorMiembro(projectId);
+      // Obtener evolución del proyecto
+      const evolucionProyecto = await this.getEvolucionProyecto(projectId);
+
+      // Estructurar datos para exportación
+      const exportData = {
+        equipo: proyecto.miembros.map(miembro => ({
+          email: miembro.usuario.email,
+          rol: miembro.rol.nombre,
+          usuario: `${miembro.usuario.nombre} ${miembro.usuario.apellido}`
+        })),
+        estadisticas: {
+          eficienciaPorUsuario: usuariosEficiencia,
+          evolucionProyecto: evolucionProyecto,
+          progresoGeneral: {
+            porcentajeCompletado: proyecto.tareas.length > 0 ? 
+              Math.round((proyecto.tareas.filter(t => 
+                this.isTaskCompleted(t.estado.nombre)
+              ).length / proyecto.tareas.length) * 100) : 0,
+            tareasCompletadas: proyecto.tareas.filter(t => 
+              this.isTaskCompleted(t.estado.nombre)
+            ).length,
+            totalTareas: proyecto.tareas.length
+          },
+          tareasPorEstado: proyecto.estados.map(estado => ({
+            cantidad: proyecto.tareas.filter(t => t.estadoId === estado.id).length,
+            estado: estado.nombre
+          })),
+          tareasPorPrioridad: await this.getTareasPorPrioridad(projectId)
+        },
+        estados: proyecto.estados,
+        etiquetas: proyecto.etiquetas,
+        metadata: {
+          exportDate: new Date().toISOString(),
+          formatVersion: '1.0',
+          projectId: proyecto.id
+        },
+        proyecto: {
+          creadoPor: `${proyecto.creadoPor.nombre} ${proyecto.creadoPor.apellido}`,
+          createdAt: proyecto.createdAt,
+          descripcion: proyecto.descripcion,
+          id: proyecto.id,
+          nombre: proyecto.nombre,
+          totalEstados: proyecto.estados.length,
+          totalEtiquetas: proyecto.etiquetas.length,
+          totalMiembros: proyecto.miembros.length,
+          totalTareas: proyecto.tareas.length
+        },
+        tareas: proyecto.tareas.map(tarea => ({
+          createdAt: tarea.createdAt,
+          estado: tarea.estado.nombre,
+          etiquetas: tarea.etiquetas.map(te => te.etiqueta.nombre),
+          fechaLimite: tarea.fechaLimite,
+          id: tarea.id,
+          posicion: tarea.posicion,
+          responsables: tarea.responsables.map(r => ({
+            email: r.usuario.email,
+            nombre: `${r.usuario.nombre} ${r.usuario.apellido}`
+          })),
+          titulo: tarea.titulo ?? 'Sin título',
+          totalComentarios: tarea.comentarios.length,
+          ultimosComentarios: tarea.comentarios.slice(0, 3).map(c => ({
+            autor: `${c.autor.nombre} ${c.autor.apellido}`,
+            contenido: c.contenido.substring(0, 100) + (c.contenido.length > 100 ? '...' : ''),
+            fecha: c.createdAt
+          }))
+        }))
+      };
+
+      console.log('✅ Datos de exportación generados correctamente');
+      return exportData;
+
+    } catch (error) {
+      console.error('❌ Error obteniendo datos para exportación:', error);
+      throw error;
+    }
+  }
+
+  // ✅ MÉTODO: Datos resumidos para reportes rápidos
+  async getProjectSummary(projectId: string): Promise<unknown> {
+    try {
+      const proyecto = await prisma.proyectos.findUnique({
+        select: {
+          _count: {
+            select: {
+              etiquetas: true,
+              miembros: true,
+              tareas: true
+            }
+          },
+          createdAt: true,
+          descripcion: true,
+          id: true,
+          nombre: true,
+          tareas: {
+            select: {
+              estado: {
+                select: {
+                  nombre: true
+                }
+              },
+              fechaLimite: true
+            }
+          }
+        },
+        where: { id: projectId }
+      });
+
+      if (!proyecto) {
+        throw new Error('Proyecto no encontrado');
+      }
+
+      // Obtener eficiencia de miembros
+      const usuariosEficiencia = await this.getEficienciaPorMiembro(projectId);
+      // Obtener evolución del proyecto
+      const evolucionProyecto = await this.getEvolucionProyecto(projectId);
+
+      const tareasCompletadas = proyecto.tareas.filter(t => 
+        this.isTaskCompleted(t.estado.nombre)
+      ).length;
+
+      const tareasConVencimiento = proyecto.tareas.filter(t => t.fechaLimite).length;
+      const tareasVencidas = proyecto.tareas.filter(t => 
+        t.fechaLimite && new Date(t.fechaLimite) < new Date()
+      ).length;
+
+      return {
+        exportDate: new Date().toISOString(),
+        proyecto: {
+          descripcion: proyecto.descripcion,
+          duracion: Math.ceil((new Date().getTime() - proyecto.createdAt.getTime()) / (1000 * 60 * 60 * 24)),
+          fechaCreacion: proyecto.createdAt,
+          nombre: proyecto.nombre
+        },
+        resumen: {
+          eficienciaMiembros: usuariosEficiencia,
+          evolucionProyecto: evolucionProyecto,
+          porcentajeCompletado: proyecto._count.tareas > 0 ? 
+            Math.round((tareasCompletadas / proyecto._count.tareas) * 100) : 0,
+          tareasCompletadas,
+          tareasConVencimiento,
+          tareasVencidas,
+          totalEtiquetas: proyecto._count.etiquetas,
+          totalMiembros: proyecto._count.miembros,
+          totalTareas: proyecto._count.tareas
+        }
+      };
+    } catch (error) {
+      console.error('Error obteniendo resumen del proyecto:', error);
+      throw error;
+    }
+  }
+
+  // ✅ MÉTODO: Obtener conteo de tareas en revisión
+  async getTareasEnRevisionCount(projectId: string): Promise<number> {
+    try {
+      const count = await prisma.tarea.count({
+        where: {
+          estado: {
+            nombre: {
+              contains: 'revisión',
+              mode: 'insensitive'
+            }
+          },
+          proyectoId: projectId
+        }
+      });
+      
+      console.log(`✅ Tareas en revisión para proyecto ${projectId}:`, count);
+      return count;
+
+    } catch (error) {
+      console.error('❌ Error contando tareas en revisión:', error);
+      return 0;
+    }
+  }
+
+  // ✅ MÉTODO: Obtener conteo de tareas por estado real
+  async getTareasPorEstado(projectId: string): Promise<{ cantidad: number; estado: string; }[]> {
+    try {
+      console.log('📊 Obteniendo tareas por estado para proyecto:', projectId);
+      
+      const tareasPorEstado = await prisma.tarea.groupBy({
+        _count: {
+          _all: true
+        },
+        by: ['estadoId'],
+        where: {
+          proyectoId: projectId
+        }
+      });
+
+      // Obtener los nombres de los estados
+      const estados = await prisma.estado.findMany({
+        select: {
+          id: true,
+          nombre: true
+        },
+        where: {
+          id: {
+            in: tareasPorEstado.map(item => item.estadoId)
+          }
+        }
+      });
+
+      // Mapear resultados
+      const resultado = tareasPorEstado.map(item => {
+        const estado = estados.find(e => e.id === item.estadoId);
+        return {
+          cantidad: item._count._all,
+          estado: estado?.nombre ?? 'Desconocido'
+        };
+      });
+
+      console.log('✅ Conteo por estado:', resultado);
+      return resultado;
+
+    } catch (error) {
+      console.error('❌ Error obteniendo tareas por estado:', error);
+      return [];
+    }
+  }
+
+  // ✅ MÉTODO CORREGIDO: Obtener conteo de tareas por prioridad (etiquetas)
+  async getTareasPorPrioridad(projectId: string): Promise<{ cantidad: number; prioridad: string; }[]> {
+    try {
+      console.log('📊 Obteniendo tareas por prioridad para proyecto:', projectId);
+      
+      // Buscar TODAS las etiquetas del proyecto y contar sus tareas
+      const todasLasEtiquetas = await prisma.etiqueta.findMany({
+        include: {
+          tareas: {
+            select: {
+              tareaId: true
+            }
+          }
+        },
+        where: {
+          proyectoId: projectId
+        }
+      });
+
+      console.log('🔍 Todas las etiquetas encontradas:', todasLasEtiquetas.map(e => ({
+        cantidad: e.tareas.length,
+        nombre: e.nombre
+      })));
+
+      // Filtrar solo las etiquetas que son de prioridad y tienen tareas
+      const etiquetasPrioridad = todasLasEtiquetas.filter(etiqueta => {
+        const nombreNormalizado = etiqueta.nombre.toLowerCase().trim();
+        const esPrioridad = (
+          nombreNormalizado.includes('alta') ||
+          nombreNormalizado.includes('media') || 
+          nombreNormalizado.includes('baja') ||
+          nombreNormalizado.includes('high') ||
+          nombreNormalizado.includes('medium') ||
+          nombreNormalizado.includes('low') ||
+          nombreNormalizado.includes('urgente') ||
+          nombreNormalizado.includes('normal')
+        );
+        return esPrioridad && etiqueta.tareas.length > 0;
+      });
+
+      console.log('🎯 Etiquetas de prioridad filtradas:', etiquetasPrioridad.map(e => ({
+        cantidad: e.tareas.length,
+        nombre: e.nombre
+      })));
+
+      // Si no hay etiquetas de prioridad con tareas, retornar array vacío
+      if (etiquetasPrioridad.length === 0) {
+        console.log('ℹ️ No se encontraron etiquetas de prioridad con tareas para el proyecto:', projectId);
+        return [];
+      }
+
+      // Contar tareas por cada etiqueta de prioridad
+      const resultado = etiquetasPrioridad.map(etiqueta => ({
+        cantidad: etiqueta.tareas.length,
+        prioridad: this.normalizarNombrePrioridad(etiqueta.nombre)
+      }));
+
+      console.log('✅ Conteo REAL por prioridad:', resultado);
+      return resultado;
+
+    } catch (error) {
+      console.error('❌ Error obteniendo tareas por prioridad:', error);
+      return [];
+    }
   }
 
   // Obtener usuario por email
@@ -121,140 +658,6 @@ export class UserRepository {
       },
       where: { id }
     });
-  }
-
-  // ✅ NUEVO MÉTODO: Obtener eficiencia de TODOS los miembros del proyecto
-  async getEficienciaPorMiembro(projectId: string): Promise<UsuarioEficiencia[]> {
-    try {
-      console.log('📊 Obteniendo eficiencia para TODOS los miembros del proyecto:', projectId);
-      
-      // Obtener todos los miembros del proyecto
-      const miembros = await prisma.miembro.findMany({
-        where: { 
-          proyectoId: projectId 
-        },
-        include: {
-          usuario: {
-            select: {
-              id: true,
-              nombre: true,
-              apellido: true
-            }
-          }
-        }
-      });
-
-      console.log(`👥 Miembros encontrados en el proyecto: ${miembros.length}`);
-
-      // Para cada miembro, obtener sus tareas y calcular eficiencia
-      const eficienciaPromises = miembros.map(async (miembro) => {
-        // Obtener todas las tareas donde este usuario es responsable en este proyecto
-        const tareasResponsable = await prisma.responsable.findMany({
-          where: {
-            usuarioId: miembro.usuarioId,
-            tarea: {
-              proyectoId: projectId
-            }
-          },
-          include: {
-            tarea: {
-              include: {
-                estado: true
-              }
-            }
-          }
-        });
-
-        const totalTareas = tareasResponsable.length;
-        
-        // Contar tareas completadas
-        const tareasCompletadas = tareasResponsable.filter(responsable => 
-          this.isTaskCompleted(responsable.tarea.estado.nombre)
-        ).length;
-
-        const nombreCompleto = `${miembro.usuario.nombre} ${miembro.usuario.apellido}`;
-        
-        console.log(`📈 ${nombreCompleto}: ${tareasCompletadas}/${totalTareas} tareas completadas`);
-
-        return {
-          nombreCompleto,
-          tareasCompletadas,
-          totalTareas
-        };
-      });
-
-      const eficienciaMiembros = await Promise.all(eficienciaPromises);
-      
-      // Filtrar miembros que tienen al menos una tarea asignada
-      const miembrosConTareasAsignadas = eficienciaMiembros.filter(miembro => miembro.totalTareas > 0);
-      
-      console.log('✅ Eficiencia por miembro calculada:', miembrosConTareasAsignadas);
-      return miembrosConTareasAsignadas;
-
-    } catch (error) {
-      console.error('❌ Error obteniendo eficiencia por miembro:', error);
-      return [];
-    }
-  }
-
-  // ✅ NUEVO MÉTODO: Obtener evolución real del proyecto basada en fechas límite
-  async getEvolucionProyecto(projectId: string): Promise<EvolucionProyecto> {
-    try {
-      console.log('📈 Obteniendo evolución real del proyecto:', projectId);
-      
-      // Obtener todas las tareas del proyecto con sus estados y fechas
-      const tareas = await prisma.tarea.findMany({
-        where: { proyectoId: projectId },
-        include: {
-          estado: true
-        },
-        orderBy: {
-          fechaLimite: 'asc'
-        }
-      });
-
-      // Crear estructura para los 12 meses
-      const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-      const evolucion: EvolucionProyecto = {
-        labels: meses,
-        completadas: Array(12).fill(0),
-        enProgreso: Array(12).fill(0),
-        pendientes: Array(12).fill(0)
-      };
-
-      // Contar tareas por mes según su estado y fecha límite
-      tareas.forEach(tarea => {
-        if (!tarea.fechaLimite) return; // Saltar tareas sin fecha límite
-        
-        const fecha = new Date(tarea.fechaLimite);
-        const mes = fecha.getMonth(); // 0 = Enero, 11 = Diciembre
-        
-        if (mes >= 0 && mes < 12) {
-          const estadoNombre = tarea.estado.nombre.toLowerCase();
-          
-          if (this.isTaskCompleted(estadoNombre)) {
-            evolucion.completadas[mes]++;
-          } else if (this.isTaskInProgress(estadoNombre)) {
-            evolucion.enProgreso[mes]++;
-          } else if (this.isTaskPending(estadoNombre)) {
-            evolucion.pendientes[mes]++;
-          }
-        }
-      });
-
-      console.log('✅ Evolución del proyecto calculada:', evolucion);
-      return evolucion;
-
-    } catch (error) {
-      console.error('❌ Error obteniendo evolución del proyecto:', error);
-      // Fallback: retornar estructura vacía
-      return {
-        labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
-        completadas: Array(12).fill(0),
-        enProgreso: Array(12).fill(0),
-        pendientes: Array(12).fill(0)
-      };
-    }
   }
 
   // Obtener estadísticas del dashboard para un usuario
@@ -417,155 +820,21 @@ export class UserRepository {
     });
   }
 
-  // ✅ MÉTODO CORREGIDO: Obtener conteo de tareas por prioridad (etiquetas)
-  async getTareasPorPrioridad(projectId: string): Promise<{ cantidad: number; prioridad: string; }[]> {
-    try {
-      console.log('📊 Obteniendo tareas por prioridad para proyecto:', projectId);
-      
-      // Buscar TODAS las etiquetas del proyecto y contar sus tareas
-      const todasLasEtiquetas = await prisma.etiqueta.findMany({
-        where: {
-          proyectoId: projectId
-        },
-        include: {
-          tareas: {
-            select: {
-              tareaId: true
-            }
-          }
-        }
-      });
-
-      console.log('🔍 Todas las etiquetas encontradas:', todasLasEtiquetas.map(e => ({
-        nombre: e.nombre,
-        cantidad: e.tareas.length
-      })));
-
-      // Filtrar solo las etiquetas que son de prioridad y tienen tareas
-      const etiquetasPrioridad = todasLasEtiquetas.filter(etiqueta => {
-        const nombreNormalizado = etiqueta.nombre.toLowerCase().trim();
-        const esPrioridad = (
-          nombreNormalizado.includes('alta') ||
-          nombreNormalizado.includes('media') || 
-          nombreNormalizado.includes('baja') ||
-          nombreNormalizado.includes('high') ||
-          nombreNormalizado.includes('medium') ||
-          nombreNormalizado.includes('low') ||
-          nombreNormalizado.includes('urgente') ||
-          nombreNormalizado.includes('normal')
-        );
-        return esPrioridad && etiqueta.tareas.length > 0;
-      });
-
-      console.log('🎯 Etiquetas de prioridad filtradas:', etiquetasPrioridad.map(e => ({
-        nombre: e.nombre,
-        cantidad: e.tareas.length
-      })));
-
-      // Si no hay etiquetas de prioridad con tareas, retornar array vacío
-      if (etiquetasPrioridad.length === 0) {
-        console.log('ℹ️ No se encontraron etiquetas de prioridad con tareas para el proyecto:', projectId);
-        return [];
-      }
-
-      // Contar tareas por cada etiqueta de prioridad
-      const resultado = etiquetasPrioridad.map(etiqueta => ({
-        prioridad: this.normalizarNombrePrioridad(etiqueta.nombre),
-        cantidad: etiqueta.tareas.length
-      }));
-
-      console.log('✅ Conteo REAL por prioridad:', resultado);
-      return resultado;
-
-    } catch (error) {
-      console.error('❌ Error obteniendo tareas por prioridad:', error);
-      return [];
-    }
-  }
-
-  // ✅ MÉTODO: Obtener conteo de tareas por estado real
-  async getTareasPorEstado(projectId: string): Promise<{ cantidad: number; estado: string; }[]> {
-    try {
-      console.log('📊 Obteniendo tareas por estado para proyecto:', projectId);
-      
-      const tareasPorEstado = await prisma.tarea.groupBy({
-        by: ['estadoId'],
-        where: {
-          proyectoId: projectId
-        },
-        _count: {
-          _all: true
-        }
-      });
-
-      // Obtener los nombres de los estados
-      const estados = await prisma.estado.findMany({
-        where: {
-          id: {
-            in: tareasPorEstado.map(item => item.estadoId)
-          }
-        },
-        select: {
-          id: true,
-          nombre: true
-        }
-      });
-
-      // Mapear resultados
-      const resultado = tareasPorEstado.map(item => {
-        const estado = estados.find(e => e.id === item.estadoId);
-        return {
-          estado: estado?.nombre || 'Desconocido',
-          cantidad: item._count._all
-        };
-      });
-
-      console.log('✅ Conteo por estado:', resultado);
-      return resultado;
-
-    } catch (error) {
-      console.error('❌ Error obteniendo tareas por estado:', error);
-      return [];
-    }
-  }
-
-  // ✅ MÉTODO: Obtener conteo de tareas en revisión
-  async getTareasEnRevisionCount(projectId: string): Promise<number> {
-    try {
-      const count = await prisma.tarea.count({
-        where: {
-          proyectoId: projectId,
-          estado: {
-            nombre: {
-              contains: 'revisión',
-              mode: 'insensitive'
-            }
-          }
-        }
-      });
-      
-      console.log(`✅ Tareas en revisión para proyecto ${projectId}:`, count);
-      return count;
-
-    } catch (error) {
-      console.error('❌ Error contando tareas en revisión:', error);
-      return 0;
-    }
-  }
-
-  // ✅ MÉTODO AUXILIAR: Normalizar nombres de prioridad
-  private normalizarNombrePrioridad(nombre: string): string {
-    const normalized = nombre.toLowerCase().trim();
-    
-    if (normalized.includes('alta') || normalized.includes('high') || normalized.includes('urgente')) {
-      return 'Alta';
-    } else if (normalized.includes('media') || normalized.includes('medium') || normalized.includes('normal')) {
-      return 'Media';
-    } else if (normalized.includes('baja') || normalized.includes('low') || normalized.includes('bajo')) {
-      return 'Baja';
+  // Función adicional para clasificar todos los estados (mantenida por compatibilidad)
+  private getTaskStatus(estadoNombre: string): string {
+    if (this.isTaskCompleted(estadoNombre)) {
+      return 'completed';
     }
     
-    return nombre; // Retornar original si no coincide
+    if (this.isTaskInProgress(estadoNombre)) {
+      return 'in_progress';
+    }
+    
+    if (this.isTaskPending(estadoNombre)) {
+      return 'pending';
+    }
+    
+    return 'unknown';
   }
 
   // ✅ FUNCIONES AUXILIARES CORREGIDAS
@@ -594,287 +863,18 @@ export class UserRepository {
     return pendingStates.some(state => normalized.includes(state));
   }
 
-  // Función adicional para clasificar todos los estados (mantenida por compatibilidad)
-  private getTaskStatus(estadoNombre: string): string {
-    if (this.isTaskCompleted(estadoNombre)) {
-      return 'completed';
+  // ✅ MÉTODO AUXILIAR: Normalizar nombres de prioridad
+  private normalizarNombrePrioridad(nombre: string): string {
+    const normalized = nombre.toLowerCase().trim();
+    
+    if (normalized.includes('alta') || normalized.includes('high') || normalized.includes('urgente')) {
+      return 'Alta';
+    } else if (normalized.includes('media') || normalized.includes('medium') || normalized.includes('normal')) {
+      return 'Media';
+    } else if (normalized.includes('baja') || normalized.includes('low') || normalized.includes('bajo')) {
+      return 'Baja';
     }
     
-    if (this.isTaskInProgress(estadoNombre)) {
-      return 'in_progress';
-    }
-    
-    if (this.isTaskPending(estadoNombre)) {
-      return 'pending';
-    }
-    
-    return 'unknown';
-  }
-
-  // ✅ MÉTODO: Datos completos para exportación
-  async getProjectExportData(projectId: string): Promise<any> {
-    try {
-      console.log('📤 Obteniendo datos completos para exportación del proyecto:', projectId);
-      
-      const proyecto = await prisma.proyectos.findUnique({
-        where: { id: projectId },
-        include: {
-          // Información básica del proyecto
-          creadoPor: {
-            select: {
-              id: true,
-              nombre: true,
-              apellido: true,
-              email: true
-            }
-          },
-          // Miembros del proyecto
-          miembros: {
-            include: {
-              usuario: {
-                select: {
-                  id: true,
-                  nombre: true,
-                  apellido: true,
-                  email: true
-                }
-              },
-              rol: {
-                select: {
-                  nombre: true
-                }
-              }
-            }
-          },
-          // Estados disponibles
-          estados: {
-            select: {
-              id: true,
-              nombre: true,
-              posicion: true
-            },
-            orderBy: {
-              posicion: 'asc'
-            }
-          },
-          // Todas las tareas con información completa
-          tareas: {
-            include: {
-              estado: {
-                select: {
-                  nombre: true
-                }
-              },
-              responsables: {
-                include: {
-                  usuario: {
-                    select: {
-                      id: true,
-                      nombre: true,
-                      apellido: true,
-                      email: true
-                    }
-                  }
-                }
-              },
-              etiquetas: {
-                include: {
-                  etiqueta: {
-                    select: {
-                      nombre: true
-                    }
-                  }
-                }
-              },
-              comentarios: {
-                include: {
-                  autor: {
-                    select: {
-                      nombre: true,
-                      apellido: true
-                    }
-                  }
-                },
-                orderBy: {
-                  createdAt: 'desc'
-                }
-              }
-            },
-            orderBy: [
-              { estadoId: 'asc' },
-              { posicion: 'asc' }
-            ]
-          },
-          // Etiquetas del proyecto
-          etiquetas: {
-            select: {
-              id: true,
-              nombre: true,
-              _count: {
-                select: {
-                  tareas: true
-                }
-              }
-            }
-          }
-        }
-      });
-
-      if (!proyecto) {
-        throw new Error('Proyecto no encontrado');
-      }
-
-      // Obtener eficiencia de miembros
-      const usuariosEficiencia = await this.getEficienciaPorMiembro(projectId);
-      // Obtener evolución del proyecto
-      const evolucionProyecto = await this.getEvolucionProyecto(projectId);
-
-      // Estructurar datos para exportación
-      const exportData = {
-        metadata: {
-          exportDate: new Date().toISOString(),
-          formatVersion: '1.0',
-          projectId: proyecto.id
-        },
-        proyecto: {
-          id: proyecto.id,
-          nombre: proyecto.nombre,
-          descripcion: proyecto.descripcion,
-          createdAt: proyecto.createdAt,
-          creadoPor: `${proyecto.creadoPor.nombre} ${proyecto.creadoPor.apellido}`,
-          totalMiembros: proyecto.miembros.length,
-          totalTareas: proyecto.tareas.length,
-          totalEstados: proyecto.estados.length,
-          totalEtiquetas: proyecto.etiquetas.length
-        },
-        equipo: proyecto.miembros.map(miembro => ({
-          usuario: `${miembro.usuario.nombre} ${miembro.usuario.apellido}`,
-          email: miembro.usuario.email,
-          rol: miembro.rol.nombre
-        })),
-        estados: proyecto.estados,
-        etiquetas: proyecto.etiquetas,
-        tareas: proyecto.tareas.map(tarea => ({
-          id: tarea.id,
-          titulo: tarea.titulo || 'Sin título',
-          estado: tarea.estado.nombre,
-          fechaLimite: tarea.fechaLimite,
-          posicion: tarea.posicion,
-          createdAt: tarea.createdAt,
-          responsables: tarea.responsables.map(r => ({
-            nombre: `${r.usuario.nombre} ${r.usuario.apellido}`,
-            email: r.usuario.email
-          })),
-          etiquetas: tarea.etiquetas.map(te => te.etiqueta.nombre),
-          totalComentarios: tarea.comentarios.length,
-          ultimosComentarios: tarea.comentarios.slice(0, 3).map(c => ({
-            autor: `${c.autor.nombre} ${c.autor.apellido}`,
-            contenido: c.contenido.substring(0, 100) + (c.contenido.length > 100 ? '...' : ''),
-            fecha: c.createdAt
-          }))
-        })),
-        estadisticas: {
-          tareasPorEstado: proyecto.estados.map(estado => ({
-            estado: estado.nombre,
-            cantidad: proyecto.tareas.filter(t => t.estadoId === estado.id).length
-          })),
-          tareasPorPrioridad: await this.getTareasPorPrioridad(projectId),
-          eficienciaPorUsuario: usuariosEficiencia,
-          evolucionProyecto: evolucionProyecto,
-          progresoGeneral: {
-            totalTareas: proyecto.tareas.length,
-            tareasCompletadas: proyecto.tareas.filter(t => 
-              this.isTaskCompleted(t.estado.nombre)
-            ).length,
-            porcentajeCompletado: proyecto.tareas.length > 0 ? 
-              Math.round((proyecto.tareas.filter(t => 
-                this.isTaskCompleted(t.estado.nombre)
-              ).length / proyecto.tareas.length) * 100) : 0
-          }
-        }
-      };
-
-      console.log('✅ Datos de exportación generados correctamente');
-      return exportData;
-
-    } catch (error) {
-      console.error('❌ Error obteniendo datos para exportación:', error);
-      throw error;
-    }
-  }
-
-  // ✅ MÉTODO: Datos resumidos para reportes rápidos
-  async getProjectSummary(projectId: string): Promise<any> {
-    try {
-      const proyecto = await prisma.proyectos.findUnique({
-        where: { id: projectId },
-        select: {
-          id: true,
-          nombre: true,
-          descripcion: true,
-          createdAt: true,
-          _count: {
-            select: {
-              tareas: true,
-              miembros: true,
-              etiquetas: true
-            }
-          },
-          tareas: {
-            select: {
-              estado: {
-                select: {
-                  nombre: true
-                }
-              },
-              fechaLimite: true
-            }
-          }
-        }
-      });
-
-      if (!proyecto) {
-        throw new Error('Proyecto no encontrado');
-      }
-
-      // Obtener eficiencia de miembros
-      const usuariosEficiencia = await this.getEficienciaPorMiembro(projectId);
-      // Obtener evolución del proyecto
-      const evolucionProyecto = await this.getEvolucionProyecto(projectId);
-
-      const tareasCompletadas = proyecto.tareas.filter(t => 
-        this.isTaskCompleted(t.estado.nombre)
-      ).length;
-
-      const tareasConVencimiento = proyecto.tareas.filter(t => t.fechaLimite).length;
-      const tareasVencidas = proyecto.tareas.filter(t => 
-        t.fechaLimite && new Date(t.fechaLimite) < new Date()
-      ).length;
-
-      return {
-        proyecto: {
-          nombre: proyecto.nombre,
-          descripcion: proyecto.descripcion,
-          fechaCreacion: proyecto.createdAt,
-          duracion: Math.ceil((new Date().getTime() - proyecto.createdAt.getTime()) / (1000 * 60 * 60 * 24)) + ' días'
-        },
-        resumen: {
-          totalTareas: proyecto._count.tareas,
-          totalMiembros: proyecto._count.miembros,
-          totalEtiquetas: proyecto._count.etiquetas,
-          tareasCompletadas,
-          porcentajeCompletado: proyecto._count.tareas > 0 ? 
-            Math.round((tareasCompletadas / proyecto._count.tareas) * 100) : 0,
-          tareasConVencimiento,
-          tareasVencidas,
-          eficienciaMiembros: usuariosEficiencia,
-          evolucionProyecto: evolucionProyecto
-        },
-        exportDate: new Date().toISOString()
-      };
-    } catch (error) {
-      console.error('Error obteniendo resumen del proyecto:', error);
-      throw error;
-    }
+    return nombre; // Retornar original si no coincide
   }
 }

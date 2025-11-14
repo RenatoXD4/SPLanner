@@ -1,13 +1,38 @@
 <div class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white flex">
   <app-sidebar></app-sidebar>
-  <app-task-detail 
-    [task]="selectedTask" 
-    [isHidden]="isDetailPanelHidden"
-    [estadoNombre]="selectedTaskEstadoNombre"   (closePanel)="hideTaskDetails()">
+  <app-task-detail
+    [task]="selectedTask"
+    [isHidden]="isDetailPanelHidden"
+    [estadoNombre]="selectedTaskEstadoNombre"
+    (closePanel)="hideTaskDetails()">
   </app-task-detail>
 
   <!-- CONTENIDO PRINCIPAL -->
   <main class="flex-1 p-4">
+    <!-- Header con información del proyecto y rol -->
+    <div class="mb-6 p-4 bg-slate-800/50 rounded-xl border border-slate-700">
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 class="text-2xl font-bold text-white">{{ proyectoActual?.nombre || 'Proyecto' }}</h1>
+          <p class="text-slate-400">{{ proyectoActual?.descripcion || 'Descripción del proyecto' }}</p>
+        </div>
+
+        <!-- Badge del rol del usuario -->
+        <div class="flex items-center gap-4">
+          <div [class]="'rol-badge rol-' + rolUsuario.toLowerCase()"
+               class="px-4 py-2 rounded-full text-sm font-semibold border backdrop-blur-sm">
+            <span class="w-2 h-2 rounded-full mr-2 inline-block"
+                  [ngClass]="{
+                    'bg-red-400': rolUsuario === 'Administrador',
+                    'bg-green-400': rolUsuario === 'Editor',
+                    'bg-blue-400': rolUsuario === 'Visualizador'
+                  }"></span>
+            Rol: {{ rolUsuario }}
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Filtro de vistas -->
     <div class="flex flex-wrap justify-start gap-4 mb-6">
       <!-- Vista Kanban -->
@@ -82,7 +107,8 @@
         Tareas Asignadas
       </button>
 
-      <!-- Botón de Acciones Mejorado -->
+      <!-- Botón de Acciones Mejorado - Solo para administradores y editores -->
+      @if (puedeEditar() || puedeCrearColumnas() || puedeGestionarEtiquetas()) {
       <div class="fixed top-4 right-4 z-50">
         <div class="relative inline-block text-left" (click)="toggleMenu($event)">
           <button
@@ -119,7 +145,8 @@
             aria-labelledby="dropdownButton"
           >
             <div class="py-2" role="none">
-              <!-- Opción Añadir Columna -->
+              <!-- Opción Añadir Columna - Solo para administradores -->
+              @if (puedeCrearColumnas()) {
               <button
                 (click)="abrirModalNuevaColumna()"
                 class="text-gray-700 dark:text-gray-300 block px-4 py-2 text-sm hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-800 dark:hover:text-white rounded-md transition-all duration-200"
@@ -139,8 +166,10 @@
                 </svg>
                 Añadir Columna
               </button>
+              }
 
-              <!-- Opción Añadir Etiqueta -->
+              <!-- Opción Añadir Etiqueta - Solo para administradores -->
+              @if (puedeGestionarEtiquetas()) {
               <button
                 (click)="modalEtiquetaVisible = true"
                 class="text-gray-700 dark:text-gray-300 block px-4 py-2 text-sm hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-800 dark:hover:text-white rounded-md transition-all duration-200"
@@ -162,11 +191,13 @@
                 </svg>
                 Añadir Etiqueta
               </button>
+              }
             </div>
           </div>
           }
         </div>
       </div>
+      }
     </div>
 
     @if (modalConfirmEliminarVisible) {
@@ -217,8 +248,11 @@
             </span>
           </h2>
 
+          <!-- Botones de acciones de columna - Solo para administradores -->
+          @if (puedeCambiarColores() || puedeEliminar()) {
           <div class="flex items-center space-x-2">
-            <!-- Selector de color -->
+            <!-- Selector de color - Solo para administradores -->
+            @if (puedeCambiarColores()) {
             <button
               (click)="toggleSelectorColor(item.id)"
               class="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"
@@ -240,7 +274,10 @@
                 />
               </svg>
             </button>
-            <!-- Botón eliminar columna -->
+            }
+
+            <!-- Botón eliminar columna - Solo para administradores -->
+            @if (puedeEliminar()) {
             <button
               (click)="abrirModalConfirmEliminar(item.id, item.nombre)"
               class="p-1 rounded hover:bg-red-100 dark:hover:bg-red-900"
@@ -262,9 +299,11 @@
                 />
               </svg>
             </button>
+            }
           </div>
+          }
 
-          @if (colorSelectorVisible[item.id]) {
+          @if (colorSelectorVisible[item.id] && puedeCambiarColores()) {
           <div
             #colorSelectorContainer
             class="absolute right-0 top-full mt-2 bg-white dark:bg-gray-800 p-2 rounded shadow-md flex flex-wrap gap-2 z-10 border border-gray-300 dark:border-gray-700 max-w-[140px]"
@@ -279,7 +318,6 @@
             ></button>
             }
           </div>
-
           }
         </div>
 
@@ -355,9 +393,11 @@
             </div>
             }
 
-            <!-- Botones Edición y Eliminación visibles al hacer hover -->
-            @if (hoveredTaskId === A.id.toString()) {
+            <!-- Botones Edición y Eliminación visibles al hacer hover - Solo con permisos -->
+            @if (hoveredTaskId === A.id.toString() && (puedeEditar() || puedeEliminar())) {
             <div class="absolute bottom-0 left-0 w-full flex justify-end gap-2 p-2">
+              <!-- Botón editar - Solo para editores y administradores -->
+              @if (puedeEditar()) {
               <button
                 class="p-2 rounded-full bg-opacity-60 bg-gray-800 text-white hover:bg-opacity-80 hover:bg-blue-600 transition-opacity duration-200 ease-in-out"
                 (click)="editarTarea(A.id)"
@@ -380,7 +420,10 @@
                   />
                 </svg>
               </button>
+              }
 
+              <!-- Botón eliminar - Solo para administradores -->
+              @if (puedeEliminar()) {
               <button
                 class="p-2 rounded-full bg-opacity-60 bg-gray-800 text-white hover:bg-opacity-80 hover:bg-red-600 transition-opacity duration-200 ease-in-out"
                 (click)="eliminarTarea(A.id)"
@@ -403,13 +446,15 @@
                   />
                 </svg>
               </button>
+              }
             </div>
             }
           </div>
           }
         </div>
 
-        <!-- Botón Nueva Tarea -->
+        <!-- Botón Nueva Tarea - Solo para editores y administradores -->
+        @if (puedeEditar()) {
         <button
           class="btn btn-sm w-full font-medium transition hover:scale-105 mt-3"
           [ngStyle]="getButtonColorClass(item.nombre)"
@@ -418,8 +463,12 @@
         >
           + Nueva Tarea
         </button>
+        }
       </div>
       }
+
+      <!-- Botón Añadir Columna - Solo para administradores -->
+      @if (puedeCrearColumnas()) {
       <button
         class="w-full md:w-[300px] h-[80px] flex-shrink-0 rounded-lg border-2 border-dashed border-primary text-primary font-semibold flex items-center justify-center cursor-pointer transition hover:bg-primary hover:text-white"
         (click)="abrirModalNuevaColumna()"
@@ -439,6 +488,7 @@
         </svg>
         + Añadir columna
       </button>
+      }
     </div>
     }
 
@@ -671,7 +721,10 @@
                 <th class="px-4 py-3 text-left resize-x overflow-auto min-w-[100px]">Etiquetas</th>
                 <th class="px-4 py-3 text-left resize-x overflow-auto min-w-[120px]">Fecha</th>
                 <th class="px-4 py-3 text-left resize-x overflow-auto min-w-[160px]">Categoría</th>
+                <!-- Columna acciones solo para usuarios con permisos -->
+                @if (puedeEditar() || puedeEliminar()) {
                 <th class="px-4 py-3 text-left resize-x overflow-auto min-w-[40px]">Acciones</th>
+                }
               </tr>
             </thead>
             <tbody class="divide-y divide-base-300">
@@ -746,8 +799,11 @@
                   {{ item.categoria }}
                 </td>
 
-                <!-- Columna Acciones -->
+                <!-- Columna Acciones - Solo para usuarios con permisos -->
+                @if (puedeEditar() || puedeEliminar()) {
                 <td class="px-4 py-3 flex justify-center gap-2">
+                  <!-- Botón editar - Solo para editores y administradores -->
+                  @if (puedeEditar()) {
                   <button
                     class="p-2 rounded-full bg-opacity-60 bg-gray-800 text-white hover:bg-opacity-80 hover:bg-blue-600 transition-opacity duration-200 ease-in-out shadow-md"
                     (click)="editarTarea(item.tarea.id)"
@@ -770,7 +826,10 @@
                       />
                     </svg>
                   </button>
+                  }
 
+                  <!-- Botón eliminar - Solo para administradores -->
+                  @if (puedeEliminar()) {
                   <button
                     class="p-2 rounded-full bg-opacity-60 bg-gray-800 text-white hover:bg-opacity-80 hover:bg-red-600 transition-opacity duration-200 ease-in-out shadow-md"
                     (click)="eliminarTarea(item.tarea.id)"
@@ -793,7 +852,9 @@
                       />
                     </svg>
                   </button>
+                  }
                 </td>
+                }
               </tr>
               }
             </tbody>
@@ -819,8 +880,10 @@
               <th class="px-6 py-3 text-left resize-x overflow-auto min-w-[100px]">Etiquetas</th>
               <th class="px-6 py-3 text-left resize-x overflow-auto min-w-[120px]">Fecha</th>
               <th class="px-6 py-3 text-left resize-x overflow-auto min-w-[160px]">Categoría</th>
+              <!-- Columna acciones solo para usuarios con permisos -->
+              @if (puedeEditar() || puedeEliminar()) {
               <th class="px-6 py-3 text-left resize-x overflow-auto min-w-[160px]">Acciones</th>
-              <!-- Columna para las etiquetas -->
+              }
             </tr>
           </thead>
           <tbody class="divide-y divide-base-300 text-sm">
@@ -872,10 +935,14 @@
               <td class="px-6 py-3 text-sm font-medium text-white">
                 {{ item.categoria }}
               </td>
+
+              <!-- Columna Acciones - Solo para usuarios con permisos -->
+              @if (puedeEditar() || puedeEliminar()) {
               <td>
                 <!-- Contenedor de botones (editar y eliminar) -->
                 <div>
-                  <!-- Botón editar tarea (ícono de lápiz) -->
+                  <!-- Botón editar tarea (ícono de lápiz) - Solo para editores y administradores -->
+                  @if (puedeEditar()) {
                   <button
                     class="p-2 rounded-full bg-opacity-60 bg-gray-800 text-white hover:bg-opacity-80 hover:bg-blue-600 transition-opacity duration-200 ease-in-out"
                     (click)="editarTarea(item.tarea.id)" aria-label="Editar tarea"
@@ -886,8 +953,11 @@
                         d="M13.125 6.375l4.5 4.5m0 0l-7.5 7.5h-4.5v-4.5l7.5-7.5m0 0l2.25-2.25a1.125 1.125 0 0 1 1.594 1.594L13.125 6.375z" />
                     </svg>
                   </button>
-                  -
-                  <!-- Botón eliminar tarea (ícono de basurero) -->
+                  }
+
+                  <!-- Botón eliminar tarea (ícono de basurero) - Solo para administradores -->
+                  @if (puedeEliminar()) {
+                  <span>-</span>
                   <button
                     class="p-2 rounded-full bg-opacity-60 bg-gray-800 text-white hover:bg-opacity-80 hover:bg-red-600 transition-opacity duration-200 ease-in-out"
                     (click)="eliminarTarea(item.tarea.id)" aria-label="Eliminar tarea"
@@ -898,8 +968,10 @@
                         d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
                     </svg>
                   </button>
+                  }
                 </div>
               </td>
+              }
             </tr>
             }
           </tbody>
@@ -909,7 +981,8 @@
     }
   </main>
 
-  <!-- Modal Nueva Tarea -->
+  <!-- Modal Nueva Tarea - Solo para editores y administradores -->
+  @if (puedeEditar()) {
   <dialog id="modalNuevaTarea" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
     [open]="modalVisible">
     <form method="dialog" (submit)="crearTarea($event)"
@@ -969,8 +1042,10 @@
       </div>
     </form>
   </dialog>
+  }
 
-  <!-- Modal Nueva Columna Kanban -->
+  <!-- Modal Nueva Columna Kanban - Solo para administradores -->
+  @if (puedeCrearColumnas()) {
   <dialog
     id="modalNuevaColumna"
     class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
@@ -1051,7 +1126,10 @@
       </div>
     </form>
   </dialog>
+  }
 
+  <!-- Modal Confirmar Eliminar Columna - Solo para administradores -->
+  @if (puedeEliminar()) {
   <dialog
     id="modalConfirmEliminarColumna"
     class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
@@ -1080,7 +1158,10 @@
       </div>
     </form>
   </dialog>
+  }
 
+  <!-- Modal Nueva Etiqueta - Solo para administradores -->
+  @if (puedeGestionarEtiquetas()) {
   <dialog
     id="modalNuevaEtiqueta"
     class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-40"
@@ -1180,4 +1261,5 @@
       </div>
     </form>
   </dialog>
+  }
 </div>

@@ -78,10 +78,25 @@ export class Miembros implements OnInit, OnDestroy {
       this.proyectosSubscription.unsubscribe();
     }
   }
+private cargarRolesDesdeLocalStorage(): void {
+  if (!this.isBrowser) return;
 
+  const rolesCache = this.obtenerRolesDeLocalStorage();
+
+  rolesCache.forEach((rol, proyectoId) => {
+    this.rolesPorProyecto.set(proyectoId, rol);
+
+    // Actualizar los proyectos que ya están cargados
+    const proyectoIndex = this.proyectos.findIndex(p => p.id === proyectoId);
+    if (proyectoIndex !== -1) {
+      this.proyectos[proyectoIndex].miRol = rol;
+    }
+  });
+}
   async inicializarComponente(): Promise<void> {
     try {
       await this.obtenerUsuarioLogeado();
+      this.cargarRolesDesdeLocalStorage();
       await this.cargarProyectosComoMiembro();
       this.cargando = false;
       this.cdr.detectChanges();
@@ -140,39 +155,55 @@ export class Miembros implements OnInit, OnDestroy {
   }
 
   obtenerRolProyecto(proyectoId: string | undefined): string {
-    if (!proyectoId) {
-      return 'Visualizador';
-    }
-
-    if (this.rolesPorProyecto.has(proyectoId)) {
-      return this.rolesPorProyecto.get(proyectoId)!;
-    }
-
-    this.cargarRolUsuarioEnProyecto(proyectoId);
+  if (!proyectoId) {
     return 'Visualizador';
   }
 
-  private async cargarRolUsuarioEnProyecto(proyectoId: string): Promise<void> {
-    try {
-      const miembros = await this.vistasService.obtenerMiembrosProyecto(proyectoId).toPromise();
-      const userId = this.authService.getCurrentUserId();
-
-      const miembro = miembros?.find(m => m.usuarioId === userId);
-      if (miembro) {
-        const nombreRol = this.obtenerNombreRol(miembro.rolId);
-        this.rolesPorProyecto.set(proyectoId, nombreRol);
-
-        // Actualizar el proyecto con el rol
-        const proyectoIndex = this.proyectos.findIndex(p => p.id === proyectoId);
-        if (proyectoIndex !== -1) {
-          this.proyectos[proyectoIndex].miRol = nombreRol;
-          this.actualizarProyectosFiltrados();
-        }
-      }
-    } catch (error) {
-      console.error('Error al cargar rol del usuario:', error);
-    }
+  // Primero verificar en localStorage (caché)
+  const rolCache = this.obtenerRolDeLocalStorage(proyectoId);
+  if (rolCache) {
+    return rolCache;
   }
+
+  // Si no está en caché, verificar en el mapa local
+  if (this.rolesPorProyecto.has(proyectoId)) {
+    const rol = this.rolesPorProyecto.get(proyectoId)!;
+    // Guardar en localStorage para futuras consultas
+    this.guardarRolEnLocalStorage(proyectoId, rol);
+    return rol;
+  }
+
+  // Si no está en ningún lado, cargar del servidor
+  this.cargarRolUsuarioEnProyecto(proyectoId);
+  return 'Visualizador';
+}
+
+  private async cargarRolUsuarioEnProyecto(proyectoId: string): Promise<void> {
+  try {
+    const miembros = await this.vistasService.obtenerMiembrosProyecto(proyectoId).toPromise();
+    const userId = this.authService.getCurrentUserId();
+
+    const miembro = miembros?.find(m => m.usuarioId === userId);
+    if (miembro) {
+      const nombreRol = this.obtenerNombreRol(miembro.rolId);
+
+      // Actualizar el mapa local
+      this.rolesPorProyecto.set(proyectoId, nombreRol);
+
+      // Guardar en localStorage
+      this.guardarRolEnLocalStorage(proyectoId, nombreRol);
+
+      // Actualizar el proyecto con el rol
+      const proyectoIndex = this.proyectos.findIndex(p => p.id === proyectoId);
+      if (proyectoIndex !== -1) {
+        this.proyectos[proyectoIndex].miRol = nombreRol;
+        this.actualizarProyectosFiltrados();
+      }
+    }
+  } catch (error) {
+    console.error('Error al cargar rol del usuario:', error);
+  }
+}
 
   private obtenerNombreRol(rolId: number): string {
     switch (rolId) {
@@ -248,17 +279,65 @@ export class Miembros implements OnInit, OnDestroy {
   /**
    * Navega al board del proyecto
    */
-  irAlBoard(proyectoId: string): void {
-    if (!this.isBrowser || !proyectoId || proyectoId === '') {
-      console.error('ID de proyecto no válido');
-      this.mostrarMensaje('Error: No se puede acceder al proyecto');
-      return;
-    }
-
-    this.proyectoGuard.setProyectoActual(proyectoId);
-    this.router.navigate(['/board']);
+  /**
+ * Navega al board del proyecto guardando el rol primero
+ */
+async irAlBoard(proyectoId: string): Promise<void> {
+  if (!this.isBrowser || !proyectoId || proyectoId === '') {
+    console.error('ID de proyecto no válido');
+    this.mostrarMensaje('Error: No se puede acceder al proyecto');
+    return;
   }
 
+  try {
+    // Obtener el rol actual del usuario en este proyecto
+    const rol = this.obtenerRolProyecto(proyectoId);
+
+    // Guardar el rol en localStorage antes de redirigir
+    this.guardarRolEnLocalStorage(proyectoId, rol);
+
+    // También guardar el proyecto actual y rol en el servicio de guards
+    this.proyectoGuard.setProyectoActual(proyectoId);
+
+    // Guardar información adicional para usar en la siguiente página
+    this.guardarInformacionProyectoActual(proyectoId, rol);
+
+    // Redirigir al board
+    this.router.navigate(['/board']);
+
+  } catch (error) {
+    console.error('Error al acceder al proyecto:', error);
+    this.mostrarMensaje('Error al acceder al proyecto');
+  }
+}
+/**
+ * Guarda información completa del proyecto actual para usar en el board
+ */
+private guardarInformacionProyectoActual(proyectoId: string, rol: string): void {
+  if (!this.isBrowser) return;
+
+  try {
+    const proyecto = this.proyectos.find(p => p.id === proyectoId);
+
+    const proyectoInfo = {
+      proyectoId: proyectoId,
+      rol: rol,
+      nombre: proyecto?.nombre || '',
+      descripcion: proyecto?.descripcion || '',
+      creadoPor: proyecto?.creadoPor?.nombre || 'Usuario',
+      fechaAcceso: new Date().toISOString()
+    };
+
+    localStorage.setItem('proyectoActual', JSON.stringify(proyectoInfo));
+
+    // También guardar solo el ID y rol por separado para fácil acceso
+    localStorage.setItem('proyectoIdActual', proyectoId);
+    localStorage.setItem('rolActual', rol);
+
+  } catch (error) {
+    console.error('Error al guardar información del proyecto:', error);
+  }
+}
   /**
    * Muestra un mensaje toast
    */
@@ -450,4 +529,121 @@ export class Miembros implements OnInit, OnDestroy {
       return `Creado hace ${meses} mes${meses > 1 ? 'es' : ''}`;
     }
   }
+
+  /**
+ * Guarda el rol del usuario para un proyecto específico en localStorage
+ */
+guardarRolEnLocalStorage(proyectoId: string, rol: string): void {
+  if (!this.isBrowser || !proyectoId) return;
+
+  try {
+    const rolesKey = 'proyectoRoles';
+    let roles = this.obtenerRolesDeLocalStorage();
+
+    // Actualizar o agregar el rol para este proyecto
+    roles.set(proyectoId, rol);
+
+    // Guardar en localStorage
+    localStorage.setItem(rolesKey, JSON.stringify(Array.from(roles.entries())));
+
+    console.log(`Rol ${rol} guardado para proyecto ${proyectoId}`);
+  } catch (error) {
+    console.error('Error al guardar rol en localStorage:', error);
+  }
+}
+
+/**
+ * Obtiene todos los roles guardados en localStorage
+ */
+obtenerRolesDeLocalStorage(): Map<string, string> {
+  if (!this.isBrowser) return new Map();
+
+  try {
+    const rolesKey = 'proyectoRoles';
+    const rolesData = localStorage.getItem(rolesKey);
+
+    if (rolesData) {
+      const rolesArray = JSON.parse(rolesData) as [string, string][];
+      return new Map(rolesArray);
+    }
+  } catch (error) {
+    console.error('Error al obtener roles de localStorage:', error);
+  }
+
+  return new Map();
+}
+
+/**
+ * Obtiene el rol de un proyecto específico desde localStorage
+ */
+obtenerRolDeLocalStorage(proyectoId: string): string | null {
+  if (!this.isBrowser || !proyectoId) return null;
+
+  try {
+    const roles = this.obtenerRolesDeLocalStorage();
+    return roles.get(proyectoId) || null;
+  } catch (error) {
+    console.error('Error al obtener rol de localStorage:', error);
+    return null;
+  }
+}
+
+/**
+ * Elimina el rol de un proyecto específico de localStorage
+ */
+eliminarRolDeLocalStorage(proyectoId: string): void {
+  if (!this.isBrowser || !proyectoId) return;
+
+  try {
+    const roles = this.obtenerRolesDeLocalStorage();
+    roles.delete(proyectoId);
+
+    localStorage.setItem('proyectoRoles', JSON.stringify(Array.from(roles.entries())));
+  } catch (error) {
+    console.error('Error al eliminar rol de localStorage:', error);
+  }
+}
+
+/**
+ * Limpia todos los roles guardados en localStorage
+ */
+limpiarRolesLocalStorage(): void {
+  if (!this.isBrowser) return;
+
+  try {
+    localStorage.removeItem('proyectoRoles');
+  } catch (error) {
+    console.error('Error al limpiar roles de localStorage:', error);
+  }
+}
+/**
+ * Obtiene la información del proyecto actual desde localStorage
+ */
+obtenerProyectoActual(): any {
+  if (!this.isBrowser) return null;
+
+  try {
+    const proyectoData = localStorage.getItem('proyectoActual');
+    return proyectoData ? JSON.parse(proyectoData) : null;
+  } catch (error) {
+    console.error('Error al obtener proyecto actual:', error);
+    return null;
+  }
+}
+
+/**
+ * Obtiene solo el rol actual desde localStorage
+ */
+obtenerRolActual(): string | null {
+  if (!this.isBrowser) return null;
+  return localStorage.getItem('rolActual');
+}
+
+/**
+ * Obtiene solo el ID del proyecto actual desde localStorage
+ */
+obtenerProyectoIdActual(): string | null {
+  if (!this.isBrowser) return null;
+  return localStorage.getItem('proyectoIdActual');
+}
 }

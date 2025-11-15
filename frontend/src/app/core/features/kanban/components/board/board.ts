@@ -235,6 +235,10 @@ export class Board implements OnInit {
 /**
  * Carga la información del proyecto y rol desde localStorage
  */
+/**
+ * Carga la información del proyecto y rol desde localStorage
+ * Si no hay información, asume que es un proyecto propio (Administrador)
+ */
 private cargarInformacionProyectoDesdeLocalStorage(): void {
   try {
     // Obtener la información guardada
@@ -242,18 +246,37 @@ private cargarInformacionProyectoDesdeLocalStorage(): void {
     const rol = localStorage.getItem('rolActual');
     const proyectoId = localStorage.getItem('proyectoIdActual');
 
-    if (proyectoData) {
+    // Verificar si hay información de proyecto compartido
+    const hayInformacionCompartida = proyectoData && rol && proyectoId;
+
+    if (hayInformacionCompartida) {
+      // Hay información de proyecto compartido
       this.proyectoActual = JSON.parse(proyectoData);
+      this.rolUsuario = rol;
+
+      console.log('Proyecto compartido cargado:', this.proyectoActual);
+      console.log('Rol del usuario en proyecto compartido:', this.rolUsuario);
+    } else {
+      // No hay información en localStorage, es un proyecto propio
+      this.rolUsuario = 'Administrador';
+      this.proyectoActual = {
+        proyectoId: this.proyectoGuard.getProyectoActual(),
+        rol: 'Administrador',
+        nombre: 'Mi Proyecto', // Esto se actualizará cuando cargues los datos del proyecto
+        descripcion: '',
+        creadoPor: 'Tú',
+        fechaAcceso: new Date().toISOString()
+      };
+
+      console.log('Proyecto propio detectado - Rol: Administrador');
+      console.log('No hay información en localStorage, asumiendo proyecto propio');
     }
-
-    this.rolUsuario = rol || 'Visualizador';
-
-    console.log('Proyecto actual:', this.proyectoActual);
-    console.log('Rol del usuario:', this.rolUsuario);
 
   } catch (error) {
     console.error('Error al cargar información del proyecto:', error);
-    this.rolUsuario = 'Visualizador'; // Valor por defecto
+    // Por defecto, asumir que es proyecto propio
+    this.rolUsuario = 'Administrador';
+    console.log('Error al cargar localStorage, asumiendo proyecto propio - Rol: Administrador');
   }
 }
 /**
@@ -1417,6 +1440,4 @@ menuVisible = false;
       this.menuVisible = false;
     }
   }
-
-
 }

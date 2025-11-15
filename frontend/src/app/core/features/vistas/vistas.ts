@@ -141,6 +141,88 @@ export class Vistas implements OnInit, OnDestroy {
     }
   }
 
+  // === NUEVAS FUNCIONES PARA LIMPIAR LOCALSTORAGE ===
+
+  /**
+   * Navega al board de un proyecto propio (limpia localStorage)
+   */
+  irAlBoard(proyectoId: string): void {
+  if (!this.isBrowser || !proyectoId || proyectoId === '') {
+    console.error('ID de proyecto no válido');
+    this.mostrarMensaje('Error: No se puede acceder al proyecto');
+    return;
+  }
+
+  try {
+    // LIMPIAR cualquier información de proyecto compartido anterior
+    this.limpiarProyectoActual();
+
+    // DEBUG
+    console.log('Navegando a proyecto propio - Limpiando localStorage');
+
+    // Establecer el proyecto actual en el guard
+    this.proyectoGuard.setProyectoActual(proyectoId);
+
+    // Redirigir al board
+    this.router.navigate(['/board']);
+
+  } catch (error) {
+    console.error('Error al acceder al proyecto:', error);
+    this.mostrarMensaje('Error al acceder al proyecto');
+  }
+}
+
+/**
+ * Limpia la información del proyecto actual del localStorage
+ */
+private limpiarProyectoActual(): void {
+  if (!this.isBrowser) return;
+
+  try {
+    localStorage.removeItem('proyectoActual');
+    localStorage.removeItem('proyectoIdActual');
+    localStorage.removeItem('rolActual');
+
+    // También limpiar el caché de roles si es necesario
+    const rolesKey = 'proyectoRoles';
+    localStorage.removeItem(rolesKey);
+
+    console.log('Información de proyecto compartido limpiada para proyecto propio');
+  } catch (error) {
+    console.error('Error al limpiar información del proyecto:', error);
+  }
+}
+
+
+
+  /**
+   * Navega al dashboard de un proyecto propio (limpia localStorage)
+   */
+  irAlDashboard(proyectoId: string): void {
+    if (!this.isBrowser || !proyectoId || proyectoId === '') {
+      console.error('ID de proyecto no válido para dashboard');
+      this.mostrarMensaje('Error: No se puede acceder a las métricas del proyecto');
+      return;
+    }
+
+    console.log('[DEBUG] Navegando al dashboard del proyecto:', proyectoId);
+
+    try {
+      // LIMPIAR cualquier información de proyecto compartido anterior
+      this.limpiarProyectoActual();
+
+      // Guardar el ID del proyecto para usar en el dashboard
+      this.proyectoGuard.setProyectoActual(proyectoId);
+
+      // Navegar a la ruta de dashboards
+      this.router.navigate(['/dashboard', proyectoId]);
+
+    } catch (error) {
+      console.error('Error al acceder al dashboard:', error);
+      this.mostrarMensaje('Error al acceder a las métricas del proyecto');
+    }
+  }
+
   // === ADMINISTRAR PROYECTO ===
 
   abrirModalAdministrar(proyecto: ProyectoConUsuario): void {
@@ -194,26 +276,25 @@ export class Vistas implements OnInit, OnDestroy {
     }
   }
 
-async cargarMiembrosProyecto(proyectoId: string): Promise<void> {
-  this.cargandoMiembros = true;
-  try {
-    const miembros = await this.vistasService.obtenerMiembrosProyecto(proyectoId).toPromise();
+  async cargarMiembrosProyecto(proyectoId: string): Promise<void> {
+    this.cargandoMiembros = true;
+    try {
+      const miembros = await this.vistasService.obtenerMiembrosProyecto(proyectoId).toPromise();
 
+      this.miembrosProyecto = (miembros || []).map(miembro => ({
+        ...miembro,
+        rolId: Number(miembro.rolId) // Convertir a número
+      }));
 
-    this.miembrosProyecto = (miembros || []).map(miembro => ({
-      ...miembro,
-      rolId: Number(miembro.rolId) // Convertir a número
-    }));
-
-    console.log('Miembros cargados:', this.miembrosProyecto);
-  } catch (error) {
-    console.error('Error al cargar miembros:', error);
-    this.mostrarMensaje('Error al cargar miembros del proyecto');
-  } finally {
-    this.cargandoMiembros = false;
-    this.cdr.detectChanges();
+      console.log('Miembros cargados:', this.miembrosProyecto);
+    } catch (error) {
+      console.error('Error al cargar miembros:', error);
+      this.mostrarMensaje('Error al cargar miembros del proyecto');
+    } finally {
+      this.cargandoMiembros = false;
+      this.cdr.detectChanges();
+    }
   }
-}
 
   async invitarDesdeAdministrar(): Promise<void> {
     if (!this.proyectoAAdministrar?.id || !this.correoInvitacionAdministrar.trim()) {
@@ -250,58 +331,44 @@ async cargarMiembrosProyecto(proyectoId: string): Promise<void> {
       }
     }
   }
-irAlDashboard(proyectoId: string): void {
-  if (!this.isBrowser || !proyectoId || proyectoId === '') {
-    console.error('ID de proyecto no válido para dashboard');
-    this.mostrarMensaje('Error: No se puede acceder a las métricas del proyecto');
-    return;
-  }
 
-  console.log('[DEBUG] Navegando al dashboard del proyecto:', proyectoId);
-
-  // Guardar el ID del proyecto para usar en el dashboard
-  this.proyectoGuard.setProyectoActual(proyectoId);
-
-  // Navegar a la ruta de dashboards
-  this.router.navigate(['/dashboard', proyectoId]);
-}
   async actualizarRolMiembro(miembro: MiembroProyecto): Promise<void> {
-  try {
-    const nuevoRolId = Number(miembro.rolId);
+    try {
+      const nuevoRolId = Number(miembro.rolId);
 
-    if (isNaN(nuevoRolId)) {
-      this.mostrarMensaje('Error: El rol seleccionado no es válido');
-      return;
+      if (isNaN(nuevoRolId)) {
+        this.mostrarMensaje('Error: El rol seleccionado no es válido');
+        return;
+      }
+      await this.vistasService.actualizarRolMiembro(miembro.id, nuevoRolId).toPromise();
+      this.mostrarMensaje('Rol actualizado correctamente');
+
+    } catch (error) {
+      console.error('Error al actualizar rol:', error);
+      this.mostrarMensaje('Error al actualizar el rol');
     }
-    await this.vistasService.actualizarRolMiembro(miembro.id, nuevoRolId).toPromise();
-    this.mostrarMensaje('Rol actualizado correctamente');
-
-  } catch (error) {
-    console.error('Error al actualizar rol:', error);
-    this.mostrarMensaje('Error al actualizar el rol');
   }
-}
 
   async eliminarMiembro(miembro: MiembroProyecto): Promise<void> {
-  if (!this.proyectoAAdministrar?.id) return;
+    if (!this.proyectoAAdministrar?.id) return;
 
-  try {
-    await this.vistasService.eliminarMiembroProyecto(
-      this.proyectoAAdministrar.id,
-      miembro.usuarioId
-    ).toPromise();
+    try {
+      await this.vistasService.eliminarMiembroProyecto(
+        this.proyectoAAdministrar.id,
+        miembro.usuarioId
+      ).toPromise();
 
-    this.mostrarMensaje('Miembro eliminado del proyecto');
-    // Recargar miembros
-    this.cargarMiembrosProyecto(this.proyectoAAdministrar.id);
-    // Recargar proyectos para actualizar contador
-    this.recargarProyectos();
+      this.mostrarMensaje('Miembro eliminado del proyecto');
+      // Recargar miembros
+      this.cargarMiembrosProyecto(this.proyectoAAdministrar.id);
+      // Recargar proyectos para actualizar contador
+      this.recargarProyectos();
 
-  } catch (error) {
-    console.error('Error al eliminar miembro:', error);
-    this.mostrarMensaje('Error al eliminar miembro');
+    } catch (error) {
+      console.error('Error al eliminar miembro:', error);
+      this.mostrarMensaje('Error al eliminar miembro');
+    }
   }
-}
 
   guardarProyectoDesdeAdministrar(): void {
     if (!this.proyectoAAdministrar?.id || !this.proyectoAAdministrar.nombre.trim()) {
@@ -357,87 +424,86 @@ irAlDashboard(proyectoId: string): void {
   }
 
   async enviarInvitacion(): Promise<void> {
-  if (!this.proyectoAInvitar?.id || !this.correoInvitacion.trim()) {
-    this.errorInvitacion = 'El correo electrónico es requerido';
-    return;
-  }
-
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(this.correoInvitacion)) {
-    this.errorInvitacion = 'Por favor ingresa un correo electrónico válido';
-    return;
-  }
-
-  this.buscandoUsuario = true;
-  this.errorInvitacion = '';
-  this.usuarioEncontrado = null;
-  this.cdr.detectChanges();
-
-  try {
-    console.log(' [DEBUG] Llamando a buscarUsuarioPorEmail...');
-    const usuario = await this.vistasService.buscarUsuarioPorEmail(this.correoInvitacion).toPromise();
-    console.log('[DEBUG] Usuario encontrado (datos extraídos):', usuario);
-
-    if (!usuario) {
-      this.errorInvitacion = 'No se encontró ningún usuario con ese correo electrónico';
+    if (!this.proyectoAInvitar?.id || !this.correoInvitacion.trim()) {
+      this.errorInvitacion = 'El correo electrónico es requerido';
       return;
     }
 
-    if (!usuario.id) {
-      console.error(' [DEBUG] ERROR CRÍTICO: El usuario no tiene ID');
-      this.errorInvitacion = 'Error: El usuario encontrado no tiene un ID válido';
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(this.correoInvitacion)) {
+      this.errorInvitacion = 'Por favor ingresa un correo electrónico válido';
       return;
     }
 
-    if (!usuario.nombre) {
-      console.warn(' [DEBUG] El usuario no tiene nombre, usando valor por defecto');
-      usuario.nombre = 'Usuario';
-    }
-
-    this.usuarioEncontrado = usuario;
-
-    console.log(' [DEBUG] Enviando invitación con:', {
-      proyectoId: this.proyectoAInvitar.id,
-      usuarioId: usuario.id,
-      rolId: this.rolInvitacion,
-      proyectoNombre: this.proyectoAInvitar.nombre,
-      usuarioEmail: this.correoInvitacion
-    });
-
-
-    const resultado = await this.vistasService.invitarUsuarioAProyecto(
-      this.proyectoAInvitar.id!,
-      usuario.id,
-      parseInt(this.rolInvitacion),
-      this.proyectoAInvitar.nombre, // Nombre del proyecto para el correo
-      this.correoInvitacion // Email del usuario invitado para el correo
-    );
-
-    console.log('[DEBUG] Invitación exitosa');
-    this.mostrarMensaje(`¡${usuario.nombre} ha sido invitado al proyecto! Se ha enviado un correo de notificación.`);
-
-    // Recargar los proyectos para obtener los contadores actualizados del backend
-    this.recargarProyectos();
-
-    this.cerrarInvitacion();
-
-  } catch (error: any) {
-    console.error('[DEBUG] Error:', error);
-
-    if (error.status === 404) {
-      this.errorInvitacion = 'No se encontró ningún usuario con ese correo electrónico';
-    } else if (error.status === 409) {
-      this.errorInvitacion = 'Este usuario ya es miembro del proyecto';
-    } else if (error.message?.includes('Usuario no encontrado')) {
-      this.errorInvitacion = 'No se encontró ningún usuario con ese correo electrónico';
-    } else {
-      this.errorInvitacion = 'Error al invitar usuario. Intenta nuevamente.';
-    }
-  } finally {
-    this.buscandoUsuario = false;
+    this.buscandoUsuario = true;
+    this.errorInvitacion = '';
+    this.usuarioEncontrado = null;
     this.cdr.detectChanges();
+
+    try {
+      console.log(' [DEBUG] Llamando a buscarUsuarioPorEmail...');
+      const usuario = await this.vistasService.buscarUsuarioPorEmail(this.correoInvitacion).toPromise();
+      console.log('[DEBUG] Usuario encontrado (datos extraídos):', usuario);
+
+      if (!usuario) {
+        this.errorInvitacion = 'No se encontró ningún usuario con ese correo electrónico';
+        return;
+      }
+
+      if (!usuario.id) {
+        console.error(' [DEBUG] ERROR CRÍTICO: El usuario no tiene ID');
+        this.errorInvitacion = 'Error: El usuario encontrado no tiene un ID válido';
+        return;
+      }
+
+      if (!usuario.nombre) {
+        console.warn(' [DEBUG] El usuario no tiene nombre, usando valor por defecto');
+        usuario.nombre = 'Usuario';
+      }
+
+      this.usuarioEncontrado = usuario;
+
+      console.log(' [DEBUG] Enviando invitación con:', {
+        proyectoId: this.proyectoAInvitar.id,
+        usuarioId: usuario.id,
+        rolId: this.rolInvitacion,
+        proyectoNombre: this.proyectoAInvitar.nombre,
+        usuarioEmail: this.correoInvitacion
+      });
+
+      const resultado = await this.vistasService.invitarUsuarioAProyecto(
+        this.proyectoAInvitar.id!,
+        usuario.id,
+        parseInt(this.rolInvitacion),
+        this.proyectoAInvitar.nombre, // Nombre del proyecto para el correo
+        this.correoInvitacion // Email del usuario invitado para el correo
+      );
+
+      console.log('[DEBUG] Invitación exitosa');
+      this.mostrarMensaje(`¡${usuario.nombre} ha sido invitado al proyecto! Se ha enviado un correo de notificación.`);
+
+      // Recargar los proyectos para obtener los contadores actualizados del backend
+      this.recargarProyectos();
+
+      this.cerrarInvitacion();
+
+    } catch (error: any) {
+      console.error('[DEBUG] Error:', error);
+
+      if (error.status === 404) {
+        this.errorInvitacion = 'No se encontró ningún usuario con ese correo electrónico';
+      } else if (error.status === 409) {
+        this.errorInvitacion = 'Este usuario ya es miembro del proyecto';
+      } else if (error.message?.includes('Usuario no encontrado')) {
+        this.errorInvitacion = 'No se encontró ningún usuario con ese correo electrónico';
+      } else {
+        this.errorInvitacion = 'Error al invitar usuario. Intenta nuevamente.';
+      }
+    } finally {
+      this.buscandoUsuario = false;
+      this.cdr.detectChanges();
+    }
   }
-}
 
   cerrarInvitacion(): void {
     this.invitacionContainer.clear();
@@ -464,17 +530,6 @@ irAlDashboard(proyectoId: string): void {
   }
 
   // === NAVEGACIÓN Y PROYECTOS ===
-
-  irAlBoard(proyectoId: string): void {
-    if (!this.isBrowser || !proyectoId || proyectoId === '') {
-      console.error('ID de proyecto no válido');
-      this.mostrarMensaje('Error: No se puede acceder al proyecto');
-      return;
-    }
-
-    this.proyectoGuard.setProyectoActual(proyectoId);
-    this.router.navigate(['/board']);
-  }
 
   private suscribirseAProyectos(): void {
     this.proyectosSubscription = this.vistasService.proyectos$.subscribe({
@@ -544,95 +599,97 @@ irAlDashboard(proyectoId: string): void {
   // === GESTIÓN DE PROYECTOS ===
 
   async guardarProyecto(): Promise<void> {
-  if (!this.nuevoProyectoData.nombre.trim()) {
-    this.mostrarMensaje('El nombre del proyecto es requerido');
-    return;
-  }
-
-  const usuarioId = this.authService.getCurrentUserId();
-  if (!usuarioId) {
-    this.mostrarMensaje('Error: No se pudo identificar al usuario.');
-    return;
-  }
-
-  if (!this.nuevoProyectoData.id) {
-    const datos: CreateProjectRequest = {
-      nombre: this.nuevoProyectoData.nombre.trim(),
-      descripcion: this.nuevoProyectoData.descripcion?.trim() || '',
-      creadoPorId: usuarioId
-    };
-
-    this.vistasService.crearProyecto(datos).subscribe({
-      next: async (res: ProyectoConUsuario) => {
-        try {
-          await this.autoInsertarComoMiembro(res.id!, usuarioId);
-          this.mostrarMensaje('Proyecto creado correctamente y te has unido como miembro');
-          this.recargarProyectos();
-        } catch (error) {
-          console.error('Error al auto-insertar como miembro:', error);
-          this.mostrarMensaje('Proyecto creado correctamente');
-        }
-
-        this.cerrarModal();
-      },
-      error: (error) => {
-        console.error('Error al crear proyecto:', error);
-        this.mostrarMensaje('Error al crear proyecto');
-      }
-    });
-  } else {
-    const datos: Partial<Proyecto> = {
-      nombre: this.nuevoProyectoData.nombre.trim(),
-      descripcion: this.nuevoProyectoData.descripcion?.trim() || ''
-    };
-
-    this.vistasService.editarProyecto(this.nuevoProyectoData.id, datos).subscribe({
-      next: (res: ProyectoConUsuario) => {
-        const proyectoActualizado = this.normalizarProyecto(res);
-        const proyectosActualizados = this.proyectos.map(p =>
-          p.id === proyectoActualizado.id ? proyectoActualizado : p
-        );
-
-        this.proyectos = proyectosActualizados;
-        this.actualizarProyectosFiltrados();
-
-        this.mostrarMensaje('Proyecto editado correctamente');
-        this.cerrarModal();
-
-        this.cdr.detectChanges();
-        setTimeout(() => this.cdr.detectChanges(), 0);
-      },
-      error: (error) => {
-        this.mostrarMensaje('Error al editar proyecto');
-      }
-    });
-  }
-}
-private async autoInsertarComoMiembro(proyectoId: string, usuarioId: string): Promise<void> {
-  try {
-    // Verificar si ya es miembro (opcional, por seguridad)
-    const miembros = await this.vistasService.obtenerMiembrosProyecto(proyectoId).toPromise();
-    const yaEsMiembro = miembros?.some(miembro => miembro.usuarioId === usuarioId);
-
-    if (yaEsMiembro) {
-      console.log('El usuario ya es miembro del proyecto');
+    if (!this.nuevoProyectoData.nombre.trim()) {
+      this.mostrarMensaje('El nombre del proyecto es requerido');
       return;
     }
 
-    // Auto-insertar como administrador
-    await this.vistasService.invitarUsuarioAProyecto(
-      proyectoId,
-      usuarioId,
-      1 // Rol de administrador
-    );
+    const usuarioId = this.authService.getCurrentUserId();
+    if (!usuarioId) {
+      this.mostrarMensaje('Error: No se pudo identificar al usuario.');
+      return;
+    }
 
-    console.log('Usuario auto-insertado como miembro del proyecto');
+    if (!this.nuevoProyectoData.id) {
+      const datos: CreateProjectRequest = {
+        nombre: this.nuevoProyectoData.nombre.trim(),
+        descripcion: this.nuevoProyectoData.descripcion?.trim() || '',
+        creadoPorId: usuarioId
+      };
 
-  } catch (error) {
-    console.error('Error al auto-insertar como miembro:', error);
-    throw error;
+      this.vistasService.crearProyecto(datos).subscribe({
+        next: async (res: ProyectoConUsuario) => {
+          try {
+            await this.autoInsertarComoMiembro(res.id!, usuarioId);
+            this.mostrarMensaje('Proyecto creado correctamente y te has unido como miembro');
+            this.recargarProyectos();
+          } catch (error) {
+            console.error('Error al auto-insertar como miembro:', error);
+            this.mostrarMensaje('Proyecto creado correctamente');
+          }
+
+          this.cerrarModal();
+        },
+        error: (error) => {
+          console.error('Error al crear proyecto:', error);
+          this.mostrarMensaje('Error al crear proyecto');
+        }
+      });
+    } else {
+      const datos: Partial<Proyecto> = {
+        nombre: this.nuevoProyectoData.nombre.trim(),
+        descripcion: this.nuevoProyectoData.descripcion?.trim() || ''
+      };
+
+      this.vistasService.editarProyecto(this.nuevoProyectoData.id, datos).subscribe({
+        next: (res: ProyectoConUsuario) => {
+          const proyectoActualizado = this.normalizarProyecto(res);
+          const proyectosActualizados = this.proyectos.map(p =>
+            p.id === proyectoActualizado.id ? proyectoActualizado : p
+          );
+
+          this.proyectos = proyectosActualizados;
+          this.actualizarProyectosFiltrados();
+
+          this.mostrarMensaje('Proyecto editado correctamente');
+          this.cerrarModal();
+
+          this.cdr.detectChanges();
+          setTimeout(() => this.cdr.detectChanges(), 0);
+        },
+        error: (error) => {
+          this.mostrarMensaje('Error al editar proyecto');
+        }
+      });
+    }
   }
-}
+
+  private async autoInsertarComoMiembro(proyectoId: string, usuarioId: string): Promise<void> {
+    try {
+      // Verificar si ya es miembro (opcional, por seguridad)
+      const miembros = await this.vistasService.obtenerMiembrosProyecto(proyectoId).toPromise();
+      const yaEsMiembro = miembros?.some(miembro => miembro.usuarioId === usuarioId);
+
+      if (yaEsMiembro) {
+        console.log('El usuario ya es miembro del proyecto');
+        return;
+      }
+
+      // Auto-insertar como administrador
+      await this.vistasService.invitarUsuarioAProyecto(
+        proyectoId,
+        usuarioId,
+        1 // Rol de administrador
+      );
+
+      console.log('Usuario auto-insertado como miembro del proyecto');
+
+    } catch (error) {
+      console.error('Error al auto-insertar como miembro:', error);
+      throw error;
+    }
+  }
+
   actualizarProyectosFiltrados(): void {
     const texto = this.filtroTexto.trim().toLowerCase();
     this.proyectosFiltrados = this.proyectos.filter(p =>

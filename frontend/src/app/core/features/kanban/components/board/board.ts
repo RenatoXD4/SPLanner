@@ -108,6 +108,9 @@ interface EtiquetaConColor {
 })
 export class Board implements OnInit {
 
+  proyectoIdActual: string = '';
+  rolUsuario: string = '';
+  proyectoActual: any = null;
   public selectedTask: Task | null = null;
   public isDetailPanelHidden: boolean = true;
   public selectedTaskEstadoNombre: string | null = null;
@@ -134,7 +137,6 @@ export class Board implements OnInit {
   sidebarOpen = false;
   modalVisible = false;
 
-  proyectoIdActual: string = '';
 
   CategoriasK: Categoria[] = [];
   miembrosDelProyecto: ResponsableTarea[] = [];
@@ -200,42 +202,109 @@ export class Board implements OnInit {
   ) { }
 
   async ngOnInit() {
+  // Obtener el ID del usuario actual
+  const userId = this.authService.getCurrentUserId();
+  if (!userId) {
+    this.router.navigate(['/login']);
+    return;
+  }
+  this.currentUser = userId;
 
+  // Obtener proyecto ID del guard
+  const proyectoId = this.proyectoGuard.getProyectoActual();
 
-    // Obtener el ID del usuario actual
-    const userId = this.authService.getCurrentUserId();
-    if (!userId) {
-
-      this.router.navigate(['/login']);
-      return;
-    }
-    this.currentUser = userId;
-
-    // Obtener proyecto ID del guard
-    const proyectoId = this.proyectoGuard.getProyectoActual();
-
-    if (!proyectoId) {
-
-      this.mostrarErrorYRedirigir('No hay proyecto seleccionado');
-      return;
-    }
-
-    // Validación adicional: verificar que el proyecto existe y es accesible
-    try {
-      await this.validarAccesoProyecto(proyectoId);
-      this.proyectoIdActual = proyectoId;
-      this.cargarDatosProyecto(proyectoId);
-
-      this.cargarColores();
-    } catch (error) {
-
-      this.mostrarErrorYRedirigir('No tienes acceso a este proyecto');
-    }
-
+  if (!proyectoId) {
+    this.mostrarErrorYRedirigir('No hay proyecto seleccionado');
+    return;
   }
 
+  // CARGAR INFORMACIÓN DEL ROL DESDE LOCALSTORAGE ← AGREGAR ESTO
+  this.cargarInformacionProyectoDesdeLocalStorage();
 
+  // Validación adicional: verificar que el proyecto existe y es accesible
+  try {
+    await this.validarAccesoProyecto(proyectoId);
+    this.proyectoIdActual = proyectoId;
+    this.cargarDatosProyecto(proyectoId);
+    this.cargarColores();
+  } catch (error) {
+    this.mostrarErrorYRedirigir('No tienes acceso a este proyecto');
+  }
+}
 
+/**
+ * Carga la información del proyecto y rol desde localStorage
+ */
+/**
+ * Carga la información del proyecto y rol desde localStorage
+ * Si no hay información, asume que es un proyecto propio (Administrador)
+ */
+private cargarInformacionProyectoDesdeLocalStorage(): void {
+  try {
+    // Obtener la información guardada
+    const proyectoData = localStorage.getItem('proyectoActual');
+    const rol = localStorage.getItem('rolActual');
+    const proyectoId = localStorage.getItem('proyectoIdActual');
+
+    // Verificar si hay información de proyecto compartido
+    const hayInformacionCompartida = proyectoData && rol && proyectoId;
+
+    if (hayInformacionCompartida) {
+      // Hay información de proyecto compartido
+      this.proyectoActual = JSON.parse(proyectoData);
+      this.rolUsuario = rol;
+
+      console.log('Proyecto compartido cargado:', this.proyectoActual);
+      console.log('Rol del usuario en proyecto compartido:', this.rolUsuario);
+    } else {
+      // No hay información en localStorage, es un proyecto propio
+      this.rolUsuario = 'Administrador';
+      this.proyectoActual = {
+        proyectoId: this.proyectoGuard.getProyectoActual(),
+        rol: 'Administrador',
+        nombre: 'Mi Proyecto', // Esto se actualizará cuando cargues los datos del proyecto
+        descripcion: '',
+        creadoPor: 'Tú',
+        fechaAcceso: new Date().toISOString()
+      };
+
+      console.log('Proyecto propio detectado - Rol: Administrador');
+      console.log('No hay información en localStorage, asumiendo proyecto propio');
+    }
+
+  } catch (error) {
+    console.error('Error al cargar información del proyecto:', error);
+    // Por defecto, asumir que es proyecto propio
+    this.rolUsuario = 'Administrador';
+    console.log('Error al cargar localStorage, asumiendo proyecto propio - Rol: Administrador');
+  }
+}
+/**
+ * Verifica permisos en el board basado en el rol guardado
+ */
+puedeEditar(): boolean {
+  return this.rolUsuario === 'Administrador' || this.rolUsuario === 'Editor';
+}
+
+puedeEliminar(): boolean {
+  return this.rolUsuario === 'Administrador';
+}
+
+puedeInvitar(): boolean {
+  return this.rolUsuario === 'Administrador';
+}
+
+puedeCrearColumnas(): boolean {
+  return this.rolUsuario === 'Administrador';
+}
+
+puedeCambiarColores(): boolean {
+  return this.rolUsuario === 'Administrador';
+}
+
+puedeGestionarEtiquetas(): boolean {
+  return this.rolUsuario === 'Administrador';
+}
 
 
 
@@ -780,6 +849,10 @@ export class Board implements OnInit {
   }
 
   eliminarTarea(taskId: string): void {
+      if (!this.puedeEliminar()) {
+    alert('No tienes permisos para eliminar tareas');
+    return;
+  }
     //if (confirm('¿Estás seguro de que deseas eliminar esta tarea?')) {
     this.boardService.deleteTask(taskId).subscribe(
       () => {
@@ -803,7 +876,14 @@ export class Board implements OnInit {
     );
     //}
   }
-
+/**
+ * Limpia la información del proyecto actual al salir del board
+ */
+limpiarProyectoActual(): void {
+  localStorage.removeItem('proyectoActual');
+  localStorage.removeItem('proyectoIdActual');
+  localStorage.removeItem('rolActual');
+}
   editarTarea(taskId: string) {
     // Lógica para abrir el modal o ventana de edición
     console.log('Editar tarea con ID:', taskId);
@@ -1106,6 +1186,10 @@ export class Board implements OnInit {
   }
 
   updateEtiqueta(etiquetaId: number, nuevoNombre: string, nuevoColorId: number): void {
+      if (!this.puedeGestionarEtiquetas()) {
+    alert('No tienes permisos para editar etiquetas');
+    return;
+  }
     if (!nuevoNombre.trim()) {
       alert('El nombre de la etiqueta no puede estar vacío.');
       return;
@@ -1150,6 +1234,10 @@ export class Board implements OnInit {
   }
 
   cambiarColorColumna(id: string, color: ColorType): void {
+     if (!this.puedeCambiarColores()) {
+    alert('No tienes permisos para cambiar colores de columnas');
+    return;
+  }
     const cat = this.CategoriasK.find(c => c.id === id);
     if (!cat) return;
 
@@ -1196,6 +1284,10 @@ export class Board implements OnInit {
 
   crearColumna(event: Event) {
     event.preventDefault();
+     if (!this.puedeCrearColumnas()) {
+    alert('No tienes permisos para crear columnas');
+    return;
+  }
     if (!this.nuevaColumnaNombre.trim() || !this.nuevaColumnaColorId) return;
 
     const posicion = this.CategoriasK.length > 0
@@ -1249,6 +1341,10 @@ export class Board implements OnInit {
 
   // Confirmar y eliminar la columna
   confirmarEliminarColumna(): void {
+      if (!this.puedeEliminar()) {
+    alert('No tienes permisos para eliminar columnas');
+    return;
+  }
     if (!this.columnaAEliminarId) return;
 
     this.boardService.deleteEstado(Number(this.columnaAEliminarId)).subscribe({
@@ -1303,6 +1399,10 @@ export class Board implements OnInit {
 
   crearEtiqueta(event: Event) {
     event.preventDefault();
+      if (!this.puedeGestionarEtiquetas()) {
+    alert('No tienes permisos para crear etiquetas');
+    return;
+  }
     if (!this.nuevoNombreEtiqueta.trim() || !this.nuevoColorEtiqueta) return;
 
     const colorObj = this.colores.find(c => c.codigo === this.nuevoColorEtiqueta);
@@ -1340,6 +1440,4 @@ menuVisible = false;
       this.menuVisible = false;
     }
   }
-
-
 }

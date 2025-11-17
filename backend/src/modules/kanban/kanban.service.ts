@@ -62,17 +62,26 @@ export class KanbanService {
   }
 
   // Crear nueva etiqueta
-  public async createEtiqueta(nombre: string, proyectoId: string, colorId: number): Promise<Etiqueta> {
+  public async createEtiqueta(nombre: string, proyectoId: string, colorId: number): Promise<Etiqueta & { color: Color }> {
     if (!nombre.trim()) throw new Error("El nombre de la etiqueta es obligatorio");
     if (!proyectoId.trim()) throw new Error("El ID del proyecto es obligatorio");
 
     // Validar que colorId exista
     const color = await prisma.color.findUnique({ where: { id: colorId } });
-    if (!color) {
-      throw new Error(`El colorId ${colorId.toString()} no existe.`);
+    if (!color) throw new Error(`El colorId ${colorId.toString()} no existe.`);
+
+    // <-- VALIDACIÓN PARA DUPLICADOS
+    const etiquetaExistente = await prisma.etiqueta.findFirst({
+      where: {
+        nombre: { equals: nombre.trim(), mode: 'insensitive' }, // Insensible a mayúsculas y espacios
+        proyectoId: proyectoId.trim()
+      }
+    });
+    if (etiquetaExistente) {
+      throw new Error('Ya existe una etiqueta con ese nombre en este proyecto.');
     }
 
-    return this.kanbanrepo.insertNuevaEtiqueta(nombre, proyectoId, colorId);
+    return this.kanbanrepo.insertNuevaEtiqueta(nombre.trim(), proyectoId.trim(), colorId);
   }
   // Crear tarea -> retorna tarea con relaciones completas    // Obtener tareas por proyecto -> con relaciones
   public async createTask(data: CreateTareaInput): Promise<TareaConRelaciones> {

@@ -4,9 +4,9 @@ import express, { NextFunction, Request, Response } from "express";
 
 config();
 
-import routerDashboard from "./src/modules/dashboard/dashboard.routes.js";
 import aiRouter from "./src/modules/ai-text-editor/ai.routes.js";
 import blocksRouter from "./src/modules/blocks/blocks.routes.js";
+import routerDashboard from "./src/modules/dashboard/dashboard.routes.js";
 import { KanbanRepository } from "./src/modules/kanban/kanban.repository.js";
 import routerKanbantask from "./src/modules/kanban/kanban.routes.js";
 import routerMiembro from "./src/modules/miembro/miembro.routes.js";

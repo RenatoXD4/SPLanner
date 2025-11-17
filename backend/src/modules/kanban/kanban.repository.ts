@@ -45,8 +45,8 @@ interface TareaResponsable {
 }
 
 const defaultColors = [
-    { codigo: '#0f172a', nombre: 'Slate' },      // bg-slate-900
-    { codigo: '#111827', nombre: 'Gray' },       // bg-gray-900
+    { codigo: '#2b3a42', nombre: 'Slate' },      // bg-slate-900
+    { codigo: '#374151', nombre: 'Gray' },       // bg-gray-900
     { codigo: '#7f1d1d', nombre: 'Red' },        // bg-red-900
     { codigo: '#713f12', nombre: 'Yellow' },     // bg-yellow-900
     { codigo: '#14532d', nombre: 'Green' },      // bg-green-900
@@ -164,16 +164,38 @@ export class KanbanRepository {
         if (!proyectoId.trim()) throw new Error("El ID del proyecto es obligatorio");
         if (!colorId) throw new Error("El colorId es obligatorio");
 
+        // Validar existencia de color
+        const color = await prisma.color.findUnique({ where: { id: colorId } });
+        if (!color) {
+            throw new Error(`El colorId ${colorId.toString()} no existe.`);
+        }
+
+        // Validar duplicado
+        const estadoExistente = await prisma.estado.findFirst({
+            where: {
+                nombre: nombre.trim(),
+                proyectoId: proyectoId.trim(),
+            },
+        });
+        if (estadoExistente) {
+            // Adjunta status a Error y lanza
+            const error = new Error('Ya existe un estado con ese nombre en este proyecto.') as Error & { status?: number };
+            error.status = 409;
+            throw error;
+        }
+
+        // Crear estado nuevo
         return prisma.estado.create({
             data: {
                 colorId,
-                nombre,
+                nombre: nombre.trim(),
                 posicion,
-                proyectoId,
+                proyectoId: proyectoId.trim(),
             },
             include: { color: true },
         });
     }
+
 
     public async deleteColor(id: number) {
         return prisma.color.delete({ where: { id } });
@@ -198,7 +220,6 @@ export class KanbanRepository {
     }
 
 
-    // Eliminar etiqueta por ID y proyecto, devolviendo la etiqueta eliminada
     public async deleteEtiqueta(id: number, proyectoId: string): Promise<Etiqueta> {
         const etiqueta = await prisma.etiqueta.findFirst({
             where: { id, proyectoId },
@@ -208,6 +229,12 @@ export class KanbanRepository {
             throw new Error("Etiqueta no encontrada o no pertenece al proyecto");
         }
 
+        // Borra todas las relaciones en tareasEtiquetas
+        await prisma.tareasEtiquetas.deleteMany({
+            where: { etiquetaId: id },
+        });
+
+        // Ahora borra la etiqueta
         return prisma.etiqueta.delete({
             where: { id },
         });
@@ -371,7 +398,7 @@ export class KanbanRepository {
     }
 
     // Crear nueva etiqueta con color (asociado a un proyecto)
-    public async insertNuevaEtiqueta(nombre: string, proyectoId: string, colorId: number): Promise<Etiqueta> {
+    public async insertNuevaEtiqueta(nombre: string, proyectoId: string, colorId: number): Promise<Omit<Etiqueta, 'color'> & { color: Color }> {
         if (!nombre.trim()) throw new Error("El nombre de la etiqueta es obligatorio");
         if (!proyectoId.trim()) throw new Error("El proyectoId es obligatorio");
         if (!colorId) throw new Error("El colorId es obligatorio");
@@ -382,6 +409,9 @@ export class KanbanRepository {
                 nombre,
                 proyectoId,
             },
+            include: {
+                color: true // <--- Incluye objeto color
+            }
         });
     }
 
@@ -509,6 +539,9 @@ export class KanbanRepository {
 
         if (estadoId !== undefined) updateData.estadoId = estadoId;
         if (proyectoId !== undefined) updateData.proyectoId = proyectoId;
+        if (typeof updateData.fechaLimite === "string" && updateData.fechaLimite === "") {
+            updateData.fechaLimite = null;
+        }
 
         return prisma.$transaction(async (tx) => {
             // Actualizar los campos simples de la tarea
@@ -519,6 +552,7 @@ export class KanbanRepository {
 
             // Remover responsables si hay
             if (responsablesToRemove && responsablesToRemove.length > 0) {
+                console.log('BORRANDO responsables:', responsablesToRemove, 'DE tarea:', id);
                 await tx.responsable.deleteMany({
                     where: {
                         tareaId: id,
@@ -542,6 +576,7 @@ export class KanbanRepository {
 
             // Remover etiquetas si hay
             if (etiquetasToRemove && etiquetasToRemove.length > 0) {
+                console.log('etiquetasToRemove', etiquetasToRemove);
                 await tx.tareasEtiquetas.deleteMany({
                     where: {
                         etiquetaId: { in: etiquetasToRemove },

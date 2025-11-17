@@ -42,7 +42,7 @@ export interface BloqueContenido {
 export interface Task {
   id: string;
   titulo?: string;
-  fechaLimite?: string;
+  fechaLimite?: string | null;
   posicion: number;
   createdAt: string;
   estadoId: number;
@@ -132,6 +132,24 @@ export class BoardService {
     );
   }
 
+  updateTaskFull(params: {
+    id: string;
+    data?: Partial<Task>;
+    estadoId?: number;
+    proyectoId?: string;
+    responsablesToAdd?: string[];
+    responsablesToRemove?: string[];
+    etiquetasToAdd?: number[];
+    etiquetasToRemove?: number[];
+  }): Observable<Task> {
+    return this.http.put<Task>(
+      `${this.apiUrl}/tasks/full/${params.id}`,
+      params
+    ).pipe(
+      catchError(this.handleError)
+    );
+  }
+
   /* Eliminar una tarea */
   deleteTask(taskId: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/tasks/${taskId}`).pipe(
@@ -188,12 +206,13 @@ export class BoardService {
   }
 
   /*Eliminar etiqueta (por ID)*/
-  deleteEtiqueta(id: number): Observable<Etiqueta> {
-    return this.http.delete<Etiqueta>(`${this.apiUrl}/etiquetas/${id}`).pipe(
+  deleteEtiqueta(id: number, proyectoId: string): Observable<Etiqueta> {
+    return this.http.delete<Etiqueta>(
+      `${this.apiUrl}/etiquetas/${id}?proyectoId=${encodeURIComponent(proyectoId)}`
+    ).pipe(
       catchError(this.handleError)
     );
   }
-
   /*Obtener todos los colores*/
   getAllColors(): Observable<Color[]> {
     return this.http.get<Color[]>(`${this.apiUrl}/colores`).pipe(

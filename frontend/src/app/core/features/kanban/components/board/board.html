@@ -1,7 +1,7 @@
 <div class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white flex">
   <app-sidebar></app-sidebar>
   <app-task-detail [task]="selectedTask" [isHidden]="isDetailPanelHidden" [estadoNombre]="selectedTaskEstadoNombre"
-    (closePanel)="hideTaskDetails()">
+    (closePanel)="hideTaskDetails()" [rolMiembro]="rolUsuario">
   </app-task-detail>
 
   <!-- CONTENIDO PRINCIPAL -->

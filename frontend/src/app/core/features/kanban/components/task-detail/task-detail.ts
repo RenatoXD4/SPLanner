@@ -1,7 +1,7 @@
 // task-detail.ts
 
 // 1. Asegúrate de tener estas importaciones
-import { AfterViewInit, Component, OnDestroy, Inject, PLATFORM_ID, Output, Input, EventEmitter, SimpleChanges, OnChanges, inject } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, Inject, PLATFORM_ID, Output, Input, EventEmitter, SimpleChanges, OnChanges, inject, ViewChild, ViewContainerRef, TemplateRef, ChangeDetectorRef } from '@angular/core';
 import { DatePipe, isPlatformBrowser } from '@angular/common';
 import { Task } from '../../services/kanban-service';
 import type EditorJS from '@editorjs/editorjs';
@@ -27,7 +27,11 @@ export class TaskDetail implements AfterViewInit, OnDestroy, OnChanges {
   private aiService = inject(AiService)
   private blockService = inject(BlockService)
   private isEditorReady = false;
+  private cdr = inject(ChangeDetectorRef);
   @Input() estadoNombre: string | null = null;
+  @Input() rolMiembro: string | null = null;
+  @ViewChild('mensajeContainer', { read: ViewContainerRef }) mensajeContainer!: ViewContainerRef;
+  @ViewChild('mensajeTemplate', { read: TemplateRef }) mensajeTemplate!: TemplateRef<any>;
   
   constructor(@Inject(PLATFORM_ID) private platformId: Object) {}
   
@@ -35,6 +39,19 @@ export class TaskDetail implements AfterViewInit, OnDestroy, OnChanges {
     if (isPlatformBrowser(this.platformId) && !this.isHidden && !this.editor) {
       this.initEditor();
     }
+  }
+
+  mostrarMensaje(msg: string): void {
+    const view = this.mensajeContainer.createEmbeddedView(this.mensajeTemplate, { $implicit: msg });
+    setTimeout(() => {
+      view.destroy();
+      this.cdr.detectChanges();
+    }, 3000);
+    this.cdr.detectChanges();
+  }
+
+  rolMiembroVerificar(): boolean {
+    return this.rolMiembro === 'Administrador' || this.rolMiembro === 'Editor';
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -121,8 +138,9 @@ export class TaskDetail implements AfterViewInit, OnDestroy, OnChanges {
           }
         }
       },
+      readOnly: !this.rolMiembroVerificar(),
       data: datosParaCargar,
-      placeholder: 'Empieza escribiendo aquí',
+      placeholder: this.rolMiembroVerificar() ? 'Empieza escribiendo aquí' : "",
       onReady: () => {
         this.isEditorReady = true;
       }
@@ -163,6 +181,7 @@ export class TaskDetail implements AfterViewInit, OnDestroy, OnChanges {
       this.blockService.actualizarBloquesDeTarea(this.task.id, outputData as any)
         .subscribe({
           next: (respuesta) => {
+            this.mostrarMensaje("Cambios guardados exitosamente")
             console.log('Bloques guardados exitosamente:', respuesta);
           },
           error: (err) => {

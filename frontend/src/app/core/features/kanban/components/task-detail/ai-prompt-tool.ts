@@ -20,31 +20,47 @@ export class AiPromptTool implements BlockTool {
     };
   }
 
-  constructor({ api, config }: BlockToolConstructorOptions<any, AiPromptToolConfig>) {
+  private readOnly: boolean;
+
+  // 1. Getter estático
+  static get isReadOnlySupported(): boolean {
+    return true;
+  }
+
+  constructor({ api, config, readOnly }: BlockToolConstructorOptions<any, AiPromptToolConfig>) {
     this.api = api;
     this.config = config;
 
     this.wrapper = document.createElement('div');
     this.input = document.createElement('input');
     this.button = document.createElement('button');
+    this.readOnly = readOnly;
   }
 
   render(): HTMLDivElement {
-    this.wrapper.className = 'ai-prompt-wrapper';
-    
-    this.input.placeholder = 'Escribe tu prompt para la IA... (ej. "resume este texto en 3 puntos")';
-    this.input.className = 'ai-prompt-input';
-    
-    this.button.textContent = 'Generar';
-    this.button.className = 'ai-prompt-button';
 
-    this.button.addEventListener('click', this.handleGenerateClick);
+    // 📍 ¡Este es el cambio principal!
+    // Invertimos la lógica.
 
-    this.wrapper.appendChild(this.input);
-    this.wrapper.appendChild(this.button);
+    if (this.readOnly) {
+      this.wrapper.className = 'ai-prompt-wrapper-readonly'; 
 
-    return this.wrapper;
-  }
+    } else {
+      this.wrapper.className = 'ai-prompt-wrapper';
+      this.input.placeholder = 'Escribe tu prompt para la IA... (ej. "resume este texto en 3 puntos")';
+      this.input.className = 'ai-prompt-input';
+      this.button.textContent = 'Generar';
+      this.button.className = 'ai-prompt-button';
+
+      this.button.addEventListener('click', this.handleGenerateClick);
+
+      this.wrapper.appendChild(this.input);
+      this.wrapper.appendChild(this.button);
+    }
+
+    // Retornamos el wrapper en ambos casos
+    return this.wrapper;
+  }
 
   private handleGenerateClick = async () => {
     const prompt = this.input.value;

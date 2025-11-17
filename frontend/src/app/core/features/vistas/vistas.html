@@ -50,13 +50,13 @@
           class="bg-gray-800 rounded-xl p-4 border border-gray-700 hover:border-green-500 cursor-pointer transition-all duration-300 hover:shadow-lg group">
 
           <!-- Header de la tarjeta -->
-          <div class="flex items-start justify-between mb-3">
-            <div class="flex-1" (click)="irAlBoard(p.id || '')">
+          <div class="flex items-start justify-between mb-3 min-w-0">
+            <div class="min-w-0 flex-1" (click)="irAlBoard(p.id || '')">
               <h3
                 class="text-lg font-bold text-white truncate group-hover:text-green-400 transition-colors duration-200">
                 {{ p.nombre }}
               </h3>
-              <p class="text-gray-400 text-sm mt-1 line-clamp-2 min-h-[40px]">
+              <p class="text-gray-400 text-sm mt-1 line-clamp-2 min-h-[40px] break-words">
                 {{ p.descripcion || 'Sin descripción' }}
               </p>
             </div>
@@ -73,11 +73,14 @@
               </button>
 
               <!-- Dropdown Menu -->
+
               @if (dropdownOpen === p.id) {
               <div
-                class="absolute right-0 top-12 bg-gray-700 rounded-lg shadow-xl border border-gray-600 z-10 min-w-[150px] backdrop-blur-sm">
+                class="absolute right-0 top-12 bg-gray-700 rounded-lg shadow-xl border border-gray-600 z-10 w-48 backdrop-blur-sm">
+
                 <button (click)="abrirModalAdministrar(p); $event.stopPropagation()"
-                  class="flex items-center gap-2 w-full px-4 py-2 text-sm text-blue-400 hover:bg-gray-600 first:rounded-t-lg transition-colors duration-200">
+                  class="flex items-center gap-2 w-full px-4 py-3 text-sm text-blue-400 hover:bg-gray-600 first:rounded-t-lg transition-colors duration-200">
+
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -87,7 +90,8 @@
                   Administrar
                 </button>
                 <button (click)="invitarMiembro(p); $event.stopPropagation()"
-                  class="flex items-center gap-2 w-full px-4 py-2 text-sm text-green-400 hover:bg-gray-600 transition-colors duration-200">
+                  class="flex items-center gap-2 w-full px-4 py-3 text-sm text-green-400 hover:bg-gray-600 transition-colors duration-200">
+
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
@@ -95,7 +99,8 @@
                   Invitar Miembro
                 </button>
                 <button (click)="confirmarEliminar(p); $event.stopPropagation()"
-                  class="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-400 hover:bg-gray-600 last:rounded-b-lg transition-colors duration-200">
+                  class="flex items-center gap-2 w-full px-4 py-3 text-sm text-red-400 hover:bg-gray-600 last:rounded-b-lg transition-colors duration-200">
+
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -132,7 +137,6 @@
             </div>
           </div>
 
-          <!-- Footer de la tarjeta -->
           <!-- Footer de la tarjeta -->
           <div class="mt-4 pt-3 border-t border-gray-700 flex items-center justify-between">
             <div class="flex items-center gap-2 text-green-400 text-sm">
@@ -259,7 +263,7 @@
         </div>
 
         <!-- Contenido de la sección -->
-        <div class="p-6 max-h-96 overflow-y-auto">
+        <div class="p-6 max-h-120 overflow-y-auto">
 
           <!-- Sección: Editar Proyecto -->
           @if (seccionAdministrar === 'proyecto') {
@@ -615,8 +619,8 @@
           <!-- Información del proyecto -->
           <div class="bg-gray-700/50 rounded-xl p-4 border border-gray-600">
             <p class="text-gray-300 text-sm">Proyecto:</p>
-            <p class="text-white font-semibold text-lg">{{ proyectoAInvitar?.nombre }}</p>
-            <p class="text-gray-400 text-sm mt-1">
+            <p class="text-white font-semibold text-lg truncate">{{ proyectoAInvitar?.nombre }}</p>
+            <p class="text-gray-400 text-sm mt-1 truncate">
               {{ proyectoAInvitar?.descripcion || 'Sin descripción' }}
             </p>
           </div>

@@ -1,4 +1,4 @@
-import { Color, Tarea, TipoDeBloque  } from "@prisma/client";
+import { Color, Tarea, TipoDeBloque } from "@prisma/client";
 import { NextFunction, Request, Response } from "express";
 
 import { KanbanService } from "./kanban.service.js";
@@ -100,9 +100,16 @@ export class KanbanController {
     try {
       const estado = await this.KanbanSer.createEstado(nombre, posicion, proyectoId, colorId);
       res.status(201).json(estado);
-    } catch (error) {
+    } // En el catch
+    catch (error) {
       console.error("Error creando estado:", error);
-      next(error);
+      // Usa casting seguro
+      const err = error as Error & { message: string; status?: number; };
+      if (err.status === 409) {
+        res.status(409).json({ message: err.message });
+      } else {
+        next(error);
+      }
     }
   }
 
@@ -201,8 +208,21 @@ export class KanbanController {
       }
 
       const nuevaEtiqueta = await this.KanbanSer.createEtiqueta(nombre.trim(), proyectoId.trim(), colorId);
-      res.status(201).json(nuevaEtiqueta);
-    } catch (error) {
+
+      res.status(201).json({
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        color: nuevaEtiqueta.color ? nuevaEtiqueta.color.codigo : '#666',
+        colorId: nuevaEtiqueta.colorId,
+        id: nuevaEtiqueta.id,
+        nombre: nuevaEtiqueta.nombre,
+        proyectoId: nuevaEtiqueta.proyectoId
+      });
+
+    } catch (error: unknown) {
+      if (error instanceof Error && error.message.includes('Ya existe una etiqueta')) {
+        res.status(409).json({ message: error.message });
+        return;
+      }
       next(error);
     }
   }
@@ -478,25 +498,23 @@ export class KanbanController {
         responsablesToRemove?: string[];
       };
 
-      const {
-        data,
-        estadoId,
-        etiquetasToAdd,
-        etiquetasToRemove,
-        proyectoId,
-        responsablesToAdd,
-        responsablesToRemove,
-      } = body;
+      if (
+        body.data &&
+        typeof body.data.fechaLimite === "string" &&
+        body.data.fechaLimite === ""
+      ) {
+        body.data.fechaLimite = null;
+      }
 
       const tareaActualizada = await this.KanbanSer.updateTaskConRelaciones({
-        data,
-        estadoId,
-        etiquetasToAdd,
-        etiquetasToRemove,
+        data: body.data,
+        estadoId: body.estadoId,
+        etiquetasToAdd: body.etiquetasToAdd,
+        etiquetasToRemove: body.etiquetasToRemove,
         id,
-        proyectoId,
-        responsablesToAdd,
-        responsablesToRemove,
+        proyectoId: body.proyectoId,
+        responsablesToAdd: body.responsablesToAdd,
+        responsablesToRemove: body.responsablesToRemove,
       });
 
       res.status(200).json(tareaActualizada);

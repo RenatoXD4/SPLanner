@@ -1,4 +1,4 @@
-import { Component, ElementRef, ViewChild, ChangeDetectorRef, HostListener, OnInit } from '@angular/core';
+import { Component, ElementRef, ViewChild, ChangeDetectorRef, HostListener, OnInit, ViewChildren, QueryList, Inject, PLATFORM_ID } from '@angular/core';
 import {
   CdkDragDrop,
   moveItemInArray,
@@ -18,6 +18,7 @@ import { AuthService } from '../../../../services/auth-service';
 import { ProyectoGuard } from '../../../../../guards/proyecto.guard';
 import { TaskDetail } from "../task-detail/task-detail";
 import { NgZone } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 
 export interface User {
   id: string;
@@ -39,7 +40,6 @@ export interface ResponsableTarea {
   usuarioId: string;
 }
 
-
 export interface Categoria {
   id: string;
   nombre: string;
@@ -51,7 +51,7 @@ export interface Categoria {
 interface Task {
   id: string;
   titulo?: string;
-  fechaLimite?: string;
+  fechaLimite?: string | null;
   posicion: number;
   createdAt: string;
   estadoId: number;
@@ -70,7 +70,7 @@ interface Task {
 interface RawTask {
   id: string;
   titulo?: string;
-  fechaLimite?: string;
+  fechaLimite?: string | null;
   posicion: number;
   createdAt: string;
   estadoId: number;
@@ -80,6 +80,21 @@ interface RawTask {
   etiquetas?: any[];
   bloquesContenido?: any[];
 }
+export interface TaskUI {
+  id: string;
+  titulo: string;
+  fechaLimite: string;
+  title: string;
+  dueDate: string;
+  posicion: number;
+  createdAt: string;
+  estadoId: number;
+  proyectoId: string;
+  assignee: User[];         // ← array de usuarios asignados
+  etiquetas: any[];         // ← array de etiquetas
+  etiquetaIds: number[];    // ← ids de etiquetas para checkboxes
+}
+
 
 export interface Etiqueta {
   id: number;       // ID único de la etiqueta
@@ -116,21 +131,21 @@ export class Board implements OnInit {
   public selectedTaskEstadoNombre: string | null = null;
 
   showTaskDetails(task: Task, categoria: Categoria) {
-    this.selectedTask = task;
-    this.selectedTaskEstadoNombre = categoria.nombre;
-    this.isDetailPanelHidden = false;
-  }
+    this.selectedTask = task;
+    this.selectedTaskEstadoNombre = categoria.nombre;
+    this.isDetailPanelHidden = false;
+  }
 
   hideTaskDetails() {
     this.isDetailPanelHidden = true;
     this.selectedTask = null;
   }
 
-  @ViewChild('kanbanContainer') kanbanContainer?: ElementRef;
+  @ViewChild('kanbanContainer') kanbanContainer?: ElementRef; //id del
   @ViewChild('listContainer') listContainer?: ElementRef;
   @ViewChild('assignedContainer') assignedContainer?: ElementRef;
   @ViewChild('thTitulo') thTitulo!: ElementRef;
-  @ViewChild('colorSelectorContainer', { static: false }) colorSelectorContainer?: ElementRef;
+  @ViewChildren('colorSelectorContainer') colorSelectorContainers!: QueryList<ElementRef>;
 
 
   currentUser: string = '';
@@ -142,8 +157,9 @@ export class Board implements OnInit {
   miembrosDelProyecto: ResponsableTarea[] = [];
   colores: ColorType[] = [];
 
-  etiquetasUnicas: any[] = [];
+  etiquetasUnicas: Etiqueta[] = [];
 
+  isMobile: boolean = false;
   viewMode: 'kanban' | 'list' | 'assigned' = 'kanban';
 
   hoveredTaskId: string | null = null;
@@ -198,113 +214,121 @@ export class Board implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private authService: AuthService,
-    private proyectoGuard: ProyectoGuard
+    private proyectoGuard: ProyectoGuard,
+    @Inject(PLATFORM_ID) private platformId: Object 
   ) { }
 
   async ngOnInit() {
-  // Obtener el ID del usuario actual
-  const userId = this.authService.getCurrentUserId();
-  if (!userId) {
-    this.router.navigate(['/login']);
-    return;
-  }
-  this.currentUser = userId;
+    // Obtener el ID del usuario actual
+    const userId = this.authService.getCurrentUserId();
+    if (!userId) {
+      this.router.navigate(['/login']);
+      return;
+    }
+    this.currentUser = userId;
 
-  // Obtener proyecto ID del guard
-  const proyectoId = this.proyectoGuard.getProyectoActual();
+    // Obtener proyecto ID del guard
+    const proyectoId = this.proyectoGuard.getProyectoActual();
 
-  if (!proyectoId) {
-    this.mostrarErrorYRedirigir('No hay proyecto seleccionado');
-    return;
-  }
-
-  // CARGAR INFORMACIÓN DEL ROL DESDE LOCALSTORAGE ← AGREGAR ESTO
-  this.cargarInformacionProyectoDesdeLocalStorage();
-
-  // Validación adicional: verificar que el proyecto existe y es accesible
-  try {
-    await this.validarAccesoProyecto(proyectoId);
-    this.proyectoIdActual = proyectoId;
-    this.cargarDatosProyecto(proyectoId);
-    this.cargarColores();
-  } catch (error) {
-    this.mostrarErrorYRedirigir('No tienes acceso a este proyecto');
-  }
-}
-
-/**
- * Carga la información del proyecto y rol desde localStorage
- */
-/**
- * Carga la información del proyecto y rol desde localStorage
- * Si no hay información, asume que es un proyecto propio (Administrador)
- */
-private cargarInformacionProyectoDesdeLocalStorage(): void {
-  try {
-    // Obtener la información guardada
-    const proyectoData = localStorage.getItem('proyectoActual');
-    const rol = localStorage.getItem('rolActual');
-    const proyectoId = localStorage.getItem('proyectoIdActual');
-
-    // Verificar si hay información de proyecto compartido
-    const hayInformacionCompartida = proyectoData && rol && proyectoId;
-
-    if (hayInformacionCompartida) {
-      // Hay información de proyecto compartido
-      this.proyectoActual = JSON.parse(proyectoData);
-      this.rolUsuario = rol;
-
-      console.log('Proyecto compartido cargado:', this.proyectoActual);
-      console.log('Rol del usuario en proyecto compartido:', this.rolUsuario);
-    } else {
-      // No hay información en localStorage, es un proyecto propio
-      this.rolUsuario = 'Administrador';
-      this.proyectoActual = {
-        proyectoId: this.proyectoGuard.getProyectoActual(),
-        rol: 'Administrador',
-        nombre: 'Mi Proyecto', // Esto se actualizará cuando cargues los datos del proyecto
-        descripcion: '',
-        creadoPor: 'Tú',
-        fechaAcceso: new Date().toISOString()
-      };
-
-      console.log('Proyecto propio detectado - Rol: Administrador');
-      console.log('No hay información en localStorage, asumiendo proyecto propio');
+    if (!proyectoId) {
+      this.mostrarErrorYRedirigir('No hay proyecto seleccionado');
+      return;
     }
 
-  } catch (error) {
-    console.error('Error al cargar información del proyecto:', error);
-    // Por defecto, asumir que es proyecto propio
-    this.rolUsuario = 'Administrador';
-    console.log('Error al cargar localStorage, asumiendo proyecto propio - Rol: Administrador');
+    // CARGAR INFORMACIÓN DEL ROL DESDE LOCALSTORAGE ← AGREGAR ESTO
+    this.cargarInformacionProyectoDesdeLocalStorage();
+
+    if (isPlatformBrowser(this.platformId)) {
+      this.isMobile = window.innerWidth < 768;
+      // fuerza siempre Kanban en móvil al iniciar
+      if (this.isMobile && this.viewMode !== 'kanban') {
+        this.setViewMode('kanban');
+      }
+    }
+    // Validación adicional: verificar que el proyecto existe y es accesible
+    try {
+      await this.validarAccesoProyecto(proyectoId);
+      this.proyectoIdActual = proyectoId;
+      this.cargarDatosProyecto(proyectoId);
+      this.cargarColores();
+    } catch (error) {
+      this.mostrarErrorYRedirigir('No tienes acceso a este proyecto');
+    }
   }
-}
-/**
- * Verifica permisos en el board basado en el rol guardado
- */
-puedeEditar(): boolean {
-  return this.rolUsuario === 'Administrador' || this.rolUsuario === 'Editor';
-}
 
-puedeEliminar(): boolean {
-  return this.rolUsuario === 'Administrador';
-}
+  /**
+   * Carga la información del proyecto y rol desde localStorage
+   */
+  /**
+   * Carga la información del proyecto y rol desde localStorage
+   * Si no hay información, asume que es un proyecto propio (Administrador)
+   */
+  private cargarInformacionProyectoDesdeLocalStorage(): void {
+    try {
+      // Obtener la información guardada
+      const proyectoData = localStorage.getItem('proyectoActual');
+      const rol = localStorage.getItem('rolActual');
+      const proyectoId = localStorage.getItem('proyectoIdActual');
 
-puedeInvitar(): boolean {
-  return this.rolUsuario === 'Administrador';
-}
+      // Verificar si hay información de proyecto compartido
+      const hayInformacionCompartida = proyectoData && rol && proyectoId;
 
-puedeCrearColumnas(): boolean {
-  return this.rolUsuario === 'Administrador';
-}
+      if (hayInformacionCompartida) {
+        // Hay información de proyecto compartido
+        this.proyectoActual = JSON.parse(proyectoData);
+        this.rolUsuario = rol;
 
-puedeCambiarColores(): boolean {
-  return this.rolUsuario === 'Administrador';
-}
+        console.log('Proyecto compartido cargado:', this.proyectoActual);
+        console.log('Rol del usuario en proyecto compartido:', this.rolUsuario);
+      } else {
+        // No hay información en localStorage, es un proyecto propio
+        this.rolUsuario = 'Administrador';
+        this.proyectoActual = {
+          proyectoId: this.proyectoGuard.getProyectoActual(),
+          rol: 'Administrador',
+          nombre: 'Mi Proyecto', // Esto se actualizará cuando cargues los datos del proyecto
+          descripcion: '',
+          creadoPor: 'Tú',
+          fechaAcceso: new Date().toISOString()
+        };
 
-puedeGestionarEtiquetas(): boolean {
-  return this.rolUsuario === 'Administrador';
-}
+        console.log('Proyecto propio detectado - Rol: Administrador');
+        console.log('No hay información en localStorage, asumiendo proyecto propio');
+      }
+
+    } catch (error) {
+      console.error('Error al cargar información del proyecto:', error);
+      // Por defecto, asumir que es proyecto propio
+      this.rolUsuario = 'Administrador';
+      console.log('Error al cargar localStorage, asumiendo proyecto propio - Rol: Administrador');
+    }
+  }
+  /**
+   * Verifica permisos en el board basado en el rol guardado
+   */
+  puedeEditar(): boolean {
+    return this.rolUsuario === 'Administrador' || this.rolUsuario === 'Editor';
+  }
+
+  puedeEliminar(): boolean {
+    return this.rolUsuario === 'Administrador';
+  }
+
+  puedeInvitar(): boolean {
+    return this.rolUsuario === 'Administrador';
+  }
+
+  puedeCrearColumnas(): boolean {
+    return this.rolUsuario === 'Administrador';
+  }
+
+  puedeCambiarColores(): boolean {
+    return this.rolUsuario === 'Administrador';
+  }
+
+  puedeGestionarEtiquetas(): boolean {
+    return this.rolUsuario === 'Administrador';
+  }
 
 
 
@@ -408,17 +432,19 @@ puedeGestionarEtiquetas(): boolean {
           } else if (typeof e.color === 'string') {
             colorHex = e.color;
           }
+          // Este objeto respeta Etiqueta
           return {
             id: e.id,
             nombre: e.nombre,
             color: colorHex
-          };
+          } as Etiqueta;
         });
         this.cdr.detectChanges();
       },
       error: (err) => console.error('Error al cargar etiquetas:', err),
     });
   }
+
 
   //Cargar miembros del proyecto
   private cargarMiembrosProyecto(proyectoId: string): void {
@@ -495,13 +521,13 @@ puedeGestionarEtiquetas(): boolean {
       const colorHex = cat.color?.codigo ?? '#cccccc';
 
       this.estilosPorColumna[cat.nombre] = {
-        fondoColumna: { 'background-color': this.hexToRgba(colorHex, 0.1) },
+        fondoColumna: { 'background-color': this.hexToRgba(colorHex, 0.4) },
         fondoTarjeta: {
           'background-color': this.hexToRgba(colorHex, 0.2),
           color: this.lightenColor(colorHex, 0.3)
         },
         texto: {
-          color: this.lightenColor(colorHex, 0.64),
+          color: this.lightenColor(colorHex, 0.70),
           'text-shadow': `0 0 2px ${colorHex}, 0 0 4px ${colorHex}, 0 0 5px ${colorHex}`
         },
         boton: { 'background-color': colorHex, color: '#fff' }
@@ -530,12 +556,18 @@ puedeGestionarEtiquetas(): boolean {
   agregarEtiquetaSiNueva(nombre: string) {
     const existe = this.etiquetasUnicas.some(e => e.nombre.trim().toLowerCase() === nombre.trim().toLowerCase());
     if (!existe && nombre.trim().length > 0) {
-      // Acá podrías agregar la lógica para crear una nueva etiqueta
-      // Por ejemplo, llamar a tu backend y agregarla en etiquetasUnicas
+      // Al agregar, asegúrate de crear tipo Etiqueta
+      // Ejemplo ficticio:
+      this.etiquetasUnicas.push({
+        id: Date.now(), // o del backend
+        nombre,
+        color: '#27c5b1', // default o pedido al usuario
+      });
     }
     this.tagsBusquedaTexto = '';
     this.filtrarTags();
   }
+
 
 
 
@@ -545,10 +577,34 @@ puedeGestionarEtiquetas(): boolean {
     };
   }
 
-  getEtiquetaColorByNombre(nombre: string): string {
-    const etiqueta = this.etiquetasUnicas.find(e => e.nombre === nombre);
-    return etiqueta ? etiqueta.color : '#666'; // fallback si no encuentra color
+  getEtiquetaColor(etiquetaRef: any): string {
+    // Si recibes un objeto {id, nombre, color}
+    if (typeof etiquetaRef === 'object' && etiquetaRef !== null) {
+      // Prioridad: usa el id si está
+      if ('id' in etiquetaRef) {
+        const match = this.etiquetasUnicas.find(e => e.id === etiquetaRef.id);
+        if (match) return match.color;
+      }
+      // pruebo por nombre si existe
+      if ('nombre' in etiquetaRef) {
+        const match = this.etiquetasUnicas.find(e => e.nombre === etiquetaRef.nombre);
+        if (match) return match.color;
+      }
+    }
+    // Si recibes sólo el id (number)
+    if (typeof etiquetaRef === 'number') {
+      const match = this.etiquetasUnicas.find(e => e.id === etiquetaRef);
+      if (match) return match.color;
+    }
+    // Si recibes sólo el nombre (string)
+    if (typeof etiquetaRef === 'string') {
+      const match = this.etiquetasUnicas.find(e => e.nombre === etiquetaRef);
+      if (match) return match.color;
+    }
+    return '#666';
   }
+
+
 
   getNombreResponsables(users?: User[]): string {
     if (!users || users.length === 0) return '';
@@ -558,14 +614,17 @@ puedeGestionarEtiquetas(): boolean {
   // Función para obtener los nombres de las etiquetas asociadas a una tarea
   getNombresEtiquetas(etiquetas: any[]): string[] {
     if (!etiquetas || etiquetas.length === 0) return [];
-
     return etiquetas
       .map(e => {
-        // Accede al campo 'etiqueta' y luego toma su 'nombre'
-        return e.etiqueta ? e.etiqueta.nombre : '';
+        let id = null;
+        if (e.etiqueta && e.etiqueta.id !== undefined) id = e.etiqueta.id;
+        else if (e.id !== undefined) id = e.id;
+        else if (typeof e === "number") id = e;
+        return this.etiquetasUnicas.find(etq => etq.id === id)?.nombre ?? '';
       })
-      .filter(nombre => nombre); // Filtra cualquier cadena vacía
+      .filter(nombre => nombre);
   }
+
 
   drop(event: CdkDragDrop<Task[]>) {
     const prevTasks = event.previousContainer.data;
@@ -644,14 +703,26 @@ puedeGestionarEtiquetas(): boolean {
   }
 
   setViewMode(mode: 'kanban' | 'list' | 'assigned') {
+    if (this.isMobile && mode !== 'kanban') return; // bloquea cambio de vista en móvil
     if (this.viewMode === mode) return;
     this.viewMode = mode;
     setTimeout(() => {
+      // tu lógica de animación
       this.cdr.detectChanges();
       if (mode === 'kanban') this.applyAnimation(this.kanbanContainer);
       if (mode === 'list') this.applyAnimation(this.listContainer);
       if (mode === 'assigned') this.applyAnimation(this.assignedContainer);
     });
+  }
+
+  @HostListener('window:resize')
+  onResize() {
+    if (isPlatformBrowser(this.platformId)) {
+      this.isMobile = window.innerWidth < 768;
+      if (this.isMobile && this.viewMode !== 'kanban') {
+        this.setViewMode('kanban');
+      }
+    }
   }
 
   private applyAnimation(ref?: ElementRef) {
@@ -711,11 +782,17 @@ puedeGestionarEtiquetas(): boolean {
   // Modal de Crear Tarea
   abrirModal(categoria: Categoria) {
     this.categoriaSeleccionadaForModal = categoria;
+
+    // Limpiar cualquier valor previo
+    this.newTask.responsablesIds = [];
+    this.newTask.etiquetaIds = [];
+
+    // Asignar los valores predeterminados
     this.newTask = {
       titulo: '',
       fechaLimite: '',
-      responsablesIds: [] as string[],
-      etiquetaIds: [] as number[],
+      responsablesIds: [],  // Reiniciar el array de responsables
+      etiquetaIds: [],      // Reiniciar el array de etiquetas
       estadoId: Number(categoria.id),
       proyectoId: this.proyectoIdActual,
       bloquesContenido: []
@@ -723,25 +800,62 @@ puedeGestionarEtiquetas(): boolean {
 
     const modal = document.getElementById('modalNuevaTarea') as HTMLDialogElement;
     modal?.showModal();
+
+    // Forzar la actualización de la vista al abrir el modal
+    this.cdr.detectChanges();  // Asegúrate de que Angular actualice la vista con los nuevos valores
+  }
+
+  busquedaResponsableNueva: string = '';
+  busquedaEtiquetaNueva: string = '';
+
+  filtrarResponsablesNueva(): any[] {
+    if (!this.busquedaResponsableNueva.trim()) return this.miembrosDelProyecto;
+    const filtro = this.busquedaResponsableNueva.trim().toLowerCase();
+    return this.miembrosDelProyecto.filter(m =>
+      (m.usuario.nombre + ' ' + m.usuario.apellido).toLowerCase().includes(filtro)
+    );
+  }
+
+  filtrarEtiquetasNueva(): Etiqueta[] {
+    if (!this.busquedaEtiquetaNueva.trim()) return this.etiquetasUnicas;
+    const filtro = this.busquedaEtiquetaNueva.trim().toLowerCase();
+    return this.etiquetasUnicas.filter(e =>
+      e.nombre.toLowerCase().includes(filtro)
+    );
+  }
+
+  clearTituloError() {
+    if (this.errores.titulo && this.newTask.titulo.trim().length > 0) {
+      this.errores.titulo = false;
+    }
   }
 
   cerrarModal() {
     const modal = document.getElementById('modalNuevaTarea') as HTMLDialogElement;
     modal?.close();
 
+    // Resetear los valores de newTask (limpiar responsables y etiquetas)
     this.newTask = {
       titulo: '',
       fechaLimite: '',
-      responsablesIds: [],
-      etiquetaIds: [],
+      responsablesIds: [],  // Limpiar los responsables seleccionados
+      etiquetaIds: [],      // Limpiar las etiquetas seleccionadas
       estadoId: 0,
       proyectoId: '',
       bloquesContenido: []
     };
-    this.categoriaSeleccionadaForModal = null;
+    this.busquedaResponsableNueva = '';
+    this.busquedaEtiquetaNueva = '';
+    this.errores = { titulo: false };
+    this.categoriaSeleccionadaForModal = null;  // Limpiar la categoría seleccionada
 
+    // Forzar la actualización de la vista
+    this.cdr.detectChanges();  // Esto asegura que la vista se actualice correctamente
+
+    console.log('Formulario limpiado y valores de checkboxes restablecidos');
     this.cdr.detectChanges();
   }
+
 
   crearTarea(event: Event) {
     // Resetear el estado de los errores
@@ -756,11 +870,16 @@ puedeGestionarEtiquetas(): boolean {
     // Limpiar errores si la validación es exitosa
     this.errores.titulo = false;
 
+    // Asegurarse de que responsablesIds y etiquetaIds sean arreglos
+    const responsablesArr = Array.isArray(this.newTask.responsablesIds) ?
+      this.newTask.responsablesIds.filter(id => !!id) : [];
+
+    const etiquetasArr = Array.isArray(this.newTask.etiquetaIds) ?
+      this.newTask.etiquetaIds.filter(id => !!id) : [];
+
+    // Crear el payload para el backend
     const estadoId = Number(this.categoriaSeleccionadaForModal?.id);
-    const responsablesArr = this.newTask.responsablesIds.filter(id => !!id);
-
     const proyectoId = this.proyectoIdActual;
-
     const fechaLimiteISO = this.newTask.fechaLimite ? new Date(this.newTask.fechaLimite).toISOString() : undefined;
 
     const payload = {
@@ -771,7 +890,7 @@ puedeGestionarEtiquetas(): boolean {
       responsablesIds: responsablesArr.length ? responsablesArr : undefined,
       fechaLimite: fechaLimiteISO,
       bloquesContenido: [],
-      etiquetaIds: this.newTask.etiquetaIds.length ? this.newTask.etiquetaIds : undefined,
+      etiquetaIds: etiquetasArr.length ? etiquetasArr : undefined,
     };
 
     // Enviar la solicitud al backend
@@ -793,7 +912,7 @@ puedeGestionarEtiquetas(): boolean {
         };
 
         this.zone.run(() => {
-          // Actualizar la vista
+          // Actualizar la vista con la nueva tarea
           if (this.categoriaSeleccionadaForModal) {
             this.categoriaSeleccionadaForModal.tasks = [...this.categoriaSeleccionadaForModal.tasks, task];
             this.categoriaSeleccionadaForModal.tasks.sort((a, b) => (a.posicion ?? 0) - (b.posicion ?? 0));
@@ -801,7 +920,7 @@ puedeGestionarEtiquetas(): boolean {
           this.generarListaResponsables();
           this.generarListaPrioridades();
           this.cdr.detectChanges();
-          this.cerrarModal();
+          this.cerrarModal();  // Limpiar el formulario
         });
       },
       error: (err) => {
@@ -810,6 +929,35 @@ puedeGestionarEtiquetas(): boolean {
       }
     });
   }
+
+
+
+  selectResponsable(id: string, event: any) {
+    if (event.target.checked) {
+      // Si el checkbox está marcado, agregar el responsable al array
+      this.newTask.responsablesIds.push(id);
+    } else {
+      // Si el checkbox está desmarcado, eliminar el responsable del array
+      this.newTask.responsablesIds = this.newTask.responsablesIds.filter(responsableId => responsableId !== id);
+    }
+
+    // Verificación para debug
+    console.log('Responsables seleccionados:', this.newTask.responsablesIds);
+  }
+
+  selectEtiqueta(id: number, event: any) {
+    if (event.target.checked) {
+      // Si el checkbox está marcado, agregar la etiqueta al array
+      this.newTask.etiquetaIds.push(id);
+    } else {
+      // Si el checkbox está desmarcado, eliminar la etiqueta del array
+      this.newTask.etiquetaIds = this.newTask.etiquetaIds.filter(etiquetaId => etiquetaId !== id);
+    }
+
+    console.log('Etiquetas seleccionadas:', this.newTask.etiquetaIds);
+  }
+
+
 
 
   isOverdue(dateStr: string | undefined): boolean {
@@ -838,21 +986,21 @@ puedeGestionarEtiquetas(): boolean {
 
     return diffInDays >= 0 && diffInDays <= 1; // hoy o mañana
   }
-
+  // Para mostrar fecha en DD/MM/YYYY SIN desfase de zona
   formatDate(date: string): string {
     if (!date) return 'Sin fecha';
     const newDate = new Date(date);
-    const day = newDate.getDate().toString().padStart(2, '0');
-    const month = (newDate.getMonth() + 1).toString().padStart(2, '0');
-    const year = newDate.getFullYear();
+    const day = newDate.getUTCDate().toString().padStart(2, '0');
+    const month = (newDate.getUTCMonth() + 1).toString().padStart(2, '0');
+    const year = newDate.getUTCFullYear();
     return `${day}/${month}/${year}`;
   }
 
   eliminarTarea(taskId: string): void {
-      if (!this.puedeEliminar()) {
-    alert('No tienes permisos para eliminar tareas');
-    return;
-  }
+    if (!this.puedeEliminar()) {
+      //alert('No tienes permisos para eliminar tareas');
+      return;
+    }
     //if (confirm('¿Estás seguro de que deseas eliminar esta tarea?')) {
     this.boardService.deleteTask(taskId).subscribe(
       () => {
@@ -868,7 +1016,7 @@ puedeGestionarEtiquetas(): boolean {
       (error) => {
         console.error('Error al eliminar la tarea:', error);  // Detalle completo del error
         if (error.message.includes("La tarea con ID")) {
-          //alert(`Error: ${error.message}`);  // Mostrar mensaje amigable
+          //alert(`Error: ${error.message}`);  
         } else {
           //alert('Error al eliminar la tarea. Por favor, intente nuevamente.');
         }
@@ -876,18 +1024,13 @@ puedeGestionarEtiquetas(): boolean {
     );
     //}
   }
-/**
- * Limpia la información del proyecto actual al salir del board
- */
-limpiarProyectoActual(): void {
-  localStorage.removeItem('proyectoActual');
-  localStorage.removeItem('proyectoIdActual');
-  localStorage.removeItem('rolActual');
-}
-  editarTarea(taskId: string) {
-    // Lógica para abrir el modal o ventana de edición
-    console.log('Editar tarea con ID:', taskId);
-    // Puedes agregar aquí la lógica que desees para editar la tarea.
+  /**
+   * Limpia la información del proyecto actual al salir del board
+   */
+  limpiarProyectoActual(): void {
+    localStorage.removeItem('proyectoActual');
+    localStorage.removeItem('proyectoIdActual');
+    localStorage.removeItem('rolActual');
   }
 
   // ESTO Viene siendo como el Id de la etiqueta del html
@@ -1092,6 +1235,8 @@ limpiarProyectoActual(): void {
       etiquetas: 'incluir',
     };
   }
+
+
   get responsablesFiltrados() {
     if (!this.miembrosDelProyecto || this.miembrosDelProyecto.length === 0) return [];
     const texto = (this.buscadorFiltros['responsable'] || '').toLowerCase();
@@ -1108,16 +1253,16 @@ limpiarProyectoActual(): void {
   }
   get etiquetasFiltradas() {
     if (!this.etiquetasUnicas || this.etiquetasUnicas.length === 0) return [];
-
     return this.etiquetasUnicas.filter(e => {
       if (e.id === undefined || e.id === null) {
         console.error('Etiqueta sin ID detectada:', e);
-        return false;  // Excluir elementos sin ID
+        return false;
       }
       const texto = (this.buscadorFiltros['etiquetas'] || '').toLowerCase();
       return e.nombre.toLowerCase().includes(texto);
     });
   }
+
   getNombreResponsable(id: string): string {
     const res = this.miembrosDelProyecto.find(m => m.usuario.id === id);
     return res?.usuario.nombre ?? 'Desconocido';
@@ -1131,8 +1276,9 @@ limpiarProyectoActual(): void {
     return etiqueta?.nombre ?? 'Desconocida';
   }
 
+
   tagsBusquedaTexto = '';
-  tagsFiltradas = [...this.etiquetasUnicas];
+  tagsFiltradas: Etiqueta[] = [];
 
   filtrarTags() {
     const texto = this.tagsBusquedaTexto.toLowerCase().trim();
@@ -1186,16 +1332,16 @@ limpiarProyectoActual(): void {
   }
 
   updateEtiqueta(etiquetaId: number, nuevoNombre: string, nuevoColorId: number): void {
-      if (!this.puedeGestionarEtiquetas()) {
-    alert('No tienes permisos para editar etiquetas');
-    return;
-  }
+    if (!this.puedeGestionarEtiquetas()) {
+      //alert('No tienes permisos para editar etiquetas');
+      return;
+    }
     if (!nuevoNombre.trim()) {
-      alert('El nombre de la etiqueta no puede estar vacío.');
+      //alert('El nombre de la etiqueta no puede estar vacío.');
       return;
     }
     if (!nuevoColorId) {
-      alert('Debe seleccionar un color para la etiqueta.');
+      //alert('Debe seleccionar un color para la etiqueta.');
       return;
     }
 
@@ -1220,57 +1366,76 @@ limpiarProyectoActual(): void {
   }
 
 
-  toggleSelectorColor(id: string) {
-    this.colorSelectorVisible[id] = !this.colorSelectorVisible[id];
+
+  panelOpenedManually = false;
+
+  onToggleBtnDown(event: MouseEvent, id: string) {
+    event.stopPropagation();
+    // Si ya está abierto, lo cierra
+    if (this.colorSelectorVisible[id]) {
+      this.colorSelectorVisible = {}; // Cierra todos
+      this.cdr.detectChanges();
+      return;
+    }
+    // Si estaba cerrado, abre solo el seleccionado
+    this.panelOpenedManually = true;
+    this.colorSelectorVisible = {};
+    this.colorSelectorVisible[id] = true;
+    this.cdr.detectChanges();
+    setTimeout(() => {
+      this.panelOpenedManually = false;
+    });
   }
 
-  @HostListener('document:click', ['$event'])
-  onDocumentClick(event: MouseEvent) {
-    if (this.colorSelectorContainer && !this.colorSelectorContainer.nativeElement.contains(event.target)) {
-      // Cierra todos los selectores si haces clic fuera
+
+
+  onPanelDown(event: MouseEvent) {
+    event.stopPropagation();
+  }
+
+  @HostListener('document:mousedown', ['$event'])
+  onDocumentClickAnywhere(event: MouseEvent) {
+    // Si el panel se acaba de abrir por botón, no lo cierres
+    if (this.panelOpenedManually) return;
+    // Cierra el panel en cualquier otro caso
+    if (Object.values(this.colorSelectorVisible).some(v => v)) {
       this.colorSelectorVisible = {};
       this.cdr.detectChanges();
     }
   }
 
+
   cambiarColorColumna(id: string, color: ColorType): void {
-     if (!this.puedeCambiarColores()) {
-    alert('No tienes permisos para cambiar colores de columnas');
-    return;
-  }
+    if (!this.puedeCambiarColores()) {
+      alert('No tienes permisos para cambiar colores de columnas');
+      return;
+    }
     const cat = this.CategoriasK.find(c => c.id === id);
     if (!cat) return;
-
-    cat.color = color;  // Actualiza localmente para UI rápida
+    cat.color = color;
     this.configurarEstilosPorEstado(this.CategoriasK);
-
-    // Oculta el selector de color
     this.colorSelectorVisible[id] = false;
     this.cdr.detectChanges();
-
-    // Envía solo la propiedad colorId al backend
     this.boardService.updateEstado(Number(id), { colorId: color.id }).subscribe({
       next: (estadoActualizado) => {
-        console.log('Estado actualizado con nuevo color:', estadoActualizado);
         const idx = this.CategoriasK.findIndex(c => c.id === id);
         if (idx !== -1) {
           this.CategoriasK[idx].color = estadoActualizado.color;
         }
         this.cdr.detectChanges();
-        //alert('Color de columna actualizado correctamente.');
       },
       error: (err) => {
-        console.error('Error actualizando color columna:', err);
-        //alert('Error al actualizar color. Intenta nuevamente.');
         this.cargarDatosProyecto(this.proyectoIdActual);
       }
     });
   }
 
 
+
   modalColumnaVisible: boolean = false;
   nuevaColumnaNombre: string = '';
   nuevaColumnaColorId: number | null = null;
+  nuevaColumnaError: string | null = null;
 
   abrirModalNuevaColumna() {
     this.nuevaColumnaNombre = '';
@@ -1280,22 +1445,45 @@ limpiarProyectoActual(): void {
 
   cerrarModalNuevaColumna() {
     this.modalColumnaVisible = false;
+    this.nuevaColumnaError = null;
+  }
+
+  // Llama esta función en (input) del campo nombre
+  validarNombreColumna() {
+    const nombreActual = this.nuevaColumnaNombre.trim().toLowerCase();
+    const existe = this.CategoriasK.some(
+      c => c.nombre.trim().toLowerCase() === nombreActual
+    );
+    if (existe) {
+      this.nuevaColumnaError = `Ya existe una columna llamada ‘${this.nuevaColumnaNombre.trim()}’ en este proyecto. Por favor elige otro nombre.`;
+    } else {
+      this.nuevaColumnaError = null;
+    }
   }
 
   crearColumna(event: Event) {
     event.preventDefault();
-     if (!this.puedeCrearColumnas()) {
-    alert('No tienes permisos para crear columnas');
-    return;
-  }
+    if (!this.puedeCrearColumnas()) return;
     if (!this.nuevaColumnaNombre.trim() || !this.nuevaColumnaColorId) return;
+
+    // Nueva validación local
+    const nombreActual = this.nuevaColumnaNombre.trim().toLowerCase();
+    const existe = this.CategoriasK.some(
+      c => c.nombre.trim().toLowerCase() === nombreActual
+    );
+    if (existe) {
+      this.nuevaColumnaError = `Ya existe una columna llamada ‘${this.nuevaColumnaNombre.trim()}’ en este proyecto. Por favor elige otro nombre.`;
+      return; // NO sigue si hay duplicación local
+    }
+
+    this.nuevaColumnaError = null; // Limpia el error previo
 
     const posicion = this.CategoriasK.length > 0
       ? Math.max(...this.CategoriasK.map(c => c.posicion)) + 1
       : 0;
 
     this.boardService.createEstado(
-      this.nuevaColumnaNombre,
+      this.nuevaColumnaNombre.trim(),
       posicion,
       this.proyectoIdActual,
       this.nuevaColumnaColorId
@@ -1310,13 +1498,21 @@ limpiarProyectoActual(): void {
         });
         this.configurarEstilosPorEstado(this.CategoriasK);
         this.cerrarModalNuevaColumna();
+        this.nuevaColumnaError = null;
+        this.nuevaColumnaNombre = '';
+        this.nuevaColumnaColorId = null;
         this.cdr.detectChanges();
       },
       error: (err) => {
-        //alert('Error al crear columna: ' + err.error.message +  'Error backend');
+        if (err?.status === 409) {
+          this.nuevaColumnaError = err?.error?.message || 'Ya existe una columna con ese nombre.';
+        } else {
+          this.nuevaColumnaError = 'Ocurrió un error al crear la columna.';
+        }
       }
     });
   }
+
 
   // Variables para manejo de confirmación eliminación columna
   modalConfirmEliminarVisible: boolean = false;
@@ -1341,10 +1537,10 @@ limpiarProyectoActual(): void {
 
   // Confirmar y eliminar la columna
   confirmarEliminarColumna(): void {
-      if (!this.puedeEliminar()) {
-    alert('No tienes permisos para eliminar columnas');
-    return;
-  }
+    if (!this.puedeEliminar()) {
+      //alert('No tienes permisos para eliminar columnas');
+      return;
+    }
     if (!this.columnaAEliminarId) return;
 
     this.boardService.deleteEstado(Number(this.columnaAEliminarId)).subscribe({
@@ -1361,7 +1557,6 @@ limpiarProyectoActual(): void {
       }
     });
   }
-
 
   dropdownEtiquetasAbierto = false;
   seleccionandoOpcion = false;
@@ -1394,36 +1589,54 @@ limpiarProyectoActual(): void {
   }
 
   nuevoNombreEtiqueta = '';
-  nuevoColorEtiqueta = '#1976D2'; // código hex por defecto
-  modalEtiquetaVisible = false; // control modal
+  nuevoColorEtiquetaId: number | null = null; // Usar solo el ID del color
+  modalEtiquetaVisible = false;
+  public errorEtiquetaDuplicada: string | null = null;
 
   crearEtiqueta(event: Event) {
     event.preventDefault();
-      if (!this.puedeGestionarEtiquetas()) {
-    alert('No tienes permisos para crear etiquetas');
-    return;
-  }
-    if (!this.nuevoNombreEtiqueta.trim() || !this.nuevoColorEtiqueta) return;
-
-    const colorObj = this.colores.find(c => c.codigo === this.nuevoColorEtiqueta);
-    if (!colorObj) return;
+    if (!this.puedeGestionarEtiquetas()) return;
+    if (!this.nuevoNombreEtiqueta.trim() || !this.nuevoColorEtiquetaId) return;
 
     this.boardService.createEtiqueta(
       this.nuevoNombreEtiqueta,
       this.proyectoIdActual,
-      colorObj.id
+      this.nuevoColorEtiquetaId
     ).subscribe({
       next: (newEtiqueta) => {
-        this.etiquetasUnicas.push(newEtiqueta);
+        // ¡Recibes el HEX directo en newEtiqueta.color!
+        const etiquetaNormalizada: Etiqueta = {
+          id: newEtiqueta.id,
+          nombre: newEtiqueta.nombre,
+          color: newEtiqueta.color // <-- HEX directo: "#1976D2"
+        };
+        this.etiquetasUnicas.push(etiquetaNormalizada);
+
+        // --- ASOCIA a la tarea seleccionada si tu UX lo necesita
+        if (this.tareaSeleccionada) {
+          if (!this.tareaSeleccionada.etiquetas) this.tareaSeleccionada.etiquetas = [];
+          this.tareaSeleccionada.etiquetas.push(etiquetaNormalizada.id);
+        }
+
+        // Limpieza de form
         this.nuevoNombreEtiqueta = '';
-        this.nuevoColorEtiqueta = '';
+        this.nuevoColorEtiquetaId = null;
         this.modalEtiquetaVisible = false;
+        this.errorEtiquetaDuplicada = null;
+        this.cdr.detectChanges();
+      },
+      error: err => {
+        if (err?.status === 409) {
+          this.errorEtiquetaDuplicada = err?.error?.message || 'Ya existe una etiqueta con ese nombre en este proyecto.';
+        } else {
+          this.errorEtiquetaDuplicada = 'Hubo un error al crear la etiqueta.';
+        }
+        this.cdr.detectChanges();
       }
     });
   }
 
-
-menuVisible = false;
+  menuVisible = false;
 
   // Toggle the visibility of the menu
   toggleMenu(event: MouseEvent) {
@@ -1440,4 +1653,309 @@ menuVisible = false;
       this.menuVisible = false;
     }
   }
+
+  // --- MODAL / PANEL DE EDICIÓN DE TAREAS :/ ---
+  public modalEditarVisible = false;
+  public tareaOriginal: RawTask | null = null;
+  public tareaSeleccionada: TaskUI | null = null;
+  public responsablesIds: string[] = [];
+  public etiquetaIds: number[] = [];
+  public erroresEditar = { titulo: false };
+
+  filtroResponsables: string = '';
+
+  miembrosFiltrados(): any[] {
+    if (!this.filtroResponsables.trim()) return this.miembrosDelProyecto;
+    const filtro = this.filtroResponsables.trim().toLowerCase();
+    return this.miembrosDelProyecto.filter(m =>
+      (m.usuario.nombre + ' ' + m.usuario.apellido).toLowerCase().includes(filtro)
+    );
+  }
+
+  busquedaEtiqueta: string = '';
+
+  filtrarEtiquetas(): Etiqueta[] {
+    if (!this.busquedaEtiqueta.trim()) return this.etiquetasUnicas;
+    const filtro = this.busquedaEtiqueta.trim().toLowerCase();
+    return this.etiquetasUnicas.filter(e =>
+      e.nombre.toLowerCase().includes(filtro)
+    );
+  }
+
+  mapRawTaskToUI(raw: RawTask): TaskUI {
+    // Normaliza fechaLimite para <input type="date">
+    let fechaLimiteInput = '';
+    if (raw.fechaLimite) {
+      try {
+        const d = new Date(raw.fechaLimite);
+        if (!isNaN(d.getTime())) {
+          const yyyy = d.getUTCFullYear();
+          const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
+          const dd = String(d.getUTCDate()).padStart(2, '0');
+          fechaLimiteInput = `${yyyy}-${mm}-${dd}`;
+        }
+      } catch {
+        fechaLimiteInput = '';
+      }
+    }
+    return {
+      id: raw.id,
+      titulo: raw.titulo ?? '',
+      fechaLimite: fechaLimiteInput,
+      title: raw.titulo ?? '',
+      dueDate: fechaLimiteInput, // mantenlo igual si la UI lo requiere
+      posicion: raw.posicion,
+      createdAt: raw.createdAt,
+      estadoId: raw.estadoId,
+      proyectoId: raw.proyectoId,
+      assignee: Array.isArray(raw.responsables) ? raw.responsables.map(r => r.usuario) : [],
+      etiquetas: Array.isArray(raw.etiquetas) ? raw.etiquetas : [],
+      etiquetaIds: Array.isArray(raw.etiquetas)
+        ? raw.etiquetas.map(e => typeof e === 'number' ? e : (e.etiquetaId ?? e.id)).filter(id => typeof id === 'number')
+        : []
+    };
+  }
+  extractResponsableIds(t: RawTask | Task | null | undefined): string[] {
+    if (!t) return [];
+    // Detecta RawTask
+    if (t.hasOwnProperty('responsables') && Array.isArray((t as any).responsables)) {
+      return (t as any).responsables
+        .map((r: any) => r.usuario?.id ?? r.usuarioId ?? null)
+        .filter(Boolean);
+    }
+    // Detecta Task mapeado
+    if (t.hasOwnProperty('assignee') && Array.isArray((t as any).assignee)) {
+      return (t as any).assignee.map((u: any) => u.id);
+    }
+    console.log('extractResponsableIds recibe:', t);
+    return [];
+  }
+  getEtiquetaIds(t: RawTask | Task | null | undefined): number[] {
+    if (!t) return [];
+    if (t.hasOwnProperty('etiquetas') && Array.isArray((t as any).etiquetas)) {
+      return (t as any).etiquetas
+        .map((e: any) => typeof e === 'number' ? e : (e.etiquetaId ?? e.id))
+        .filter((id: any): id is number => typeof id === 'number');
+    }
+    if (t.hasOwnProperty('etiquetaIds') && Array.isArray((t as any).etiquetaIds)) {
+      return (t as any).etiquetaIds;
+    }
+    console.log('getEtiquetaIds recibe:', t);
+    return [];
+  }
+  editarTarea(id: string) {
+    // Busca la tarea en todas las categorías
+    let tarea: Task | undefined;
+    for (const categoria of this.CategoriasK) {
+      tarea = categoria.tasks.find(t => t.id === id);
+      if (tarea) break;
+    }
+    if (tarea) {
+      this.abrirModalEditarTarea(tarea);
+    }
+  }
+  selectResponsableEditar(id: string, event: any) {
+    if (event.target.checked) {
+      if (!this.responsablesIds.includes(id)) this.responsablesIds.push(id);
+    } else {
+      this.responsablesIds = this.responsablesIds.filter(rid => rid !== id);
+    }
+    // Actualiza la lista para la UI
+    if (this.tareaSeleccionada) {
+      this.tareaSeleccionada.assignee = this.miembrosDelProyecto
+        .filter(m => this.responsablesIds.includes(m.usuario.id))
+        .map(m => m.usuario);
+    }
+  }
+  selectEtiquetaEditar(id: number, event: any) {
+    if (event.target.checked) {
+      if (!this.etiquetaIds.includes(id)) this.etiquetaIds.push(id);
+    } else {
+      this.etiquetaIds = this.etiquetaIds.filter(eid => eid !== id);
+    }
+    this.tareaSeleccionada!.etiquetaIds = [...this.etiquetaIds];
+  }
+  abrirModalEditarTarea(tarea: RawTask | Task) {
+    // Solo usa el RawTask original de la lista de categorías
+    this.tareaOriginal = tarea as RawTask; // O el objeto verdadero, sin mapear
+    this.tareaSeleccionada = this.mapRawTaskToUI(this.tareaOriginal);
+
+    this.responsablesIds = this.extractResponsableIds(this.tareaOriginal);
+    this.etiquetaIds = this.getEtiquetaIds(this.tareaOriginal);
+    this.modalEditarVisible = true;
+    this.erroresEditar = { titulo: false };
+  }
+  cerrarModalEditarTarea() {
+    this.modalEditarVisible = false;
+    this.tareaOriginal = null;
+    this.tareaSeleccionada = null;
+    this.responsablesIds = [];
+    this.etiquetaIds = [];
+    this.erroresEditar = { titulo: false };
+    // Limpia filtros de buscadores
+    this.filtroResponsables = '';
+    this.busquedaEtiqueta = '';
+  }
+
+  // Guardar cambios llamando al servicio (método recomendado)
+  guardarCambiosTareaEditar(event: Event) {
+    event.preventDefault();
+
+    if (!this.tareaSeleccionada?.titulo?.trim()) {
+      this.erroresEditar.titulo = true;
+      return;
+    }
+    this.erroresEditar.titulo = false;
+
+    const fechaLimiteISO =
+      this.tareaSeleccionada?.fechaLimite &&
+        this.tareaSeleccionada.fechaLimite.length === 10 // formato yyyy-MM-dd
+        ? new Date(this.tareaSeleccionada.fechaLimite + "T00:00:00Z").toISOString()
+        : null;
+
+
+    const originalesResponsablesIds = this.extractResponsableIds(this.tareaOriginal!);
+    const nuevosResponsablesIds = [...this.responsablesIds];
+    const responsablesToAdd = nuevosResponsablesIds.filter(id => !originalesResponsablesIds.includes(id));
+    const responsablesToRemove = originalesResponsablesIds.filter(id => !nuevosResponsablesIds.includes(id));
+
+
+    const originalesEtiquetaIds = this.getEtiquetaIds(this.tareaOriginal!);
+    const nuevasEtiquetaIds = [...this.etiquetaIds];
+    const etiquetasToAdd = nuevasEtiquetaIds.filter(id => !originalesEtiquetaIds.includes(id));
+    const etiquetasToRemove = originalesEtiquetaIds.filter(id => !nuevasEtiquetaIds.includes(id));
+    console.log('responsablesToRemove:', responsablesToRemove);
+
+    this.boardService.updateTaskFull({
+      id: this.tareaSeleccionada.id,
+      data: {
+        titulo: this.tareaSeleccionada.titulo,
+        fechaLimite: fechaLimiteISO,
+      },
+      responsablesToAdd,
+      responsablesToRemove,
+      etiquetasToAdd,
+      etiquetasToRemove
+    }).subscribe({
+      next: (tareaActualizadaRaw: RawTask) => {
+        console.log('originalesResponsablesIds:', originalesResponsablesIds);
+        console.log('nuevosResponsablesIds:', nuevosResponsablesIds);
+        console.log('responsablesToRemove:', responsablesToRemove);
+
+        const tareaActualizada = this.mapRawTaskToUI(tareaActualizadaRaw);
+        const categoria = this.CategoriasK.find(c => c.id === tareaActualizada.estadoId.toString());
+        if (categoria) {
+          const idx = categoria.tasks.findIndex(t => t.id === tareaActualizada.id);
+          if (idx !== -1) {
+            categoria.tasks[idx] = tareaActualizada; // tareaActualizada es TaskUI con etiquetas y etiquetaIds
+            categoria.tasks = [...categoria.tasks];  // Para disparar change detection
+          }
+        }
+        this.cerrarModalEditarTarea();
+        this.zone.run(() => this.cdr.detectChanges());
+      },
+      error: err => {
+        console.error('Error actualizando tarea:', err);
+        alert('Ocurrió un error al guardar los cambios');
+      }
+    });
+  }
+
+  // --- MODAL / PANEL DE ELIMINACIÓN DE ETIQUETAS ---
+  public etiquetasSeleccionadas: number[] = [];
+  public confirmMultiDeleteActivo: boolean = false;
+  public modalGestionEtiquetasVisible: boolean = false;
+
+  // --- MODALES ---
+  abrirPanelGestionEtiquetas(): void {
+    this.modalGestionEtiquetasVisible = true;
+  }
+  cerrarModalGestionEtiquetas(): void {
+    this.modalGestionEtiquetasVisible = false;
+    this.etiquetasSeleccionadas = [];
+    this.confirmMultiDeleteActivo = false;
+  }
+
+  // Selección de etiquetas en la UI
+  toggleSeleccionEtiqueta(id: number, event: any): void {
+    if (event.target.checked) {
+      if (!this.etiquetasSeleccionadas.includes(id)) {
+        this.etiquetasSeleccionadas.push(id);
+      }
+    } else {
+      this.etiquetasSeleccionadas = this.etiquetasSeleccionadas.filter(eId => eId !== id);
+    }
+  }
+
+  // Mostrar/cerrar modal de confirmación múltiple
+  abrirModalConfirmarEliminarEtiquetasMultiples(): void {
+    this.confirmMultiDeleteActivo = true;
+  }
+  cerrarModalConfirmarEliminarEtiquetasMultiples(): void {
+    this.confirmMultiDeleteActivo = false;
+  }
+
+  // Eliminar todas las etiquetas seleccionadas tras confirmación
+  eliminarEtiquetasSeleccionadas(): void {
+    if (this.etiquetasSeleccionadas.length === 0) return;
+    Promise.all(
+      this.etiquetasSeleccionadas.map(id =>
+        this.boardService.deleteEtiqueta(id, this.proyectoIdActual).toPromise()
+      )
+    ).then(() => {
+      // 1. Elimina del array global
+      this.etiquetasUnicas = this.etiquetasUnicas.filter(e => !this.etiquetasSeleccionadas.includes(e.id));
+      // 2. Limpieza en tareas del kanban
+      for (const categoria of this.CategoriasK) {
+        categoria.tasks.forEach(tarea => {
+          if (Array.isArray(tarea.etiquetas)) {
+            tarea.etiquetas = tarea.etiquetas.filter(
+              (et: any) => {
+                const id = typeof et === 'number' ? et : et.id;
+                return !this.etiquetasSeleccionadas.includes(id);
+              }
+            );
+          }
+        });
+        categoria.tasks = [...categoria.tasks];
+      }
+      this.CategoriasK = [...this.CategoriasK];
+      this.etiquetasSeleccionadas = [];
+      this.confirmMultiDeleteActivo = false;
+      this.cerrarModalGestionEtiquetas();
+      this.cdr.detectChanges();
+    }).catch(err => {
+      alert('Error al eliminar alguna etiqueta');
+    });
+  }
+  getColorEtiqueta(id: number): string {
+    const etiqueta = this.etiquetasUnicas.find(e => e.id === id);
+    return etiqueta?.color ?? '#666';
+  }
+
+  public textoBusquedaEtiqueta: string = '';
+
+  // NUEVO filtro específico para el modal
+  get etiquetasFiltradasModal(): Etiqueta[] {
+    if (!this.etiquetasUnicas || this.etiquetasUnicas.length === 0) return [];
+    const texto = (this.textoBusquedaEtiqueta ?? '').toLowerCase().trim();
+    return this.etiquetasUnicas.filter(e => {
+      if (e.id === undefined || e.id === null) {
+        console.error('Etiqueta sin ID detectada:', e);
+        return false;
+      }
+      return e.nombre.toLowerCase().includes(texto);
+    });
+  }
+
+  // Función para resaltar coincidencia (HTML seguro)
+  highlightNombreEtiqueta(nombre: string): string {
+    const texto = this.textoBusquedaEtiqueta.trim();
+    if (!texto) return nombre;
+
+    const regex = new RegExp(`(${texto})`, 'gi');
+    // Escapa por seguridad: si usas Angular sanitizador, ¡será seguro!
+    return nombre.replace(regex, '<mark class="bg-yellow-200 px-0.5 rounded">' + '$1' + '</mark>');
+  }
+
 }

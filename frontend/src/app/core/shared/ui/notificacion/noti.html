@@ -1,0 +1,114 @@
+<div class="notificacion-container">
+  <!-- Botón de la campana -->
+  <button 
+    class="notificacion-boton" 
+    (click)="toggleDropdown()"
+    aria-label="Notificaciones"
+    [attr.aria-expanded]="mostrarDropdown"
+  >
+    <svg class="campana-icon" viewBox="0 0 24 24">
+      <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
+    </svg>
+    <div *ngIf="contadorNoLeidas > 0" class="notificacion-contador">
+      {{ contadorNoLeidas > 99 ? '99+' : contadorNoLeidas }}
+    </div>
+  </button>
+
+  <!-- Dropdown de notificaciones -->
+  <div *ngIf="mostrarDropdown" class="notificacion-dropdown">
+    <!-- Header -->
+    <div class="notificacion-header">
+      <h3>Notificaciones</h3>
+      <div class="notificacion-acciones">
+        <button 
+          *ngIf="contadorNoLeidas > 0"
+          class="btn-marcar-todas"
+          (click)="marcarTodasComoLeidas($event)"
+          aria-label="Marcar todas las notificaciones como leídas"
+        >
+          Marcar todas como leídas
+        </button>
+      </div>
+    </div>
+
+    <!-- Indicador de carga -->
+    <div *ngIf="cargando" class="notificacion-cargando">
+      <p>Cargando notificaciones...</p>
+    </div>
+
+    <!-- Mensaje de error -->
+    <div *ngIf="error && !cargando" class="notificacion-error">
+      <p>{{ error }}</p>
+      <button class="btn-reintentar" (click)="cargarNotificaciones()">Reintentar</button>
+    </div>
+
+    <!-- Lista de notificaciones -->
+    <div *ngIf="!cargando && !error" class="notificacion-lista">
+      <div 
+        *ngFor="let notificacion of notificaciones" 
+        class="notificacion-item"
+        [class.no-leida]="!notificacion.leida"
+        (click)="marcarComoLeida(notificacion.id, $event)"
+        [attr.aria-label]="'Notificación: ' + notificacion.mensaje"
+      >
+        <div class="notificacion-contenido">
+          <div class="notificacion-texto">
+            <!-- Indicador de no leída -->
+            <div *ngIf="!notificacion.leida" class="notificacion-punto" aria-hidden="true"></div>
+            
+            <p class="notificacion-mensaje">{{ notificacion.mensaje }}</p>
+            <div class="notificacion-meta">
+              <span class="notificacion-tipo" [attr.data-tipo]="notificacion.tipo">
+                {{ obtenerTextoAmigable(notificacion.tipo) }}
+              </span>
+              <span class="notificacion-fecha">
+                {{ formatearFecha(notificacion.createdAt) }}
+              </span>
+              <!-- Información del proyecto si existe -->
+              <span *ngIf="notificacion.tarea?.proyecto?.nombre" class="notificacion-proyecto">
+                • {{ notificacion.tarea?.proyecto?.nombre }}
+              </span>
+            </div>
+            <div class="notificacion-acciones-item">
+              <button 
+                *ngIf="!notificacion.leida"
+                class="btn-leer"
+                (click)="marcarComoLeida(notificacion.id, $event)"
+                aria-label="Marcar como leída"
+              >
+                ✓ Leída
+              </button>
+              <button 
+                class="btn-eliminar"
+                (click)="eliminarNotificacion(notificacion.id, $event)"
+                aria-label="Eliminar notificación"
+              >
+                × Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Estado vacío -->
+      <div *ngIf="notificaciones.length === 0" class="notificacion-vacia">
+        <p>No hay notificaciones</p>
+        <small>Todas tus notificaciones aparecerán aquí</small>
+        <button class="btn-prueba" (click)="crearNotificacionPrueba()">
+          Crear notificación de prueba
+        </button>
+      </div>
+    </div>
+
+    <!-- Panel de debug (solo en desarrollo) -->
+    <div *ngIf="notificaciones.length > 0" class="notificacion-debug">
+      <div class="debug-info">
+        <small>
+          Total: {{notificaciones.length}} | 
+          No leídas: {{contadorNoLeidas}} | 
+          Estado: {{cargando ? 'Cargando...' : error ? 'Error' : 'Listo'}}
+        </small>
+      </div>
+    </div>
+  </div>
+</div>

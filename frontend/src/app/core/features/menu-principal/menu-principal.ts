@@ -8,6 +8,7 @@ import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 
+
 export interface DashboardStats {
   totalProjects: number;
   totalTasks: number;
@@ -55,7 +56,7 @@ interface VerifyPasswordRequest {
 
 @Component({
   selector: 'app-menu-principal',
-  imports: [Sidebar, CommonModule, FormsModule],
+  imports: [Sidebar, CommonModule, FormsModule, ],
   templateUrl: './menu-principal.html',
   styleUrl: './menu-principal.css'
 })

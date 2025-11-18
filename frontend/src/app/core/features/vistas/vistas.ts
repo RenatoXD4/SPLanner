@@ -20,6 +20,8 @@ import { VistasService, Proyecto, ProyectoConUsuario } from './service/vista-ser
 import { AuthService } from '../../services/auth-service';
 import { Subscription } from 'rxjs';
 import { ProyectoGuard } from '../../../guards/proyecto.guard';
+// ✅ AGREGAR IMPORTACIÓN DEL COMPONENTE DE NOTIFICACIONES
+import { NotificacionComponent } from '../../../core/shared/ui/notificacion/noti';
 
 interface CreateProjectRequest {
   nombre: string;
@@ -51,7 +53,8 @@ interface ProyectoAdministrar extends ProyectoConUsuario {
 @Component({
   selector: 'app-vistas',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule, Sidebar],
+  // ✅ AGREGAR NOTIFICACIONCOMPONENT EN LOS IMPORTS
+  imports: [CommonModule, FormsModule, HttpClientModule, Sidebar, NotificacionComponent],
   templateUrl: './vistas.html',
   styleUrls: ['./vistas.css'],
   providers: [VistasService]

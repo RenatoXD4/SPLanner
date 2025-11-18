@@ -1,0 +1,362 @@
+/* ELIMINAR estas clases que eran para botones de prueba */
+.pruebas-container,
+.btn-prueba,
+.botones-prueba-vacio,
+.btn-prueba-vacio {
+  display: none;
+}
+
+/* Mantener solo los estilos necesarios para notificaciones reales */
+.notificacion-container {
+  position: relative;
+  display: inline-block;
+}
+
+.notificacion-boton {
+  position: relative;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: background-color 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+}
+
+.notificacion-boton:hover {
+  background-color: #f0f0f0;
+}
+
+.notificacion-contador {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background-color: #ff4444;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+.notificacion-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  width: 400px;
+  max-height: 500px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  overflow: hidden;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.notificacion-header {
+  padding: 16px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f8f9fa;
+}
+
+.notificacion-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.notificacion-acciones {
+  display: flex;
+  gap: 8px;
+}
+
+.notificacion-lista {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.notificacion-item {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  position: relative;
+}
+
+.notificacion-item:hover {
+  background-color: #f8f9fa;
+}
+
+.notificacion-item.no-leida {
+  background-color: #f0f7ff;
+  border-left: 3px solid #007bff;
+}
+
+.notificacion-contenido {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.notificacion-texto {
+  flex: 1;
+  position: relative;
+}
+
+.notificacion-punto {
+  position: absolute;
+  top: 8px;
+  left: -8px;
+  width: 8px;
+  height: 8px;
+  background-color: #007bff;
+  border-radius: 50%;
+  animation: blink 2s infinite;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0.3; }
+}
+
+.notificacion-mensaje {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  line-height: 1.4;
+  color: #333;
+}
+
+.notificacion-meta {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.notificacion-tipo {
+  display: inline-block;
+  padding: 2px 8px;
+  background-color: #e9ecef;
+  border-radius: 12px;
+  font-size: 11px;
+  text-transform: capitalize;
+}
+
+.notificacion-fecha {
+  color: #999;
+}
+
+.notificacion-proyecto {
+  color: #666;
+  font-style: italic;
+}
+
+.notificacion-acciones-item {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.btn-leer, .btn-eliminar, .btn-marcar-todas, .btn-reintentar, .btn-prueba {
+  padding: 4px 8px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background-color 0.2s;
+}
+
+.btn-leer {
+  background-color: #007bff;
+  color: white;
+}
+
+.btn-leer:hover {
+  background-color: #0056b3;
+}
+
+.btn-eliminar {
+  background-color: #dc3545;
+  color: white;
+}
+
+.btn-eliminar:hover {
+  background-color: #c82333;
+}
+
+.btn-marcar-todas {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background-color 0.2s;
+}
+
+.btn-marcar-todas:hover {
+  background-color: #545b62;
+}
+
+.btn-reintentar {
+  background-color: #28a745;
+  color: white;
+  padding: 6px 12px;
+}
+
+.btn-reintentar:hover {
+  background-color: #218838;
+}
+
+.btn-prueba {
+  background-color: #ffc107;
+  color: #212529;
+  padding: 6px 12px;
+  margin-top: 8px;
+}
+
+.btn-prueba:hover {
+  background-color: #e0a800;
+}
+
+.notificacion-vacia {
+  padding: 32px 16px;
+  text-align: center;
+  color: #666;
+}
+
+.notificacion-vacia p {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+}
+
+.notificacion-vacia small {
+  font-size: 12px;
+  color: #999;
+}
+
+.notificacion-cargando {
+  padding: 20px;
+  text-align: center;
+  color: #666;
+}
+
+.notificacion-error {
+  padding: 20px;
+  text-align: center;
+  color: #dc3545;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  margin: 10px;
+  border-radius: 4px;
+}
+
+.notificacion-debug {
+  padding: 12px 16px;
+  background-color: #f8f9fa;
+  border-top: 1px solid #dee2e6;
+}
+
+.debug-info {
+  color: #6c757d;
+  font-size: 11px;
+}
+
+/* Colores por tipo de notificación */
+.notificacion-tipo[data-tipo="asignacion"] {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.notificacion-tipo[data-tipo="comentario"] {
+  background-color: #cce7ff;
+  color: #004085;
+}
+
+.notificacion-tipo[data-tipo="cambio_estado"] {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.notificacion-tipo[data-tipo="invitacion_proyecto"] {
+  background-color: #e2e3e5;
+  color: #383d41;
+}
+
+.notificacion-tipo[data-tipo="edicion_proyecto"] {
+  background-color: #e8d7f8;
+  color: #4a1c72;
+}
+
+.notificacion-tipo[data-tipo="tarea_creada"] {
+  background-color: #d7f8e8;
+  color: #1c724a;
+}
+
+/* Scrollbar personalizado */
+.notificacion-lista::-webkit-scrollbar {
+  width: 6px;
+}
+
+.notificacion-lista::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.notificacion-lista::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.notificacion-lista::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .notificacion-dropdown {
+    width: 350px;
+    right: -50px;
+  }
+}
+
+@media (max-width: 480px) {
+  .notificacion-dropdown {
+    width: 300px;
+    right: -80px;
+  }
+}

@@ -1,13 +1,8 @@
-<div
-  class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white flex"
->
+<div class="min-h-screen text-white flex w-full"
+  style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%); min-width: fit-content;">
   <app-sidebar></app-sidebar>
-  <app-task-detail
-    [task]="selectedTask"
-    [isHidden]="isDetailPanelHidden"
-    [estadoNombre]="selectedTaskEstadoNombre"
-    (closePanel)="hideTaskDetails()"
-  >
+  <app-task-detail [task]="selectedTask" [isHidden]="isDetailPanelHidden" [estadoNombre]="selectedTaskEstadoNombre"
+    (closePanel)="hideTaskDetails()">
   </app-task-detail>
 
   <!-- CONTENIDO PRINCIPAL -->
@@ -15,50 +10,23 @@
     <!-- Filtro de vistas -->
     <div class="flex flex-wrap justify-start gap-4 mb-6">
       <!-- Vista Kanban -->
-      <button
-        title="Cambiar a la vista Kanban"
-        (click)="setViewMode('kanban')"
-        [ngClass]="getButtonClasses('kanban')"
-        class="btn btn-outline border-gray-300 text-gray-700 hover:bg-primary hover:text-white hover:border-primary focus:outline-none w-full sm:w-auto transform transition-all duration-300 ease-in-out hover:scale-105 flex items-center gap-2"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="h-5 w-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          stroke-width="2"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="M4 6h16M4 10h16M4 14h16M4 18h16"
-          />
+      <button title="Cambiar a la vista Kanban" (click)="setViewMode('kanban')" [ngClass]="getButtonClasses('kanban')"
+        class="btn btn-outline border-gray-300 text-gray-700 hover:bg-primary hover:text-white hover:border-primary focus:outline-none w-full sm:w-auto transform transition-all duration-300 ease-in-out hover:scale-105 flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+          stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
         </svg>
         <span class="text-lg font-semibold">Vista Kanban</span>
       </button>
 
       <!-- Vista Lista -->
       @if(!isMobile){
-      <button
-        title="Cambiar a la vista en forma de lista"
-        (click)="setViewMode('list')"
+      <button title="Cambiar a la vista en forma de lista" (click)="setViewMode('list')"
         [ngClass]="getButtonClasses('list')"
-        class="btn btn-outline border-gray-300 text-gray-700 hover:bg-primary hover:text-white hover:border-primary focus:outline-none w-full sm:w-auto transform transition-all duration-300 ease-in-out hover:scale-105 flex items-center gap-2"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="h-5 w-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          stroke-width="2"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="M3 10h18M3 6h18M3 14h12M3 18h12"
-          />
+        class="btn btn-outline border-gray-300 text-gray-700 hover:bg-primary hover:text-white hover:border-primary focus:outline-none w-full sm:w-auto transform transition-all duration-300 ease-in-out hover:scale-105 flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+          stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 6h18M3 14h12M3 18h12" />
         </svg>
         Vista Lista
       </button>
@@ -67,25 +35,12 @@
 
       <!-- Vista Tareas Asignadas -->
       @if (!isMobile){
-      <button
-        title="Aquí puedes ver tus tareas asignadas"
-        (click)="setViewMode('assigned')"
+      <button title="Aquí puedes ver tus tareas asignadas" (click)="setViewMode('assigned')"
         [ngClass]="getButtonClasses('assigned')"
-        class="btn btn-outline border-gray-300 text-gray-700 hover:bg-primary hover:text-white hover:border-primary focus:outline-none w-full sm:w-auto transform transition-all duration-300 ease-in-out hover:scale-105 flex items-center gap-2"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="h-5 w-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          stroke-width="2"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="M5.121 17.804A6 6 0 1117 17.803M12 11v6"
-          />
+        class="btn btn-outline border-gray-300 text-gray-700 hover:bg-primary hover:text-white hover:border-primary focus:outline-none w-full sm:w-auto transform transition-all duration-300 ease-in-out hover:scale-105 flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+          stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5.121 17.804A6 6 0 1117 17.803M12 11v6" />
         </svg>
         Tareas Asignadas
       </button>
@@ -97,24 +52,13 @@
         <div class="relative inline-block text-left" (click)="toggleMenu($event)">
           <button
             class="btn btn-outline border-gray-300 text-gray-700 hover:bg-gray-300 hover:text-gray-800 hover:border-gray-400 focus:outline-none w-full sm:w-auto transform transition-all duration-300 ease-in-out hover:scale-105 flex items-center gap-2 py-3 px-6 rounded-lg"
-            id="dropdownButton"
-            aria-expanded="false"
-            aria-haspopup="true"
-            [ngClass]="{
+            id="dropdownButton" aria-expanded="false" aria-haspopup="true" [ngClass]="{
               'bg-gray-500 text-white': menuVisible,
               'hover:bg-gray-500 hover:text-white': !menuVisible
-            }"
-            (click)="toggleMenu($event)"
-          >
+            }" (click)="toggleMenu($event)">
             <!-- Icono de tres puntos (menú de acciones) -->
-            <svg
-              class="w-6 h-6 text-gray-700"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
+            <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg">
               <path stroke-linecap="round" stroke-linejoin="round" d="M6 12h12M6 6h12M6 18h12" />
             </svg>
             <span class="text-lg font-semibold">Acciones</span>
@@ -124,28 +68,16 @@
           @if (menuVisible){
           <div
             class="origin-top-right absolute right-0 mt-2 w-48 rounded-lg shadow-xl bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 focus:outline-none z-50"
-            role="menu"
-            aria-orientation="vertical"
-            aria-labelledby="dropdownButton"
-          >
+            role="menu" aria-orientation="vertical" aria-labelledby="dropdownButton">
             <div class="py-2" role="none">
               <!-- Opción Añadir Columna - Solo para administradores -->
               @if (puedeCrearColumnas()) {
-              <button
-                (click)="abrirModalNuevaColumna()"
+              <button (click)="abrirModalNuevaColumna()"
                 class="text-gray-700 dark:text-gray-300 block px-4 py-2 text-sm hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-800 dark:hover:text-white rounded-md transition-all duration-200"
-                role="menuitem"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="w-5 h-5 inline-block mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                  viewBox="0 0 24 24"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
+                role="menuitem">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 inline-block mr-2" fill="none"
+                  stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" stroke-linecap="round"
+                  stroke-linejoin="round">
                   <path d="M12 4v16m8-8H4" />
                 </svg>
                 Añadir Columna
@@ -154,39 +86,21 @@
 
               <!-- Opción Añadir Etiqueta - Solo para administradores -->
               @if (puedeGestionarEtiquetas()) {
-              <button
-                (click)="modalEtiquetaVisible = true"
+              <button (click)="modalEtiquetaVisible = true"
                 class="text-gray-700 dark:text-gray-300 block px-4 py-2 text-sm hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-800 dark:hover:text-white rounded-md transition-all duration-200"
-                role="menuitem"
-              >
-                <svg
-                  class="w-5 h-5 inline-block mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M14.828 4.828a4 4 0 010 5.656L9.707 14.707a4 4 0 01-5.656 0L3 14.121a4 4 0 010-5.656L8.293 3.293a4 4 0 015.656 0l5.879 5.879a4 4 0 010 5.656l-5.879 5.879a4 4 0 01-5.656 0L4.828 14.828"
-                  />
+                role="menuitem">
+                <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" stroke-width="1.5"
+                  viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M14.828 4.828a4 4 0 010 5.656L9.707 14.707a4 4 0 01-5.656 0L3 14.121a4 4 0 010-5.656L8.293 3.293a4 4 0 015.656 0l5.879 5.879a4 4 0 010 5.656l-5.879 5.879a4 4 0 01-5.656 0L4.828 14.828" />
                 </svg>
                 Añadir Etiqueta
               </button>
-              <button
-                (click)="abrirPanelGestionEtiquetas()"
+              <button (click)="abrirPanelGestionEtiquetas()"
                 class="text-gray-700 dark:text-gray-300 block px-4 py-2 text-sm hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-800 dark:hover:text-white rounded-md transition-all duration-200"
-                role="menuitem"
-              >
-                <svg
-                  class="w-5 h-5 inline-block mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                  viewBox="0 0 24 24"
-                >
+                role="menuitem">
+                <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" stroke-width="1.5"
+                  viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
                 Eliminar Etiquetas
@@ -210,11 +124,7 @@
           Esta acción no se puede deshacer.
         </p>
         <div class="flex justify-end gap-3">
-          <button
-            type="button"
-            class="btn btn-outline btn-error"
-            (click)="cerrarModalConfirmEliminar()"
-          >
+          <button type="button" class="btn btn-outline btn-error" (click)="cerrarModalConfirmEliminar()">
             Cancelar
           </button>
           <button type="button" class="btn btn-primary" (click)="confirmarEliminarColumna()">
@@ -231,18 +141,14 @@
       @for (item of CategoriasK; track item.id) {
       <div
         class="w-full md:w-[300px] flex-shrink-0 rounded-lg shadow-md p-4 space-y-4 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700"
-        [ngStyle]="getColumnColorClass(item.nombre)"
-      >
+        [ngStyle]="getColumnColorClass(item.nombre)">
         <!-- Título y acciones -->
         <div class="flex items-center justify-between relative">
-          <h2
-            class="text-lg font-semibold break-words max-w-full overflow-hidden"
-            [ngStyle]="getTextColorClass(item.nombre)"
-          >
+          <h2 class="text-lg font-semibold break-words max-w-full overflow-hidden"
+            [ngStyle]="getTextColorClass(item.nombre)">
             {{ item.nombre }}
             <span
-              class="ml-2 text-sm bg-gray-200 dark:bg-gray-800 rounded-full px-2 py-0.5 font-medium text-gray-600 dark:text-gray-400"
-            >
+              class="ml-2 text-sm bg-gray-200 dark:bg-gray-800 rounded-full px-2 py-0.5 font-medium text-gray-600 dark:text-gray-400">
               {{ item.tasks.length }}
             </span>
           </h2>
@@ -252,69 +158,37 @@
           <div class="flex items-center space-x-2">
             <!-- Selector de color - Solo para administradores -->
             @if (puedeCambiarColores()) {
-            <button
-              (mousedown)="onToggleBtnDown($event, item.id)"
+            <button (mousedown)="onToggleBtnDown($event, item.id)"
               class="color-toggle-btn p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"
-              aria-label="Cambiar color columna"
-              title="Cambiar color columna"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-5 w-5 text-gray-600 dark:text-gray-300"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M15.232 5.232l3.536 3.536M9 11l6 6H6v-3l6-6z"
-                />
+              aria-label="Cambiar color columna" title="Cambiar color columna">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600 dark:text-gray-300" fill="none"
+                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536M9 11l6 6H6v-3l6-6z" />
               </svg>
             </button>
             }
 
             <!-- Botón eliminar columna - Solo para administradores -->
             @if (puedeEliminar()) {
-            <button
-              (click)="abrirModalConfirmEliminar(item.id, item.nombre)"
-              class="p-1 rounded hover:bg-red-100 dark:hover:bg-red-900"
-              aria-label="Eliminar columna"
-              title="Eliminar columna"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-5 w-5 text-red-500"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M6 7v13a2 2 0 002 2h8a2 2 0 002-2V7M9 7V4a2 2 0 012-2h2a2 2 0 012 2v3m5 0H4"
-                />
+            <button (click)="abrirModalConfirmEliminar(item.id, item.nombre)"
+              class="p-1 rounded hover:bg-red-100 dark:hover:bg-red-900" aria-label="Eliminar columna"
+              title="Eliminar columna">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M6 7v13a2 2 0 002 2h8a2 2 0 002-2V7M9 7V4a2 2 0 012-2h2a2 2 0 012 2v3m5 0H4" />
               </svg>
             </button>
             }
           </div>
           } @if (colorSelectorVisible[item.id] && puedeCambiarColores()) {
-          <div
-            #colorSelectorContainer
+          <div #colorSelectorContainer
             class="absolute right-0 top-full mt-2 bg-white dark:bg-gray-800 p-2 rounded shadow-md flex flex-wrap gap-2 z-10 border border-gray-300 dark:border-gray-700 max-w-[140px]"
-            [attr.data-id]="item.id"
-            (mousedown)="onPanelDown($event)"
-          >
+            [attr.data-id]="item.id" (mousedown)="onPanelDown($event)">
             @for (color of colores; track color.id) {
-            <button
-              (click)="cambiarColorColumna(item.id, color)"
-              [style.backgroundColor]="color.codigo"
+            <button (click)="cambiarColorColumna(item.id, color)" [style.backgroundColor]="color.codigo"
               class="w-6 h-6 rounded cursor-pointer border border-gray-300 dark:border-gray-600 hover:border-gray-600 dark:hover:border-gray-400 transition"
-              title="Seleccionar color"
-              aria-label="Seleccionar color"
-            ></button>
+              title="Seleccionar color" aria-label="Seleccionar color"></button>
             }
           </div>
           }
@@ -324,29 +198,17 @@
         <hr class="border-gray-300 dark:border-gray-700 mb-4" />
 
         <!-- Lista de tareas con drag and drop -->
-        <div
-          cdkDropList
-          [id]="item.id"
-          [cdkDropListData]="item.tasks"
-          [cdkDropListConnectedTo]="categoriasIds"
+        <div cdkDropList [id]="item.id" [cdkDropListData]="item.tasks" [cdkDropListConnectedTo]="categoriasIds"
           (cdkDropListDropped)="drop($event)"
           class="space-y-3 min-h-[50px] max-h-[450px] overflow-y-auto rounded-lg p-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700"
-          id="lista-tareas-{{ item.id }}"
-        >
+          id="lista-tareas-{{ item.id }}">
           @for (A of item.tasks; track A.id) {
-          <div
-            cdkDrag
-            [ngStyle]="getCardColorClass(item.nombre)"
+          <div cdkDrag [ngStyle]="getCardColorClass(item.nombre)"
             class="border-base-300 relative rounded-lg p-3 flex flex-col gap-2 border group hover:shadow-md hover:ring hover:ring-primary transition-colors cursor-pointer"
-            [class.ring]="hoveredTaskId === A.id.toString()"
-            [class.ring-primary]="hoveredTaskId === A.id.toString()"
-            [class.ring-offset-2]="hoveredTaskId === A.id.toString()"
-            (cdkDragStarted)="onDragStarted()"
-            (cdkDragEnded)="onDragEnded()"
-            (mouseenter)="onTaskHover(A.id.toString())"
-            (mouseleave)="onTaskHoverLeave(A.id.toString())"
-            (click)="showTaskDetails(A, item)"
-          >
+            [class.ring]="hoveredTaskId === A.id.toString()" [class.ring-primary]="hoveredTaskId === A.id.toString()"
+            [class.ring-offset-2]="hoveredTaskId === A.id.toString()" (cdkDragStarted)="onDragStarted()"
+            (cdkDragEnded)="onDragEnded()" (mouseenter)="onTaskHover(A.id.toString())"
+            (mouseleave)="onTaskHoverLeave(A.id.toString())" (click)="showTaskDetails(A, item)">
             <!-- Título -->
             <span class="font-medium text-sm text-base-content break-words max-w-full">
               {{ A.title ?? '' }}
@@ -359,14 +221,11 @@
 
             <!-- Fecha límite -->
             @if (A.dueDate) {
-            <span
-              class="text-xs font-semibold"
-              [ngClass]="{
+            <span class="text-xs font-semibold" [ngClass]="{
                 'text-red-600': isOverdue(A.dueDate),
                 'text-orange-600': isDueSoon(A.dueDate),
                 'text-gray-500': !isOverdue(A.dueDate) && !isDueSoon(A.dueDate)
-              }"
-            >
+              }">
               {{ formatDate(A.dueDate) }}
             </span>
             }
@@ -394,26 +253,14 @@
             <div class="absolute bottom-0 left-0 w-full flex justify-end gap-2 p-2">
               <!-- Botón editar - Solo para editores y administradores -->
               @if (puedeEditar()) {
-              <button
-                #botonEditarTarea
+              <button #botonEditarTarea
                 class="p-2 rounded-full bg-opacity-60 bg-gray-800 text-white hover:bg-opacity-80 hover:bg-blue-600 transition-opacity duration-200 ease-in-out"
-                (click)="editarTarea(A.id); $event.stopPropagation()"
-                aria-label="Editar tarea"
-                style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15)"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke-width="1.5"
-                  stroke="currentColor"
-                  class="h-5 w-5"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M13.125 6.375l4.5 4.5m0 0l-7.5 7.5h-4.5v-4.5l7.5-7.5m0 0l2.25-2.25a1.125 1.125 0 0 1 1.594 1.594L13.125 6.375z"
-                  />
+                (click)="editarTarea(A.id); $event.stopPropagation()" aria-label="Editar tarea"
+                style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15)">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                  stroke="currentColor" class="h-5 w-5">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M13.125 6.375l4.5 4.5m0 0l-7.5 7.5h-4.5v-4.5l7.5-7.5m0 0l2.25-2.25a1.125 1.125 0 0 1 1.594 1.594L13.125 6.375z" />
                 </svg>
               </button>
               }
@@ -422,24 +269,12 @@
               @if (puedeEliminar()) {
               <button
                 class="p-2 rounded-full bg-opacity-60 bg-gray-800 text-white hover:bg-opacity-80 hover:bg-red-600 transition-opacity duration-200 ease-in-out"
-                (click)="eliminarTarea(A.id)"
-                aria-label="Eliminar tarea"
-                style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15)"
-                (click)="$event.stopPropagation()"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke-width="1.5"
-                  stroke="currentColor"
-                  class="h-5 w-5"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
-                  />
+                (click)="eliminarTarea(A.id)" aria-label="Eliminar tarea"
+                style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15)" (click)="$event.stopPropagation()">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                  stroke="currentColor" class="h-5 w-5">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
                 </svg>
               </button>
               }
@@ -451,12 +286,9 @@
 
         <!-- Botón Nueva Tarea - Solo para editores y administradores -->
         @if (puedeEditar()) {
-        <button
-          class="btn btn-sm w-full font-medium transition hover:scale-105 mt-3"
-          [ngStyle]="getButtonColorClass(item.nombre)"
-          (click)="abrirModal(item)"
-          aria-label="Agregar nueva tarea a la columna {{ item.nombre }}"
-        >
+        <button class="btn btn-sm w-full font-medium transition hover:scale-105 mt-3"
+          [ngStyle]="getButtonColorClass(item.nombre)" (click)="abrirModal(item)"
+          aria-label="Agregar nueva tarea a la columna {{ item.nombre }}">
           + Nueva Tarea
         </button>
         }
@@ -467,19 +299,9 @@
       @if (puedeCrearColumnas()) {
       <button
         class="w-full md:w-[300px] h-[80px] flex-shrink-0 rounded-lg border-2 border-dashed border-primary text-primary font-semibold flex items-center justify-center cursor-pointer transition hover:bg-primary hover:text-white"
-        (click)="abrirModalNuevaColumna()"
-        aria-label="Agregar nueva columna Kanban"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="w-6 h-6 mr-2"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          viewBox="0 0 24 24"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
+        (click)="abrirModalNuevaColumna()" aria-label="Agregar nueva columna Kanban">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 mr-2" fill="none" stroke="currentColor" stroke-width="2"
+          viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
           <path d="M12 4v16m8-8H4" />
         </svg>
         + Añadir columna
@@ -490,37 +312,21 @@
 
     <!-- VISTA LISTA -->
     @if (viewMode === 'list') {
-    <div
-      #listContainer
-      class="flex flex-col w-full gap-6 animate-fadeIn transition-opacity duration-500 ease-in-out"
-    >
+    <div #listContainer class="flex flex-col w-full gap-6 animate-fadeIn transition-opacity duration-500 ease-in-out">
       <!-- Barra filtros -->
       <div class="mb-4 flex items-center gap-4">
         <div class="relative">
-          <button
-            (click)="mostrarPanelFiltros = !mostrarPanelFiltros"
-            [attr.aria-pressed]="mostrarPanelFiltros"
+          <button (click)="mostrarPanelFiltros = !mostrarPanelFiltros" [attr.aria-pressed]="mostrarPanelFiltros"
             class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-4 py-2 rounded-lg flex items-center gap-3 hover:from-blue-700 hover:to-indigo-800 transition duration-300 text-sm"
-            aria-label="Mostrar filtros"
-            type="button"
-          >
+            aria-label="Mostrar filtros" type="button">
             <!-- Icono menú -->
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              stroke-width="2"
-            >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
             Filtros @if (contadorFiltros > 0) {
-            <span
-              class="ml-3 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full select-none"
-              aria-live="polite"
-              aria-atomic="true"
-            >
+            <span class="ml-3 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full select-none"
+              aria-live="polite" aria-atomic="true">
               {{ contadorFiltros }}
             </span>
             }
@@ -532,20 +338,14 @@
             <!-- Buscador y listado filtros -->
             <div class="flex items-center gap-4">
               <!-- Campo de búsqueda -->
-              <input
-                *ngIf="mostrarPanelFiltros"
-                type="text"
-                [(ngModel)]="filtroTitulo"
+              <input *ngIf="mostrarPanelFiltros" type="text" [(ngModel)]="filtroTitulo"
                 class="input input-bordered w-full sm:w-80 bg-gray-800 text-white text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
-                placeholder="Buscar por título"
-              />
+                placeholder="Buscar por título" />
 
               <div class="flex gap-2">
                 <!-- Botón + Filtros -->
-                <button
-                  (click)="mostrarListadoFiltros = !mostrarListadoFiltros"
-                  class="btn btn-xs bg-gray-700 text-white hover:bg-gray-600 active:bg-gray-500 rounded-lg focus:ring-2 focus:ring-blue-500 transition duration-200"
-                >
+                <button (click)="mostrarListadoFiltros = !mostrarListadoFiltros"
+                  class="btn btn-xs bg-gray-700 text-white hover:bg-gray-600 active:bg-gray-500 rounded-lg focus:ring-2 focus:ring-blue-500 transition duration-200">
                   + Filtros
                 </button>
               </div>
@@ -555,43 +355,33 @@
             @if (mostrarListadoFiltros) {
             <div
               class="absolute w-64 max-h-60 overflow-y-auto bg-gray-900 border border-gray-700 rounded-lg shadow-xl z-50 mt-2 left-1/2 transform -translate-x-1/2"
-              (click)="$event.stopPropagation()"
-            >
-              <input
-                type="text"
-                [(ngModel)]="textoFiltro"
+              (click)="$event.stopPropagation()">
+              <input type="text" [(ngModel)]="textoFiltro"
                 class="input input-bordered w-full rounded-t-lg bg-gray-800 text-white text-sm"
-                placeholder="Buscar filtro..."
-              />
+                placeholder="Buscar filtro..." />
               <ul class="text-sm max-h-40 overflow-auto">
                 <!-- Filtros dinámicos -->
                 @if (!filtrosSeleccionados.includes('responsable') && (!textoFiltro ||
                 'responsable'.includes(textoFiltro))) {
                 <li>
-                  <button
-                    (click)="agregarFiltro('responsable')"
-                    class="w-full text-left px-4 py-2 hover:bg-blue-600 transition duration-200"
-                  >
+                  <button (click)="agregarFiltro('responsable')"
+                    class="w-full text-left px-4 py-2 hover:bg-blue-600 transition duration-200">
                     Responsable
                   </button>
                 </li>
                 } @if (!filtrosSeleccionados.includes('categoria') && (!textoFiltro ||
                 'categoria'.includes(textoFiltro))) {
                 <li>
-                  <button
-                    (click)="agregarFiltro('categoria')"
-                    class="w-full text-left px-4 py-2 hover:bg-blue-600 transition duration-200"
-                  >
+                  <button (click)="agregarFiltro('categoria')"
+                    class="w-full text-left px-4 py-2 hover:bg-blue-600 transition duration-200">
                     Categoría
                   </button>
                 </li>
                 } @if (!filtrosSeleccionados.includes('etiquetas') && (!textoFiltro ||
                 'etiquetas'.includes(textoFiltro))) {
                 <li>
-                  <button
-                    (click)="agregarFiltro('etiquetas')"
-                    class="w-full text-left px-4 py-2 hover:bg-blue-600 transition duration-200"
-                  >
+                  <button (click)="agregarFiltro('etiquetas')"
+                    class="w-full text-left px-4 py-2 hover:bg-blue-600 transition duration-200">
                     Etiquetas
                   </button>
                 </li>
@@ -607,55 +397,36 @@
             <div class="flex flex-wrap gap-3">
               @for (filtro of filtrosSeleccionados; track filtro) {
               <div class="relative">
-                <button
-                  (click)="toggleTarjetaFiltro(filtro)"
-                  class="btn btn-sm btn-primary text-white text-xs flex items-center gap-2"
-                >
+                <button (click)="toggleTarjetaFiltro(filtro)"
+                  class="btn btn-sm btn-primary text-white text-xs flex items-center gap-2">
                   {{ filtro | titlecase }}
-                  <span
-                    class="ml-2 bg-red-500 text-white text-[10px] font-bold px-1 rounded"
-                    *ngIf="getContadorFiltro(filtro) > 0"
-                  >
+                  <span class="ml-2 bg-red-500 text-white text-[10px] font-bold px-1 rounded"
+                    *ngIf="getContadorFiltro(filtro) > 0">
                     {{ getContadorFiltro(filtro) }}
                   </span>
 
-                  <svg
-                    (click)="quitarFiltro(filtro); $event.stopPropagation()"
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-4 w-4 ml-2 cursor-pointer"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
+                  <svg (click)="quitarFiltro(filtro); $event.stopPropagation()" xmlns="http://www.w3.org/2000/svg"
+                    class="h-4 w-4 ml-2 cursor-pointer" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                    stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
 
                 @if (filtroActivo === filtro) {
 
-                <div
-                  #tarjetaFiltro
+                <div #tarjetaFiltro
                   class="absolute z-40 mt-2 w-72 p-4 bg-gray-900 rounded-lg border border-gray-700 shadow-xl"
-                  (click)="$event.stopPropagation()"
-                >
-                  <input
-                    type="text"
-                    placeholder="Buscar {{ filtro }}"
-                    [(ngModel)]="buscadorFiltros[filtro]"
-                    class="input input-bordered w-full mb-3 bg-gray-800 text-white text-sm"
-                  />
+                  (click)="$event.stopPropagation()">
+                  <input type="text" placeholder="Buscar {{ filtro }}" [(ngModel)]="buscadorFiltros[filtro]"
+                    class="input input-bordered w-full mb-3 bg-gray-800 text-white text-sm" />
 
                   <!-- Selector de modo incluir/excluir -->
                   <div class="mb-3 text-xs text-gray-300 flex items-center gap-2">
                     <span class="font-medium">Modo:</span>
-                    <button
-                      class="btn btn-xs btn-info"
-                      (click)="
+                    <button class="btn btn-xs btn-info" (click)="
                         filtroModo[filtro] =
                           filtroModo[filtro] === 'incluir' ? 'excluir' : 'incluir'
-                      "
-                    >
+                      ">
                       {{ filtroModo[filtro] === 'incluir' ? 'Incluir' : 'Excluir' }}
                     </button>
                   </div>
@@ -666,18 +437,12 @@
                     (r of responsablesFiltrados; track r.usuario.id) {
                     <li
                       class="py-2 px-3 hover:bg-blue-700 cursor-pointer rounded-lg flex justify-between items-center transition duration-200 ease-in-out"
-                      (click)="seleccionarResponsable(r)"
-                    >
+                      (click)="seleccionarResponsable(r)">
                       <label class="flex items-center gap-2 w-full cursor-pointer">
-                        <input
-                          type="checkbox"
-                          [checked]="filtroResponsable.includes(r.usuario.id)"
+                        <input type="checkbox" [checked]="filtroResponsable.includes(r.usuario.id)"
                           (change)="seleccionarResponsable(r)"
-                          class="cursor-pointer rounded border-gray-600 bg-gray-800 hover:bg-gray-700 focus:ring-2 focus:ring-blue-500"
-                        />
-                        <span class="text-gray-200"
-                          >{{ r.usuario.nombre }} {{ r.usuario.apellido }}</span
-                        >
+                          class="cursor-pointer rounded border-gray-600 bg-gray-800 hover:bg-gray-700 focus:ring-2 focus:ring-blue-500" />
+                        <span class="text-gray-200">{{ r.usuario.nombre }} {{ r.usuario.apellido }}</span>
                       </label>
                     </li>
                     } } @else {
@@ -690,15 +455,11 @@
                     @if (filtro === 'categoria') { @if (categoriasFiltradas.length > 0) { @for (c of
                     categoriasFiltradas; track c.id) {
                     <li
-                      class="py-2 px-3 hover:bg-blue-700 cursor-pointer rounded-lg flex justify-between items-center transition duration-200 ease-in-out"
-                    >
+                      class="py-2 px-3 hover:bg-blue-700 cursor-pointer rounded-lg flex justify-between items-center transition duration-200 ease-in-out">
                       <label class="flex items-center gap-2 w-full cursor-pointer">
-                        <input
-                          type="checkbox"
-                          [checked]="filtroCategoria.includes(c.id)"
+                        <input type="checkbox" [checked]="filtroCategoria.includes(c.id)"
                           (change)="seleccionarCategoria(c.id)"
-                          class="cursor-pointer rounded border-gray-600 bg-gray-800 hover:bg-gray-700 focus:ring-2 focus:ring-blue-500"
-                        />
+                          class="cursor-pointer rounded border-gray-600 bg-gray-800 hover:bg-gray-700 focus:ring-2 focus:ring-blue-500" />
                         <span class="text-gray-200">{{ c.nombre }}</span>
                       </label>
                     </li>
@@ -712,16 +473,11 @@
                     @if (filtro === 'etiquetas') { @if (etiquetasFiltradas.length > 0) { @for (e of
                     etiquetasFiltradas; track e.id) {
                     <li
-                      class="py-2 px-3 hover:bg-blue-700 cursor-pointer rounded-lg flex justify-between items-center transition duration-200 ease-in-out"
-                    >
+                      class="py-2 px-3 hover:bg-blue-700 cursor-pointer rounded-lg flex justify-between items-center transition duration-200 ease-in-out">
                       <label class="flex items-center gap-2 w-full cursor-pointer">
-                        <input
-                          type="checkbox"
-                          [checked]="filtroEtiquetas.includes(e.id)"
-                          (change)="toggleEtiqueta(e.id)"
-                          (click)="$event.stopPropagation()"
-                          class="cursor-pointer rounded border-gray-600 bg-gray-800 hover:bg-gray-700 focus:ring-2 focus:ring-blue-500"
-                        />
+                        <input type="checkbox" [checked]="filtroEtiquetas.includes(e.id)"
+                          (change)="toggleEtiqueta(e.id)" (click)="$event.stopPropagation()"
+                          class="cursor-pointer rounded border-gray-600 bg-gray-800 hover:bg-gray-700 focus:ring-2 focus:ring-blue-500" />
                         <span class="text-gray-200">{{ e.nombre }}</span>
                       </label>
                     </li>
@@ -742,12 +498,9 @@
         </div>
         <!-- Botón Limpiar Filtros (pequeño) -->
         @if (contadorFiltros > 0) {
-        <button
-          (click)="limpiarFiltros()"
+        <button (click)="limpiarFiltros()"
           class="ml-auto bg-red-600 text-white px-3 py-1 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
-          aria-label="Limpiar todos los filtros"
-          type="button"
-        >
+          aria-label="Limpiar todos los filtros" type="button">
           Limpiar filtros
         </button>
         }
@@ -776,39 +529,23 @@
             <tbody class="divide-y divide-base-300">
               @for (item of tareasFiltradas; track item.tarea) {
               <tr
-                class="hover:bg-primary/10 transition-colors duration-200 ease-in-out cursor-pointer @if (item.categoria === 'Sin empezar') { 'bg-gray-100 dark:bg-gray-700' } @else if (item.categoria === 'En progreso') { 'bg-blue-100 dark:bg-blue-900' } @else if (item.categoria === 'Completada') { 'bg-green-100 dark:bg-green-900' } else { 'bg-white dark:bg-gray-800' }"
-              >
-                <td
-                  class="px-4 py-3 font-medium truncate max-w-[200px]"
-                  title="{{ item.tarea.title }}"
-                >
+                class="hover:bg-primary/10 transition-colors duration-200 ease-in-out cursor-pointer @if (item.categoria === 'Sin empezar') { 'bg-gray-100 dark:bg-gray-700' } @else if (item.categoria === 'En progreso') { 'bg-blue-100 dark:bg-blue-900' } @else if (item.categoria === 'Completada') { 'bg-green-100 dark:bg-green-900' } else { 'bg-white dark:bg-gray-800' }">
+                <td class="px-4 py-3 font-medium truncate max-w-[200px]" title="{{ item.tarea.title }}">
                   {{ item.tarea.title }}
                 </td>
 
                 <!-- Columna Responsables -->
-                <td
-                  class="px-4 py-3 truncate max-w-[200px]"
-                  title="{{ getNombreResponsables(item.tarea.assignee) }}"
-                >
+                <td class="px-4 py-3 truncate max-w-[200px]" title="{{ getNombreResponsables(item.tarea.assignee) }}">
                   @if (item.tarea.assignee && item.tarea.assignee.length > 0) {
                   <span class="text-sm text-white dark:text-gray-300">
                     {{ getNombreResponsables(item.tarea.assignee) }}
                   </span>
                   } @else {
                   <span class="text-sm text-gray-400 italic flex items-center gap-1">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="h-4 w-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M15 12H9m6-6a6 6 0 11-12 0 6 6 0 0112 0zM21 12a9 9 0 10-18 0 9 9 0 0018 0z"
-                      />
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                      stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M15 12H9m6-6a6 6 0 11-12 0 6 6 0 0112 0zM21 12a9 9 0 10-18 0 9 9 0 0018 0z" />
                     </svg>
                     Sin responsables
                   </span>
@@ -831,14 +568,11 @@
                 </td>
 
                 <!-- Columna Fecha -->
-                <td
-                  class="px-4 py-3 truncate max-w-[120px]"
-                  title="{{
+                <td class="px-4 py-3 truncate max-w-[120px]" title="{{
                     item.tarea.dueDate
                       ? (item.tarea.dueDate | date : 'dd/MM/yyyy')
                       : 'Sin fecha límite'
-                  }}"
-                >
+                  }}">
                   @if (!item.tarea.dueDate) {
                   <span class="text-gray-400 italic">Sin fecha límite</span>
                   } @else {
@@ -847,10 +581,8 @@
                 </td>
 
                 <!-- Columna Categoría -->
-                <td
-                  class="px-4 py-3 text-sm font-medium text-white truncate max-w-[150px]"
-                  title="{{ item.categoria }}"
-                >
+                <td class="px-4 py-3 text-sm font-medium text-white truncate max-w-[150px]"
+                  title="{{ item.categoria }}">
                   {{ item.categoria }}
                 </td>
 
@@ -861,24 +593,12 @@
                   @if (puedeEditar()) {
                   <button
                     class="p-2 rounded-full bg-opacity-60 bg-gray-800 text-white hover:bg-opacity-80 hover:bg-blue-600 transition-opacity duration-200 ease-in-out shadow-md"
-                    (click)="editarTarea(item.tarea.id)"
-                    aria-label="Editar tarea"
-                    type="button"
-                  >
+                    (click)="editarTarea(item.tarea.id)" aria-label="Editar tarea" type="button">
                     <!-- ícono lápiz -->
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke-width="1.5"
-                      stroke="currentColor"
-                      class="h-5 w-5"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M13.125 6.375l4.5 4.5m0 0l-7.5 7.5h-4.5v-4.5l7.5-7.5"
-                      />
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                      stroke="currentColor" class="h-5 w-5">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M13.125 6.375l4.5 4.5m0 0l-7.5 7.5h-4.5v-4.5l7.5-7.5" />
                     </svg>
                   </button>
                   }
@@ -887,24 +607,12 @@
                   @if (puedeEliminar()) {
                   <button
                     class="p-2 rounded-full bg-opacity-60 bg-gray-800 text-white hover:bg-opacity-80 hover:bg-red-600 transition-opacity duration-200 ease-in-out shadow-md"
-                    (click)="eliminarTarea(item.tarea.id)"
-                    aria-label="Eliminar tarea"
-                    type="button"
-                  >
+                    (click)="eliminarTarea(item.tarea.id)" aria-label="Eliminar tarea" type="button">
                     <!-- ícono basurero -->
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke-width="1.5"
-                      stroke="currentColor"
-                      class="h-5 w-5"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
-                      />
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                      stroke="currentColor" class="h-5 w-5">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                        d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
                     </svg>
                   </button>
                   }
@@ -921,10 +629,8 @@
 
     <!-- VISTA TAREAS ASIGNADAS  -->
     @if (viewMode === 'assigned') {
-    <div
-      #assignedContainer
-      class="flex flex-col w-full gap-6 animate-fadeIn transition-opacity duration-500 ease-in-out"
-    >
+    <div #assignedContainer
+      class="flex flex-col w-full gap-6 animate-fadeIn transition-opacity duration-500 ease-in-out">
       <!-- Tabla de tareas -->
       <div class="w-full overflow-x-auto rounded-xl shadow border border-base-300">
         <table class="table table-zebra bg-base-200 rounded-xl text-sm animate-fadeIn">
@@ -956,19 +662,10 @@
                 } @else {
                 <span class="text-sm text-gray-400 italic flex items-center gap-1">
                   <!-- Heroicon: User Minus -->
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      d="M15 12H9m6-6a6 6 0 11-12 0 6 6 0 0112 0zM21 12a9 9 0 10-18 0 9 9 0 0018 0z"
-                    />
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M15 12H9m6-6a6 6 0 11-12 0 6 6 0 0112 0zM21 12a9 9 0 10-18 0 9 9 0 0018 0z" />
                   </svg>
                   Sin responsables
                 </span>
@@ -1009,23 +706,12 @@
                   @if (puedeEditar()) {
                   <button
                     class="p-2 rounded-full bg-opacity-60 bg-gray-800 text-white hover:bg-opacity-80 hover:bg-blue-600 transition-opacity duration-200 ease-in-out"
-                    (click)="editarTarea(item.tarea.id)"
-                    aria-label="Editar tarea"
-                    style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15)"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke-width="1.5"
-                      stroke="currentColor"
-                      class="h-5 w-5"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M13.125 6.375l4.5 4.5m0 0l-7.5 7.5h-4.5v-4.5l7.5-7.5m0 0l2.25-2.25a1.125 1.125 0 0 1 1.594 1.594L13.125 6.375z"
-                      />
+                    (click)="editarTarea(item.tarea.id)" aria-label="Editar tarea"
+                    style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15)">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                      stroke="currentColor" class="h-5 w-5">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M13.125 6.375l4.5 4.5m0 0l-7.5 7.5h-4.5v-4.5l7.5-7.5m0 0l2.25-2.25a1.125 1.125 0 0 1 1.594 1.594L13.125 6.375z" />
                     </svg>
                   </button>
                   }
@@ -1035,23 +721,12 @@
                   <span>-</span>
                   <button
                     class="p-2 rounded-full bg-opacity-60 bg-gray-800 text-white hover:bg-opacity-80 hover:bg-red-600 transition-opacity duration-200 ease-in-out"
-                    (click)="eliminarTarea(item.tarea.id)"
-                    aria-label="Eliminar tarea"
-                    style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15)"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke-width="1.5"
-                      stroke="currentColor"
-                      class="h-5 w-5"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
-                      />
+                    (click)="eliminarTarea(item.tarea.id)" aria-label="Eliminar tarea"
+                    style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15)">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                      stroke="currentColor" class="h-5 w-5">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                        d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
                     </svg>
                   </button>
                   }
@@ -1069,44 +744,23 @@
 
   <!-- Modal Nueva Tarea - Solo para editores y administradores -->
   @if (puedeEditar()) {
-  <dialog
-    id="modalNuevaTarea"
-    class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
-    [open]="modalVisible"
-  >
-    <form
-      method="dialog"
-      (submit)="crearTarea($event)"
-      class="modal-box max-w-lg w-full p-6 bg-base-100 rounded-lg shadow-lg"
-    >
+  <dialog id="modalNuevaTarea" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
+    [open]="modalVisible">
+    <form method="dialog" (submit)="crearTarea($event)"
+      class="modal-box max-w-lg w-full p-6 bg-base-100 rounded-lg shadow-lg">
       <h3 class="font-bold text-lg mb-4">Crear Nueva Tarea</h3>
 
       <div class="mb-4">
         <label class="label mb-1">
           <span class="label-text font-semibold">Título *</span>
         </label>
-        <input
-          type="text"
-          placeholder="Ej: Redactar propuesta comercial"
-          [(ngModel)]="newTask.titulo"
-          name="titulo"
-          class="input input-bordered w-full"
-          [ngClass]="{ 'border-red-500 focus:ring-red-400': errores.titulo }"
-          required
-          autocomplete="off"
-          (input)="clearTituloError()"
-        />
+        <input type="text" placeholder="Ej: Redactar propuesta comercial" [(ngModel)]="newTask.titulo" name="titulo"
+          class="input input-bordered w-full" [ngClass]="{ 'border-red-500 focus:ring-red-400': errores.titulo }"
+          required autocomplete="off" (input)="clearTituloError()" />
 
         @if(errores.titulo){
         <div class="text-red-500 text-xs mt-1 pl-1 flex items-center gap-1" aria-live="polite">
-          <svg
-            width="16"
-            height="16"
-            fill="none"
-            viewBox="0 0 24 24"
-            class="inline-block mr-1"
-            aria-hidden="true"
-          >
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" class="inline-block mr-1" aria-hidden="true">
             <circle cx="12" cy="12" r="12" fill="#F87171" />
             <path d="M12 7v5M12 16h.01" stroke="#FFF" stroke-width="2" stroke-linecap="round" />
           </svg>
@@ -1119,12 +773,8 @@
       <label class="label">
         <span class="label-text font-semibold">Fecha límite</span>
       </label>
-      <input
-        type="date"
-        [(ngModel)]="newTask.fechaLimite"
-        name="fechaLimite"
-        class="input input-bordered w-full mb-4"
-      />
+      <input type="date" [(ngModel)]="newTask.fechaLimite" name="fechaLimite"
+        class="input input-bordered w-full mb-4" />
 
       <!-- Responsables -->
       <label class="label">
@@ -1133,24 +783,16 @@
       <div class="relative mb-4">
         <!-- Buscador de responsables -->
         <div class="mb-2">
-          <input
-            type="text"
-            [(ngModel)]="busquedaResponsableNueva"
-            placeholder="Buscar responsable..."
-            name="busquedaResponsableNueva"
-            class="input input-sm input-bordered w-full"
-          />
+          <input type="text" [(ngModel)]="busquedaResponsableNueva" placeholder="Buscar responsable..."
+            name="busquedaResponsableNueva" class="input input-sm input-bordered w-full" />
         </div>
         <!-- Lista filtrada -->
         <ul class="max-h-40 overflow-y-auto">
           @for (miembro of filtrarResponsablesNueva(); track miembro.usuario.id) {
           <li>
             <label>
-              <input
-                type="checkbox"
-                [checked]="newTask.responsablesIds.includes(miembro.usuario.id)"
-                (change)="selectResponsable(miembro.usuario.id, $event)"
-              />
+              <input type="checkbox" [checked]="newTask.responsablesIds.includes(miembro.usuario.id)"
+                (change)="selectResponsable(miembro.usuario.id, $event)" />
               {{ miembro.usuario.nombre }} {{ miembro.usuario.apellido }}
             </label>
           </li>
@@ -1165,24 +807,16 @@
       <div class="relative mb-4">
         <!-- Buscador de etiquetas -->
         <div class="mb-2">
-          <input
-            type="text"
-            [(ngModel)]="busquedaEtiquetaNueva"
-            placeholder="Buscar etiqueta..."
-            name="busquedaEtiquetaNueva"
-            class="input input-sm input-bordered w-full"
-          />
+          <input type="text" [(ngModel)]="busquedaEtiquetaNueva" placeholder="Buscar etiqueta..."
+            name="busquedaEtiquetaNueva" class="input input-sm input-bordered w-full" />
         </div>
         <!-- Lista filtrada -->
         <ul class="max-h-40 overflow-y-auto">
           @for (etiqueta of filtrarEtiquetasNueva(); track etiqueta.id) {
           <li>
             <label>
-              <input
-                type="checkbox"
-                [checked]="newTask.etiquetaIds.includes(etiqueta.id)"
-                (change)="selectEtiqueta(etiqueta.id, $event)"
-              />
+              <input type="checkbox" [checked]="newTask.etiquetaIds.includes(etiqueta.id)"
+                (change)="selectEtiqueta(etiqueta.id, $event)" />
               {{ etiqueta.nombre }}
             </label>
           </li>
@@ -1204,34 +838,18 @@
 
   <!-- Modal Nueva Columna Kanban - Solo para administradores -->
   @if (puedeCrearColumnas()) {
-  <dialog
-    id="modalNuevaColumna"
-    class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
-    [open]="modalColumnaVisible"
-  >
-    <form
-      method="dialog"
-      (submit)="crearColumna($event)"
-      class="modal-box max-w-md w-full p-6 bg-base-100 rounded-lg shadow-lg"
-      autocomplete="off"
-    >
+  <dialog id="modalNuevaColumna" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
+    [open]="modalColumnaVisible">
+    <form method="dialog" (submit)="crearColumna($event)"
+      class="modal-box max-w-md w-full p-6 bg-base-100 rounded-lg shadow-lg" autocomplete="off">
       <h3 class="font-bold text-lg mb-4">Crear Nueva Columna</h3>
 
       <!-- Nombre de la columna -->
       <label class="label">
         <span class="label-text font-semibold">Nombre *</span>
       </label>
-      <input
-        type="text"
-        placeholder="Ej: En revisión"
-        [(ngModel)]="nuevaColumnaNombre"
-        name="nombreColumna"
-        class="input input-bordered w-full mb-2"
-        maxlength="36"
-        required
-        autofocus
-        (input)="validarNombreColumna()"
-      />
+      <input type="text" placeholder="Ej: En revisión" [(ngModel)]="nuevaColumnaNombre" name="nombreColumna"
+        class="input input-bordered w-full mb-2" maxlength="36" required autofocus (input)="validarNombreColumna()" />
       @if(nuevaColumnaError){
       <div class="text-error text-base font-medium mb-3 flex items-center gap-2 pl-1">
         <svg width="18" height="18" fill="none" viewBox="0 0 24 24" aria-hidden="true">
@@ -1248,28 +866,13 @@
       </label>
       <div class="flex gap-2 flex-wrap mb-4">
         @for (color of colores; track color.id) {
-        <button
-          type="button"
-          (click)="nuevaColumnaColorId = color.id"
-          [style.backgroundColor]="color.codigo"
+        <button type="button" (click)="nuevaColumnaColorId = color.id" [style.backgroundColor]="color.codigo"
           class="w-7 h-7 rounded-full border border-gray-400 focus:outline-none"
-          [class.ring]="nuevaColumnaColorId === color.id"
-          aria-label="Seleccionar color"
-        >
+          [class.ring]="nuevaColumnaColorId === color.id" aria-label="Seleccionar color">
           @if (nuevaColumnaColorId === color.id) {
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="mx-auto my-auto h-3 w-3 text-white"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="3"
-              d="M5 13l4 4L19 7"
-            />
+          <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto my-auto h-3 w-3 text-white" fill="none"
+            viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
           </svg>
           }
         </button>
@@ -1290,11 +893,7 @@
         <button type="button" (click)="cerrarModalNuevaColumna()" class="btn btn-outline btn-error">
           Cancelar
         </button>
-        <button
-          type="submit"
-          class="btn btn-primary"
-          [disabled]="!nuevaColumnaNombre.trim() || !nuevaColumnaColorId"
-        >
+        <button type="submit" class="btn btn-primary" [disabled]="!nuevaColumnaNombre.trim() || !nuevaColumnaColorId">
           Crear
         </button>
       </div>
@@ -1304,16 +903,11 @@
 
   <!-- Modal Confirmar Eliminar Columna - Solo para administradores -->
   @if (puedeEliminar()) {
-  <dialog
-    id="modalConfirmEliminarColumna"
+  <dialog id="modalConfirmEliminarColumna"
     class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
-    [open]="modalConfirmEliminarVisible"
-  >
-    <form
-      method="dialog"
-      (submit)="confirmarEliminarColumna()"
-      class="modal-box max-w-md w-full p-6 bg-base-100 rounded-lg shadow-lg"
-    >
+    [open]="modalConfirmEliminarVisible">
+    <form method="dialog" (submit)="confirmarEliminarColumna()"
+      class="modal-box max-w-md w-full p-6 bg-base-100 rounded-lg shadow-lg">
       <!-- Título del Modal -->
       <h3 class="font-bold text-lg mb-4">Confirmar eliminación</h3>
 
@@ -1325,11 +919,7 @@
 
       <!-- Acciones -->
       <div class="modal-action flex justify-end gap-3 mt-6">
-        <button
-          type="button"
-          (click)="cerrarModalConfirmEliminar()"
-          class="btn btn-outline btn-error"
-        >
+        <button type="button" (click)="cerrarModalConfirmEliminar()" class="btn btn-outline btn-error">
           Cancelar
         </button>
         <button type="submit" class="btn btn-primary">Eliminar</button>
@@ -1340,31 +930,16 @@
 
   <!-- Modal Nueva Etiqueta - Solo para administradores -->
   @if (puedeGestionarEtiquetas()) {
-  <dialog
-    id="modalNuevaEtiqueta"
+  <dialog id="modalNuevaEtiqueta"
     class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-40"
-    [open]="modalEtiquetaVisible"
-  >
-    <form
-      method="dialog"
-      (submit)="crearEtiqueta($event)"
-      class="modal-box max-w-md w-full p-6 bg-base-100 rounded-lg shadow-lg"
-      autocomplete="off"
-    >
+    [open]="modalEtiquetaVisible">
+    <form method="dialog" (submit)="crearEtiqueta($event)"
+      class="modal-box max-w-md w-full p-6 bg-base-100 rounded-lg shadow-lg" autocomplete="off">
       <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
         <!-- Heroicon: Tag -->
-        <svg
-          class="w-6 h-6 text-primary"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="M7 7h.01M6.618 3.076A2 2 0 0 1 8.293 2h7.413a2 2 0 0 1 1.675.923l5.386 8.462A2 2 0 0 1 22 13.615V19a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5.295a2 2 0 0 1 2.618-2.219z"
-          />
+        <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M7 7h.01M6.618 3.076A2 2 0 0 1 8.293 2h7.413a2 2 0 0 1 1.675.923l5.386 8.462A2 2 0 0 1 22 13.615V19a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5.295a2 2 0 0 1 2.618-2.219z" />
         </svg>
         Crear Nueva Etiqueta
       </h3>
@@ -1373,17 +948,9 @@
       <label class="label">
         <span class="label-text font-semibold">Nombre *</span>
       </label>
-      <input
-        type="text"
-        placeholder="Ej: Importante"
-        [(ngModel)]="nuevoNombreEtiqueta"
-        name="nombreEtiqueta"
-        class="input input-bordered w-full mb-4"
-        maxlength="50"
-        required
-        autofocus
-        (input)="errorEtiquetaDuplicada = null"
-      />
+      <input type="text" placeholder="Ej: Importante" [(ngModel)]="nuevoNombreEtiqueta" name="nombreEtiqueta"
+        class="input input-bordered w-full mb-4" maxlength="50" required autofocus
+        (input)="errorEtiquetaDuplicada = null" />
 
       <!-- Mensaje de error para duplicados -->
       @if (errorEtiquetaDuplicada){
@@ -1398,27 +965,12 @@
       </label>
       <div class="flex gap-2 flex-wrap mb-4">
         @for (color of colores; track color.id) {
-        <button
-          type="button"
-          (click)="nuevoColorEtiquetaId = color.id"
-          [style.backgroundColor]="color.codigo"
+        <button type="button" (click)="nuevoColorEtiquetaId = color.id" [style.backgroundColor]="color.codigo"
           class="w-7 h-7 rounded-full border border-gray-400 focus:outline-none"
-          [class.ring]="nuevoColorEtiquetaId === color.id"
-          aria-label="Selecciona color {{ color.nombre }}"
-        >
+          [class.ring]="nuevoColorEtiquetaId === color.id" aria-label="Selecciona color {{ color.nombre }}">
           @if (nuevoColorEtiquetaId === color.id) {
-          <svg
-            class="mx-auto my-auto h-3 w-3 text-white"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="3"
-              d="M5 13l4 4L19 7"
-            />
+          <svg class="mx-auto my-auto h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
           </svg>
           }
         </button>
@@ -1430,53 +982,31 @@
 
       <!-- Acciones -->
       <div class="modal-action flex justify-end gap-3 mt-6">
-        <button
-          type="button"
-          (click)="modalEtiquetaVisible = false"
-          class="btn btn-outline btn-error"
-        >
+        <button type="button" (click)="modalEtiquetaVisible = false" class="btn btn-outline btn-error">
           Cancelar
         </button>
-        <button
-          type="submit"
-          class="btn btn-primary"
-          [disabled]="!nuevoNombreEtiqueta.trim() || !nuevoColorEtiquetaId"
-        >
+        <button type="submit" class="btn btn-primary" [disabled]="!nuevoNombreEtiqueta.trim() || !nuevoColorEtiquetaId">
           Crear
         </button>
       </div>
     </form>
   </dialog>
   } @if (modalEditarVisible && tareaSeleccionada) {
-  <dialog
-    id="modalEditarTarea"
+  <dialog id="modalEditarTarea"
     class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 transition-opacity duration-300 ease-in-out z-30"
-    [open]="modalEditarVisible"
-    [ngClass]="{ 'opacity-100': modalEditarVisible, 'opacity-0': !modalEditarVisible }"
-    aria-labelledby="modal-editar-title"
-  >
-    <form
-      method="dialog"
-      (submit)="guardarCambiosTareaEditar($event)"
+    [open]="modalEditarVisible" [ngClass]="{ 'opacity-100': modalEditarVisible, 'opacity-0': !modalEditarVisible }"
+    aria-labelledby="modal-editar-title">
+    <form method="dialog" (submit)="guardarCambiosTareaEditar($event)"
       class="modal-box max-w-lg w-full p-6 bg-base-100 rounded-lg shadow-xl transform transition-all duration-300 ease-in-out"
-      autocomplete="off"
-    >
+      autocomplete="off">
       <h3 id="modal-editar-title" class="font-bold text-lg mb-4 text-primary">Editar tarea</h3>
 
       <!-- Título -->
       <div class="mb-4">
         <label for="editTitulo" class="label font-semibold">Título *</label>
-        <input
-          id="editTitulo"
-          type="text"
-          placeholder="Ej: Redactar propuesta comercial"
-          [(ngModel)]="tareaSeleccionada.titulo"
-          name="editTitulo"
-          class="input input-bordered w-full"
-          [ngClass]="{ 'border-red-500': erroresEditar.titulo }"
-          required
-          aria-describedby="editTitulo-error"
-        />
+        <input id="editTitulo" type="text" placeholder="Ej: Redactar propuesta comercial"
+          [(ngModel)]="tareaSeleccionada.titulo" name="editTitulo" class="input input-bordered w-full"
+          [ngClass]="{ 'border-red-500': erroresEditar.titulo }" required aria-describedby="editTitulo-error" />
         @if (erroresEditar.titulo) {
         <div class="text-red-500 text-sm mt-1">El título es obligatorio</div>
         }
@@ -1485,13 +1015,8 @@
       <!-- Fecha límite -->
       <div class="mb-4">
         <label for="editFechaLimite" class="label font-semibold">Fecha límite</label>
-        <input
-          id="editFechaLimite"
-          type="date"
-          [(ngModel)]="tareaSeleccionada.fechaLimite"
-          name="editFechaLimite"
-          class="input input-bordered w-full"
-        />
+        <input id="editFechaLimite" type="date" [(ngModel)]="tareaSeleccionada.fechaLimite" name="editFechaLimite"
+          class="input input-bordered w-full" />
       </div>
 
       <!-- Responsables -->
@@ -1501,24 +1026,16 @@
       <div class="relative mb-4">
         <!-- Buscador -->
         <div class="mb-2">
-          <input
-            type="text"
-            [(ngModel)]="filtroResponsables"
-            placeholder="Buscar responsable..."
-            class="input input-sm input-bordered w-full"
-            name="filtroResponsables"
-          />
+          <input type="text" [(ngModel)]="filtroResponsables" placeholder="Buscar responsable..."
+            class="input input-sm input-bordered w-full" name="filtroResponsables" />
         </div>
         <!-- Lista filtrada -->
         <ul class="max-h-40 overflow-y-auto">
           @for (miembro of miembrosFiltrados(); track miembro.usuario.id) {
           <li>
             <label>
-              <input
-                type="checkbox"
-                [checked]="responsablesIds.includes(miembro.usuario.id)"
-                (change)="selectResponsableEditar(miembro.usuario.id, $event)"
-              />
+              <input type="checkbox" [checked]="responsablesIds.includes(miembro.usuario.id)"
+                (change)="selectResponsableEditar(miembro.usuario.id, $event)" />
               {{ miembro.usuario.nombre }} {{ miembro.usuario.apellido }}
             </label>
           </li>
@@ -1528,23 +1045,15 @@
 
       <!-- Etiquetas -->
       <div class="mb-2">
-        <input
-          type="text"
-          [(ngModel)]="busquedaEtiqueta"
-          placeholder="Buscar etiqueta..."
-          name="busquedaEtiqueta"
-          class="input input-sm input-bordered w-full"
-        />
+        <input type="text" [(ngModel)]="busquedaEtiqueta" placeholder="Buscar etiqueta..." name="busquedaEtiqueta"
+          class="input input-sm input-bordered w-full" />
       </div>
       <ul class="max-h-40 overflow-y-auto">
         @for (etiqueta of filtrarEtiquetas(); track etiqueta.id) {
         <li>
           <label>
-            <input
-              type="checkbox"
-              [checked]="etiquetaIds.includes(etiqueta.id)"
-              (change)="selectEtiquetaEditar(etiqueta.id, $event)"
-            />
+            <input type="checkbox" [checked]="etiquetaIds.includes(etiqueta.id)"
+              (change)="selectEtiquetaEditar(etiqueta.id, $event)" />
             {{ etiqueta.nombre }}
           </label>
         </li>
@@ -1561,54 +1070,28 @@
     </form>
   </dialog>
   } @if (modalGestionEtiquetasVisible) {
-  <dialog
-    id="modalGestionEtiquetas"
+  <dialog id="modalGestionEtiquetas"
     class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 transition-opacity duration-300 ease-in-out z-30"
-    [open]="modalGestionEtiquetasVisible"
-    [ngClass]="{
+    [open]="modalGestionEtiquetasVisible" [ngClass]="{
       'opacity-100': modalGestionEtiquetasVisible,
       'opacity-0': !modalGestionEtiquetasVisible
-    }"
-    aria-labelledby="modal-etiquetas-title"
-  >
-    <form
-      method="dialog"
+    }" aria-labelledby="modal-etiquetas-title">
+    <form method="dialog"
       class="modal-box max-w-lg w-full p-6 bg-base-100 rounded-lg shadow-xl transform transition-all duration-300 ease-in-out"
-      autocomplete="off"
-    >
+      autocomplete="off">
       <!-- Título -->
-      <h3
-        id="modal-etiquetas-title"
-        class="font-bold text-lg mb-6 text-primary flex items-center gap-2"
-      >
-        <svg
-          class="w-7 h-7 text-teal-400"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          viewBox="0 0 24 24"
-        >
+      <h3 id="modal-etiquetas-title" class="font-bold text-lg mb-6 text-primary flex items-center gap-2">
+        <svg class="w-7 h-7 text-teal-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <circle cx="12" cy="12" r="10" stroke="currentColor"></circle>
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M8 12h8M12 8v8"
-          />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h8M12 8v8" />
         </svg>
         Administrar etiquetas
       </h3>
 
       <!-- Buscador -->
       <div class="mb-4">
-        <input
-          type="text"
-          [(ngModel)]="textoBusquedaEtiqueta"
-          name="buscadorEtiqueta"
-          class="input input-bordered w-full"
-          placeholder="Buscar etiquetas por nombre..."
-          autocomplete="off"
-        />
+        <input type="text" [(ngModel)]="textoBusquedaEtiqueta" name="buscadorEtiqueta"
+          class="input input-bordered w-full" placeholder="Buscar etiquetas por nombre..." autocomplete="off" />
       </div>
 
       <!-- Etiquetas con filtro y resaltador de coincidencias -->
@@ -1619,18 +1102,13 @@
             @for (etiqueta of etiquetasFiltradasModal; track etiqueta.id) {
             <li class="py-2">
               <label class="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  class="form-checkbox h-5 w-5 accent-teal-400"
+                <input type="checkbox" class="form-checkbox h-5 w-5 accent-teal-400"
                   [checked]="etiquetasSeleccionadas.includes(etiqueta.id)"
-                  (change)="toggleSeleccionEtiqueta(etiqueta.id, $event)"
-                />
-                <span
-                  class="font-medium text-base-content px-3 py-0.5 rounded"
+                  (change)="toggleSeleccionEtiqueta(etiqueta.id, $event)" />
+                <span class="font-medium text-base-content px-3 py-0.5 rounded"
                   [ngStyle]="{ background: etiqueta.color, color: '#fff' }"
                   style="min-width: 90px; display: inline-block"
-                  [innerHTML]="highlightNombreEtiqueta(etiqueta.nombre)"
-                ></span>
+                  [innerHTML]="highlightNombreEtiqueta(etiqueta.nombre)"></span>
               </label>
             </li>
             } @if (etiquetasFiltradasModal.length === 0) {
@@ -1642,57 +1120,38 @@
 
       <!-- Acciones -->
       <div class="modal-action flex justify-end gap-3 mt-6">
-        <button
-          type="button"
-          (click)="cerrarModalGestionEtiquetas()"
-          class="btn btn-outline btn-error"
-        >
+        <button type="button" (click)="cerrarModalGestionEtiquetas()" class="btn btn-outline btn-error">
           Cancelar
         </button>
-        <button
-          type="button"
-          class="btn btn-error"
-          [disabled]="etiquetasSeleccionadas.length === 0"
-          (click)="abrirModalConfirmarEliminarEtiquetasMultiples()"
-        >
+        <button type="button" class="btn btn-error" [disabled]="etiquetasSeleccionadas.length === 0"
+          (click)="abrirModalConfirmarEliminarEtiquetasMultiples()">
           Eliminar seleccionadas
         </button>
       </div>
     </form>
   </dialog>
   } @if (confirmMultiDeleteActivo) {
-  <dialog
-    id="modalConfirmMultiDelete"
+  <dialog id="modalConfirmMultiDelete"
     class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-40"
-    [open]="confirmMultiDeleteActivo"
-    aria-labelledby="modal-confirm-multi-title"
-  >
+    [open]="confirmMultiDeleteActivo" aria-labelledby="modal-confirm-multi-title">
     <div class="modal-box max-w-md w-full p-7 bg-base-100 rounded-lg shadow-lg">
       <h3 id="modal-confirm-multi-title" class="font-bold text-lg mb-4 text-error">
         Confirmar eliminación múltiple
       </h3>
       <p class="mb-4">
         ¿Seguro que quieres eliminar <b>{{ etiquetasSeleccionadas.length }}</b> etiquetas
-        seleccionadas? <br /><span class="text-sm text-error"
-          >Esta acción no se puede deshacer.</span
-        >
+        seleccionadas? <br /><span class="text-sm text-error">Esta acción no se puede deshacer.</span>
       </p>
       <div class="flex flex-wrap gap-2 mb-4">
         @for (id of etiquetasSeleccionadas; track id) {
-        <span
-          class="badge font-semibold px-3 py-1"
-          [ngStyle]="{ background: getColorEtiqueta(id), color: '#fff' }"
-        >
+        <span class="badge font-semibold px-3 py-1" [ngStyle]="{ background: getColorEtiqueta(id), color: '#fff' }">
           {{ getNombreEtiqueta(id) }}
         </span>
         }
       </div>
       <div class="modal-action flex justify-end gap-3 mt-6">
-        <button
-          type="button"
-          (click)="cerrarModalConfirmarEliminarEtiquetasMultiples()"
-          class="btn btn-outline btn-error"
-        >
+        <button type="button" (click)="cerrarModalConfirmarEliminarEtiquetasMultiples()"
+          class="btn btn-outline btn-error">
           Cancelar
         </button>
         <button type="button" class="btn btn-error" (click)="eliminarEtiquetasSeleccionadas()">

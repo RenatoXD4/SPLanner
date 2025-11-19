@@ -76,10 +76,7 @@ app.use((err: unknown, req: Request, res: Response) => {
   });
 });
 
-// Inicia el servidor
-app.listen(port, () => {
-  console.log(`Servidor escuchando en puerto ${port}`);
-});
+
 // Middleware para rutas no encontradas (404)
 app.use((req: Request, res: Response) => {
   res.status(404).json({
@@ -93,7 +90,7 @@ async function init(): Promise<void> {
     const colorRepo: KanbanRepository = new KanbanRepository();
     await colorRepo.createDefaultColorsIfNotExist();
     console.log("Colores por defecto insertados o ya existentes.");
-    
+    // Inicia el servidor
     app.listen(port, () => {
       console.log(`Servidor escuchando en puerto ${port}`);
     });

@@ -1,6 +1,7 @@
 import type { BloqueContenido, Color, Etiqueta, Tarea } from "@prisma/client";
 
 import { prisma } from "../../lib/prisma.js";
+import {  NotificationService } from "../services/notifications.service.js";
 import { KanbanRepository, ResponsableConUsuario, TareaConRelaciones } from "./kanban.repository.js";
 
 export interface EstadoUpdateData {
@@ -22,9 +23,11 @@ interface CreateTareaInput {
 
 export class KanbanService {
   private kanbanrepo: KanbanRepository;
+  private notificationService: NotificationService;
 
   constructor() {
     this.kanbanrepo = new KanbanRepository();
+    this.notificationService = new NotificationService(); // <-- Nuevo
   }
   public async createColor(nombre: string, codigo: string): Promise<Color> {
     if (!nombre.trim()) throw new Error('Nombre es obligatorio');
@@ -83,55 +86,78 @@ export class KanbanService {
 
     return this.kanbanrepo.insertNuevaEtiqueta(nombre.trim(), proyectoId.trim(), colorId);
   }
-  // Crear tarea -> retorna tarea con relaciones completas    // Obtener tareas por proyecto -> con relaciones
-  public async createTask(data: CreateTareaInput): Promise<TareaConRelaciones> {
-    const { estadoId, etiquetaIds = [], fechaLimite, proyectoId, responsablesIds = [], titulo } = data;
 
-    if (!titulo.trim()) throw new Error("El título de la tarea es obligatorio.");
-    if (!proyectoId.trim()) throw new Error("El ID del proyecto es obligatorio.");
-    if (!estadoId) throw new Error("El ID del estado es obligatorio.");
 
-    // Validar responsables si vienen
-    if (responsablesIds.length > 0) {
-      const usuarios = await prisma.usuario.findMany({
-        select: { id: true },
-        where: { id: { in: responsablesIds } },
-      });
-      if (usuarios.length !== responsablesIds.length) {
-        throw new Error("Algunos responsables no existen.");
-      }
-    }
+// Crear tarea -> retorna tarea con relaciones completas
+public async createTask(data: CreateTareaInput): Promise<TareaConRelaciones> {
+  const { estadoId, etiquetaIds = [], fechaLimite, proyectoId, responsablesIds = [], titulo } = data;
 
-    // Validar etiquetas si vienen
-    if (etiquetaIds.length > 0) {
-      const etiquetas = await prisma.etiqueta.findMany({
-        select: { id: true },
-        where: {
-          id: { in: etiquetaIds },
-          proyectoId: proyectoId,
-        },
-      });
-      if (etiquetas.length !== etiquetaIds.length) {
-        throw new Error("Algunas etiquetas no existen o no pertenecen al proyecto.");
-      }
-    }
+  if (!titulo.trim()) throw new Error("El título de la tarea es obligatorio.");
+  if (!proyectoId.trim()) throw new Error("El ID del proyecto es obligatorio.");
+  if (!estadoId) throw new Error("El ID del estado es obligatorio.");
 
-    // Si fechaLimite viene como string, convertir a Date
-    let fechaLimiteDate: Date | undefined = undefined;
-    if (fechaLimite) {
-      if (typeof fechaLimite === "string") {
-        fechaLimiteDate = new Date(fechaLimite);
-      } else {
-        fechaLimiteDate = fechaLimite;
-      }
-    }
-
-    return this.kanbanrepo.insertNuevaTarea({
-      ...data,
-      fechaLimite: fechaLimiteDate,
+  // Validar responsables si vienen
+  if (responsablesIds.length > 0) {
+    const usuarios = await prisma.usuario.findMany({
+      select: { id: true },
+      where: { id: { in: responsablesIds } },
     });
+    if (usuarios.length !== responsablesIds.length) {
+      throw new Error("Algunos responsables no existen.");
+    }
   }
 
+  // Validar etiquetas si vienen
+  if (etiquetaIds.length > 0) {
+    const etiquetas = await prisma.etiqueta.findMany({
+      select: { id: true },
+      where: {
+        id: { in: etiquetaIds },
+        proyectoId: proyectoId,
+      },
+    });
+    if (etiquetas.length !== etiquetaIds.length) {
+      throw new Error("Algunas etiquetas no existen o no pertenecen al proyecto.");
+    }
+  }
+
+  // Si fechaLimite viene como string, convertir a Date
+  let fechaLimiteDate: Date | undefined = undefined;
+  if (fechaLimite) {
+    if (typeof fechaLimite === "string") {
+      fechaLimiteDate = new Date(fechaLimite);
+    } else {
+      fechaLimiteDate = fechaLimite;
+    }
+  }
+
+  // Crear la tarea - insertNuevaTarea ya retorna con todas las relaciones
+  const nuevaTarea = await this.kanbanrepo.insertNuevaTarea({
+    ...data,
+    fechaLimite: fechaLimiteDate,
+  });
+
+  // CREAR NOTIFICACIONES PARA TODOS LOS MIEMBROS DEL PROYECTO
+  try {
+    await this.notificationService.crearNotificacionesProyecto({
+      mensaje: `Se creó una nueva tarea: "${titulo}" en el proyecto ${nuevaTarea.proyecto.nombre}`, 
+      proyectoId: proyectoId,
+      tareaId: nuevaTarea.id,
+      tipo: 'tarea_creada',
+      // usuarioCreadorId: 'id-del-usuario-autenticado'
+    });
+  } catch (error) {
+    console.error('Error creando notificaciones:', error);
+    // No fallar la creación de tarea si hay error en notificaciones
+  }
+
+  return nuevaTarea;
+}
+
+
+
+
+  
   public async deleteColor(id: number) {
     await this.getColorById(id); // validar que existe
     return this.kanbanrepo.deleteColor(id);
@@ -154,9 +180,28 @@ export class KanbanService {
   }
 
   // Eliminar tarea (solo devuelve tarea base)
-  public async deleteOneTask(id: string): Promise<Tarea> {
-    return this.kanbanrepo.deleteTask(id);
+   public async deleteOneTask(id: string): Promise<Tarea> {
+  // Primero obtener la tarea para tener la información
+  const tarea = await this.getTaskById(id);
+  
+  const tareaEliminada = await this.kanbanrepo.deleteTask(id);
+
+  //  CREAR NOTIFICACIONES DE ELIMINACIÓN
+  try {
+    const tituloTarea = tarea.titulo ?? 'Tarea sin título'; // Manejar el caso null
+    await this.notificationService.crearNotificacionesProyecto({
+      mensaje: `Se eliminó la tarea: "${tituloTarea}"`,
+      proyectoId: tarea.proyectoId,
+      tipo: 'tarea_eliminada',
+      // usuarioCreadorId: 'id-del-usuario-autenticado'
+    });
+  } catch (error) {
+    console.error('Error creando notificaciones de eliminación:', error);
   }
+
+  return tareaEliminada;
+}
+
 
 
   public async getAllColors() {
@@ -209,19 +254,13 @@ export class KanbanService {
   }
 
   // Obtener una tarea por ID -> con relaciones
-  public async getTaskById(id: string): Promise<TareaConRelaciones> {
+public async getTaskById(id: string): Promise<TareaConRelaciones> {
     if (!id || id.trim() === '') {
-      throw new Error("El ID de la tarea es requerido.");
+        throw new Error("El ID de la tarea es requerido.");
     }
 
-    const tarea = await this.kanbanrepo.getTaskById(id);
-
-    if (!tarea) {
-      throw new Error("Tarea no encontrada.");
-    }
-
-    return tarea;
-  }
+    return this.kanbanrepo.getTaskById(id);
+}
 
   // Obtener estados por proyecto (puede incluir tareas con relaciones, se deja igual)
   public async obtenerEstados(proyectoId: string) {
@@ -291,22 +330,61 @@ export class KanbanService {
     return this.kanbanrepo.updateEtiqueta(id, nombre, proyectoId, colorIdNum);
   }
   // Actualización con relaciones (responsables, etiquetas, etc.)
-  public async updateTaskConRelaciones(params: {
-    data?: Partial<Tarea>;
-    estadoId?: number;
-    etiquetasToAdd?: number[];
-    etiquetasToRemove?: number[];
-    id: string;
-    proyectoId?: string;
-    responsablesToAdd?: string[];
-    responsablesToRemove?: string[];
-  }): Promise<TareaConRelaciones> {
-    if (!params.id) {
-      throw new Error("El ID de la tarea es requerido para actualizar.");
+ public async updateTaskConRelaciones(params: {
+  data?: Partial<Tarea>;
+  estadoId?: number;
+  etiquetasToAdd?: number[];
+  etiquetasToRemove?: number[];
+  id: string;
+  proyectoId?: string;
+  responsablesToAdd?: string[];
+  responsablesToRemove?: string[];
+}): Promise<TareaConRelaciones> {
+  if (!params.id) {
+    throw new Error("El ID de la tarea es requerido para actualizar.");
+  }
+
+  const tareaActualizada = await this.kanbanrepo.updateTaskPartial(params);
+
+  // NOTIFICAR CAMBIOS IMPORTANTES
+  try {
+    let tipoNotificacion = 'tarea_editada';
+    const tituloTarea = tareaActualizada.titulo ?? 'Tarea sin título'; // Manejar el caso null
+    let mensaje = `Se actualizó la tarea: "${tituloTarea}"`;
+
+    // Cambio de estado
+    if (params.estadoId !== undefined) {
+      tipoNotificacion = 'tarea_editada';
+      mensaje = `Se cambió el estado de la tarea: "${tituloTarea}"`;
     }
 
-    return this.kanbanrepo.updateTaskPartial(params);
+    // Tarea por vencer (si hay fecha límite)
+    if (params.data?.fechaLimite) {
+      const hoy = new Date();
+      const fechaLimite = new Date(params.data.fechaLimite);
+      const diffDias = Math.ceil((fechaLimite.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24));
+      
+      if (diffDias <= 1) { // Notificar si vence en 2 días o menos
+        tipoNotificacion = 'tarea_por_vencer';
+        mensaje = `La tarea "${tituloTarea}" vence pronto (${String(diffDias)} días)`;
+
+      }
+    }
+
+    await this.notificationService.crearNotificacionesProyecto({
+      mensaje: mensaje,
+      proyectoId: tareaActualizada.proyectoId,
+      tareaId: tareaActualizada.id,
+      tipo: tipoNotificacion,
+      // usuarioCreadorId: 'id-del-usuario-autenticado'
+    });
+
+  } catch (error) {
+    console.error('Error creando notificaciones de actualización:', error);
   }
+
+  return tareaActualizada;
+}
 
   // Actualización simple (solo campos directos)
   public async updateTaskSimple(params: { data: Partial<Tarea>; id: string; }): Promise<Tarea> {

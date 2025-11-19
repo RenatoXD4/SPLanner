@@ -60,7 +60,8 @@ model Proyectos {
   // ...muchas tareas.
   tareas   Tarea[]
 
-  etiquetas Etiqueta[] // Cada etiqueta pertenece a un unico proyecto / Cada proyecto puede tener muchas etiquetas
+  etiquetas     Etiqueta[] // Cada etiqueta pertenece a un unico proyecto / Cada proyecto puede tener muchas etiquetas
+  notificacions Notificacion[]
 
   @@schema("public")
 }
@@ -169,8 +170,8 @@ model Estado {
   proyecto   Proyectos @relation(fields: [proyectoId], references: [id], onDelete: Cascade)
   proyectoId String
 
-  colorId   Int       // Relación con tabla Color
-  color     Color     @relation(fields: [colorId], references: [id])
+  colorId Int // Relación con tabla Color
+  color   Color @relation(fields: [colorId], references: [id])
 
   // Relación: Un estado puede contener muchas tareas.
   tareas Tarea[]
@@ -212,19 +213,23 @@ model Comentario {
 
 // Modelo para las notificaciones de los usuarios.        --> Solo en las que se menciona al usuario
 model Notificacion {
-  id        Int      @id @default(autoincrement())
-  // Tipo de notificación: 'comentario', 'asignacion', 'cambio_estado', etc.
-  tipo      String   @db.VarChar(50)
-  mensaje   String   @db.Text
+  id        String   @id @default(uuid())
+  tipo      String // 'tarea_creada', 'tarea_editada', 'tarea_eliminada', 'tarea_por_vencer'
+  mensaje   String
   leida     Boolean  @default(false)
   createdAt DateTime @default(now())
 
-  // Relación con el usuario que recibe la notificación.
+  // Relación con el usuario que recibe la notificación
   usuario   Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
   usuarioId String
-  // Relación opcional con una tarea.
-  tarea     Tarea?  @relation(fields: [tareaId], references: [id], onDelete: Cascade)
-  tareaId   String?
+
+  // Relación con la tarea
+  tarea   Tarea?  @relation(fields: [tareaId], references: [id], onDelete: Cascade)
+  tareaId String?
+
+  // Relación con el proyecto
+  proyecto   Proyectos @relation(fields: [proyectoId], references: [id], onDelete: Cascade)
+  proyectoId String
 
   @@schema("public")
 }
@@ -272,5 +277,6 @@ model Color {
   etiquetas Etiqueta[] // Relación con las etiquetas
 
   Estado Estado[]
+
   @@schema("public")
 }

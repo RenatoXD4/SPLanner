@@ -20,7 +20,7 @@ import { VistasService, Proyecto, ProyectoConUsuario } from './service/vista-ser
 import { AuthService } from '../../services/auth-service';
 import { Subscription } from 'rxjs';
 import { ProyectoGuard } from '../../../guards/proyecto.guard';
-
+import { Notificacion } from '../../shared/ui/notificacion/notificacion';
 interface CreateProjectRequest {
   nombre: string;
   descripcion?: string;
@@ -51,13 +51,15 @@ interface ProyectoAdministrar extends ProyectoConUsuario {
 @Component({
   selector: 'app-vistas',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule, Sidebar],
+  imports: [CommonModule, FormsModule, HttpClientModule, Sidebar, Notificacion],
   templateUrl: './vistas.html',
   styleUrls: ['./vistas.css'],
   providers: [VistasService]
 })
 export class Vistas implements OnInit, OnDestroy {
 
+
+    loading: boolean = true;
   dropdownOpen: string | null = null;
   mostrarSidebar = true;
   filtroTexto = '';

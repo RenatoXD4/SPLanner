@@ -120,6 +120,9 @@ export class TaskDetail implements AfterViewInit, OnDestroy, OnChanges {
             placeholder: 'Ingresa un encabezado',
             levels: [2, 3, 4],
             defaultLevel: 3
+          },
+          toolbox: {
+            title: "Encabezado"
           }
         },
         list: {
@@ -127,6 +130,9 @@ export class TaskDetail implements AfterViewInit, OnDestroy, OnChanges {
           inlineToolbar: true,
           config: {
             defaultStyle: 'unordered'
+          },
+          toolbox: {
+            title: "Lista"
           }
         },
         aiPrompt: {
@@ -135,6 +141,45 @@ export class TaskDetail implements AfterViewInit, OnDestroy, OnChanges {
             generateText: (prompt: string) => {
               return firstValueFrom(aiServiceInstance.generateText(prompt));
             }
+          }
+        }
+      },
+      i18n: {
+        messages: {
+            ui: {
+              "popover": {
+              "Filter": "Filtro",
+              "Nothing found": "No encontrado",
+              "Convert to": "Convertir a",
+            }
+          },
+          blockTunes: {
+              "delete": {
+                "Delete": "Eliminar",
+                "Click to delete": "Click para eliminar"
+              },
+              "moveUp": {
+                "Move up": "Mover arriba"
+              },
+              "moveDown": {
+                "Move down": "Mover abajo"
+              }
+          },
+            // Traducciones específicas de las herramientas (como Header)
+          toolNames: {
+            "Text": "Texto",
+          },
+          tools: {
+              header: {
+                'Heading 2': 'Título 2',
+                'Heading 3': 'Título 3', 
+                'Heading 4': 'Título 4', 
+              },
+              list: {
+              "Ordered": "Lista ordenada",
+              "Unordered": "Lista desordenada",
+              "Checklist": "Lista de tareas",
+              },
           }
         }
       },

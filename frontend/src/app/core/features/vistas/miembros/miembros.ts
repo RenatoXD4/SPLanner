@@ -19,6 +19,7 @@ import { VistasService, ProyectoConUsuario } from '../service/vista-service';
 import { AuthService } from '../../../services/auth-service';
 import { Subscription } from 'rxjs';
 import { ProyectoGuard } from '../../../../guards/proyecto.guard';
+import { Notificacion } from '../../../shared/ui/notificacion/notificacion';
 
 interface ProyectoMiembro extends ProyectoConUsuario {
   miRol?: string;
@@ -28,13 +29,13 @@ interface ProyectoMiembro extends ProyectoConUsuario {
 @Component({
   selector: 'app-miembros',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule, Sidebar],
+  imports: [CommonModule, FormsModule, HttpClientModule, Sidebar,Notificacion],
   templateUrl: './miembros.html',
   styleUrls: ['./miembros.css'],
   providers: [VistasService]
 })
 export class Miembros implements OnInit, OnDestroy {
-
+  loading: boolean = true;
   mostrarSidebar = true;
   filtroTexto = '';
   filtroRol = '';

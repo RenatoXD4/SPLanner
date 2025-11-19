@@ -15,6 +15,9 @@
         </div>
 
         <div class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+          <app-notificacion class="transition-all duration-500 ease-out delay-300"
+            [class]="!loading? 'opacity-100 translate-x-0' : ' translate-x-0'">
+          </app-notificacion>
           <!-- Barra de búsqueda -->
           <div class="relative flex-1">
             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">

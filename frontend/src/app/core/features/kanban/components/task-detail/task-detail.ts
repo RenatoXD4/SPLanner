@@ -67,6 +67,11 @@ export class TaskDetail implements AfterViewInit, OnDestroy, OnChanges {
           }
       }
 
+      if (changes['task'] && changes['task'].currentValue) {
+        // Sincronizar la variable local
+        this.cdr.detectChanges(); 
+      }
+
       if (changes['task'] && this.editor && !changes['task'].firstChange && this.isEditorReady) {
         // Si se cambia de tarea mientras el edtiro está abierto, se tendrá que recargar el otro editor de texto.
         this.reloadEditorData();

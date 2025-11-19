@@ -641,6 +641,17 @@ export class Board implements OnInit {
       // Cambio de columna
       const nuevoEstadoId = Number(event.container.id);
 
+      if (this.selectedTask && String(this.selectedTask.id) === String(task.id)) {
+        
+        const nuevaCategoria = this.CategoriasK.find(c => Number(c.id) === nuevoEstadoId);
+        
+        if (nuevaCategoria) {
+           this.selectedTaskEstadoNombre = nuevaCategoria.nombre;
+        }
+
+        this.selectedTask = { ...task };
+      }
+
       // 1. Actualiza localmente antes de enviar al backend
       task.estadoId = nuevoEstadoId;
 
@@ -1001,6 +1012,7 @@ export class Board implements OnInit {
       //alert('No tienes permisos para eliminar tareas');
       return;
     }
+
     //if (confirm('¿Estás seguro de que deseas eliminar esta tarea?')) {
     this.boardService.deleteTask(taskId).subscribe(
       () => {
@@ -1011,6 +1023,13 @@ export class Board implements OnInit {
         });
         this.generarListaResponsables();
         this.generarListaPrioridades();
+
+        if(this.selectedTask && this.selectedTask.id == taskId) {
+          this.tareaSeleccionada = null;
+          this.hideTaskDetails()
+
+        }
+
         this.cdr.detectChanges();  // Asegura que Angular detecte los cambios
       },
       (error) => {
@@ -1843,6 +1862,20 @@ export class Board implements OnInit {
         console.log('responsablesToRemove:', responsablesToRemove);
 
         const tareaActualizada = this.mapRawTaskToUI(tareaActualizadaRaw);
+
+        //Se realiza un fix acá, porque se necesita actualizar los responsables en la UI del frontend
+        const responsablesReconstruidos: ResponsableTarea[] = this.miembrosDelProyecto
+            .filter(miembro => nuevosResponsablesIds.includes(miembro.usuario.id))
+            .map(miembro => ({
+              usuario: miembro.usuario, 
+              tareaId: tareaActualizada.id,
+              id: 0,
+              usuarioId: miembro.usuario.id
+            }));
+
+        (tareaActualizada as any).responsables = responsablesReconstruidos;
+        tareaActualizada.assignee = responsablesReconstruidos.map(r => r.usuario);
+
         const categoria = this.CategoriasK.find(c => c.id === tareaActualizada.estadoId.toString());
         if (categoria) {
           const idx = categoria.tasks.findIndex(t => t.id === tareaActualizada.id);

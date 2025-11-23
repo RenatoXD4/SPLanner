@@ -1,0 +1,164 @@
+<!-- Modal Background - Cambiado a fondo más transparente -->
+@if (isOpen) {
+<div class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+  (click)="closeModal()">
+
+  <!-- Modal Content - Más pequeño y con sombra suave -->
+  <div class="bg-gray-800 rounded-xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden border border-gray-700"
+    (click)="$event.stopPropagation()">
+
+    <!-- Header del Modal - Más compacto -->
+    <div class="flex justify-between items-center p-4 border-b border-gray-700 bg-gray-800 sticky top-0 z-10">
+      <div class="flex items-center gap-3">
+        <i class="fas fa-calendar-alt text-green-500 text-xl"></i>
+        <div>
+          <h2 class="text-lg font-semibold text-white">Google Calendar</h2>
+          <p class="text-xs text-gray-400">Sincroniza tus tareas</p>
+        </div>
+      </div>
+
+      <!-- Botón Cerrar -->
+      <button (click)="closeModal()"
+        class="text-gray-400 hover:text-white transition-colors p-1 rounded-full hover:bg-gray-700">
+        <i class="fas fa-times text-lg"></i>
+      </button>
+    </div>
+
+    <!-- Contenido del Modal -->
+    <div class="p-4 overflow-y-auto max-h-[calc(80vh-80px)]">
+
+      <!-- Sección de Autenticación -->
+      <div class="mb-4">
+        @if (!isAuthenticated) {
+        <div class="bg-green-500/20 border border-green-500/30 rounded-lg p-3 mb-4">
+          <div class="flex items-start gap-2">
+            <i class="fas fa-info-circle text-green-400 mt-0.5"></i>
+            <div>
+              <h3 class="font-medium text-green-400 text-sm">Conecta Google Calendar</h3>
+              <p class="text-green-300 text-xs mt-1">
+                Sincroniza tareas con fechas de vencimiento.
+              </p>
+            </div>
+          </div>
+        </div>
+        }
+
+        <!-- Botones de autenticación -->
+        <div class="flex justify-between items-center gap-4">
+          @if (!isAuthenticated && !isLoading) {
+          <button (click)="handleAuthClick()"
+            class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg flex items-center gap-2 transition-colors text-sm">
+            <i class="fab fa-google"></i>
+            Conectar Calendar
+          </button>
+          }
+
+          @if (isAuthenticated) {
+          <div class="flex items-center gap-3">
+            <div class="text-xs text-white">
+              <div class="font-medium">{{ userProfile?.getName() }}</div>
+              <div class="text-gray-400">{{ userProfile?.getEmail() }}</div>
+            </div>
+            <button (click)="handleSignoutClick()" [disabled]="isLoading"
+              class="bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 text-white px-2 py-1 rounded text-xs flex items-center gap-1 transition-colors">
+              <i class="fas fa-sign-out-alt"></i>
+              Salir
+            </button>
+          </div>
+          }
+
+          @if (isLoading) {
+          <div class="flex items-center gap-2 text-gray-400 text-sm">
+            <i class="fas fa-spinner fa-spin"></i>
+            <span>Procesando...</span>
+          </div>
+          }
+        </div>
+      </div>
+
+      <!-- Próximos eventos -->
+      @if (isAuthenticated) {
+      <div class="mb-4">
+        <h3 class="text-md font-medium text-white mb-2">Próximos Eventos</h3>
+
+        @if (events.length === 0) {
+        <div class="text-center py-4 text-gray-400 bg-gray-700/50 rounded-lg">
+          <i class="fas fa-calendar-day text-xl mb-1 opacity-50"></i>
+          <p class="text-sm">No hay eventos próximos</p>
+        </div>
+        }
+
+        <div class="space-y-2 max-h-32 overflow-y-auto">
+          @for (event of events; track event.id) {
+          <div class="border-l-3 border-green-500 bg-green-500/10 p-3 rounded-r">
+            <div class="flex justify-between items-start">
+              <div class="flex-1">
+                <h4 class="font-semibold text-white text-sm">{{ event.summary }}</h4>
+                @if (event.description) {
+                <p class="text-xs text-gray-300 mt-1 line-clamp-1">
+                  {{ event.description }}
+                </p>
+                }
+                <div class="flex items-center gap-1 text-xs text-gray-400 mt-1">
+                  <i class="fas fa-clock text-xs"></i>
+                  <span>{{ formatDate(event.start.dateTime, 'MMM d, y, h:mm a') }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          }
+        </div>
+      </div>
+      }
+
+      <!-- Integración con tareas -->
+      @if (isAuthenticated && tasks.length > 0) {
+      <div>
+        <h3 class="text-md font-medium text-white mb-2">Sincronizar Tareas</h3>
+
+        <div class="space-y-2 max-h-48 overflow-y-auto border border-gray-700 rounded-lg p-2 bg-gray-700/30">
+          @for (task of tasks; track task.id) {
+          <div
+            class="flex items-center justify-between p-2 border border-gray-600 rounded hover:bg-gray-700/50 transition-colors">
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2">
+                <span class="font-medium text-white text-sm truncate">
+                  {{ task.title || task.titulo }}
+                </span>
+                <span [class]="getStatusClasses(task)" class="px-2 py-0.5 rounded text-xs">
+                  @switch (getTaskStatus(task)) {
+                  @case ('synced') {
+                  Sincronizada
+                  }
+                  @case ('can-sync') {
+                  Lista
+                  }
+                  @case ('no-date') {
+                  Sin fecha
+                  }
+                  }
+                </span>
+              </div>
+              @if (task.dueDate || task.fechaLimite) {
+              <div class="text-xs text-gray-400 mt-0.5">
+                {{ getTaskDueDate(task) }}
+              </div>
+              }
+            </div>
+
+            <button (click)="syncTaskToCalendar(task)" [disabled]="!canSyncTask(task) || isLoading" [class]="canSyncTask(task) && !isLoading ?
+                            'bg-green-500 hover:bg-green-600 text-white' :
+                            'bg-gray-600 cursor-not-allowed text-gray-500'"
+              class="px-2 py-1 rounded text-xs flex items-center gap-1 transition-colors ml-2">
+              <i class="fas fa-cloud-upload-alt text-xs"></i>
+              Sincronizar
+            </button>
+          </div>
+          }
+        </div>
+      </div>
+      }
+    </div>
+  </div>
+</div>
+}

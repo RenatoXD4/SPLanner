@@ -247,7 +247,7 @@ export class KanbanController {
 
     const result = await this.notificationService.marcarTodasLeidas(usuarioId);
     res.status(200).json({ 
-      message: `${result.count.toString()} notificaciones marcadas como leídas.` 
+      message: result.count.toString() 
     });
   } catch (error) {
     console.error('Error marcando todas las notificaciones como leídas:', error);

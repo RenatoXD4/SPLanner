@@ -147,8 +147,6 @@ markAllAsRead() {
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-
-    this.toastr.success('Todas las notificaciones marcadas como leídas');
   })
   .catch(error => {
     console.error(' Error con fetch:', error);

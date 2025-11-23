@@ -19,7 +19,7 @@ import { ProyectoGuard } from '../../../../../guards/proyecto.guard';
 import { TaskDetail } from "../task-detail/task-detail";
 import { NgZone } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-
+import { Calendario } from '../../../../shared/ui/calendario/calendario';
 export interface User {
   id: string;
   nombre: string;
@@ -65,6 +65,10 @@ interface Task {
   // Campos frontend (para UI)
   title?: string;
   dueDate?: string;
+
+  //calendario
+  syncedWithCalendar?: boolean;
+  calendarEventId?: string | null;
 }
 
 interface RawTask {
@@ -117,12 +121,12 @@ interface EtiquetaConColor {
 
 @Component({
   selector: 'app-board',
-  imports: [CdkDropList, CdkDrag, CommonModule, FormsModule, Sidebar, TaskDetail, DragDropModule],
+  imports: [CdkDropList, CdkDrag, CommonModule, FormsModule, Sidebar, TaskDetail, DragDropModule, Calendario],
   templateUrl: './board.html',
   styleUrl: './board.css',
 })
 export class Board implements OnInit {
-
+  tareas: any[] = []
   proyectoIdActual: string = '';
   rolUsuario: string = '';
   proyectoActual: any = null;
@@ -151,7 +155,7 @@ export class Board implements OnInit {
   currentUser: string = '';
   sidebarOpen = false;
   modalVisible = false;
-
+ calendarioAbierto = false;
 
   CategoriasK: Categoria[] = [];
   miembrosDelProyecto: ResponsableTarea[] = [];
@@ -215,7 +219,7 @@ export class Board implements OnInit {
     private router: Router,
     private authService: AuthService,
     private proyectoGuard: ProyectoGuard,
-    @Inject(PLATFORM_ID) private platformId: Object 
+    @Inject(PLATFORM_ID) private platformId: Object
   ) { }
 
   async ngOnInit() {
@@ -255,7 +259,9 @@ export class Board implements OnInit {
       this.mostrarErrorYRedirigir('No tienes acceso a este proyecto');
     }
   }
-
+ abrirCalendario() {
+    this.calendarioAbierto = true;
+  }
   /**
    * Carga la información del proyecto y rol desde localStorage
    */
@@ -642,9 +648,9 @@ export class Board implements OnInit {
       const nuevoEstadoId = Number(event.container.id);
 
       if (this.selectedTask && String(this.selectedTask.id) === String(task.id)) {
-        
+
         const nuevaCategoria = this.CategoriasK.find(c => Number(c.id) === nuevoEstadoId);
-        
+
         if (nuevaCategoria) {
            this.selectedTaskEstadoNombre = nuevaCategoria.nombre;
         }
@@ -1035,7 +1041,7 @@ export class Board implements OnInit {
       (error) => {
         console.error('Error al eliminar la tarea:', error);  // Detalle completo del error
         if (error.message.includes("La tarea con ID")) {
-          //alert(`Error: ${error.message}`);  
+          //alert(`Error: ${error.message}`);
         } else {
           //alert('Error al eliminar la tarea. Por favor, intente nuevamente.');
         }
@@ -1867,7 +1873,7 @@ export class Board implements OnInit {
         const responsablesReconstruidos: ResponsableTarea[] = this.miembrosDelProyecto
             .filter(miembro => nuevosResponsablesIds.includes(miembro.usuario.id))
             .map(miembro => ({
-              usuario: miembro.usuario, 
+              usuario: miembro.usuario,
               tareaId: tareaActualizada.id,
               id: 0,
               usuarioId: miembro.usuario.id
@@ -1991,4 +1997,28 @@ export class Board implements OnInit {
     return nombre.replace(regex, '<mark class="bg-yellow-200 px-0.5 rounded">' + '$1' + '</mark>');
   }
 
+
+ // === MÉTODO PARA MANEJAR TAREAS SINCRONIZADAS CON CALENDARIO ===
+  onTareaSincronizada(tareaActualizada: any) {
+  // Buscar y actualizar la tarea en todas las categorías
+  for (const categoria of this.CategoriasK) {
+    const index = categoria.tasks.findIndex(t => t.id === tareaActualizada.id);
+    if (index !== -1) {
+      // Actualizar con los nuevos campos de sincronización
+      categoria.tasks[index] = {
+        ...categoria.tasks[index],
+        syncedWithCalendar: true,
+        calendarEventId: tareaActualizada.calendarEventId
+      };
+      categoria.tasks = [...categoria.tasks];
+      this.cdr.detectChanges();
+      break;
+    }
+  }
+}
+  // === MÉTODO PARA OBTENER TODAS LAS TAREAS ===
+  getTodasLasTareas(): any[] {
+    if (!this.CategoriasK) return [];
+    return this.CategoriasK.flatMap(categoria => categoria.tasks || []);
+  }
 }

@@ -1,0 +1,33 @@
+<div class="mt-6 pt-4 border-t border-gray-700 grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+  
+  <div class="flex flex-col gap-2">
+    <h2 class="text-gray-400 font-medium uppercase tracking-wider text-xs">Último Cambio</h2>
+    @if (task.lastModifiedAt && task.lastModifiedBy) {
+      <span class="text-white font-semibold">
+        {{ task.lastModifiedAt | date:'dd MMM, HH:mm' : '' : 'es-CL' }}
+      </span>
+      <span class="text-gray-300">
+        Por: {{ task.lastModifiedBy.nombre }} {{ task.lastModifiedBy.apellido }}
+      </span>
+    } @else {
+      <span class="text-gray-400 italic">No hay historial de cambios.</span>
+    }
+  </div>
+
+  <div class="flex flex-col gap-2">
+    <h2 class="text-gray-400 font-medium uppercase tracking-wider text-xs">Editores de Contenido</h2>
+    @if (task.editores && task.editores.length) {
+      <div class="flex items-center -space-x-2">
+        @for (editor of task.editores; track editor.usuario.id) {
+          <div
+            class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 shadow-lg border-2 border-slate-800"
+            [title]="editor.usuario.nombre + ' ' + editor.usuario.apellido">
+            <span class="text-white text-xs font-bold">{{editor.usuario.nombre.charAt(0)}}</span>
+          </div>
+        }
+      </div>
+    } @else {
+      <span class="text-gray-400 italic">Sólo Creador.</span>
+    }
+  </div>
+</div>

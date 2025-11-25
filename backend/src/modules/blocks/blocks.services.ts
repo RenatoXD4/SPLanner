@@ -10,7 +10,7 @@ export class BlocksService {
     this.bloquesRepository = new BlocksRepository();
   }
 
-  async actualizarBloques(tareaId: string, outputData: EditorJSOutputData) {
+  async actualizarBloques(tareaId: string, outputData: EditorJSOutputData, usuarioId: string) {
     const bloquesParaCrear: Prisma.BloqueContenidoCreateManyInput[] =
       outputData.blocks.map((block, index) => {
         const tipo = mapEditorJsTipoAEnum(block.type, block.data);
@@ -27,7 +27,8 @@ export class BlocksService {
 
     return this.bloquesRepository.actualizarBloquesDeTarea(
       tareaId,
-      bloquesParaCrear
+      bloquesParaCrear,
+      usuarioId
     );
   }
   

@@ -10,7 +10,7 @@ const bloquesController = new BlocksController(blockSer);
 
 
 blocksRouter.put(
-  '/:tareaId/blocks', 
+  '/:tareaId/blocks/:usuarioId', 
   bloquesController.handleActualizarBloques.bind(bloquesController)
 );
 

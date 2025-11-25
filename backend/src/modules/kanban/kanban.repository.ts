@@ -289,6 +289,9 @@ public async getAllTask(proyectoId: string): Promise<TareaConRelaciones[]> {
     return prisma.tarea.findMany({
         include: {
             BloqueContenido: true,
+            editores: { 
+            include: { usuario: true } 
+        },
             estado: {
                 include: {
                     color: true,
@@ -303,7 +306,10 @@ public async getAllTask(proyectoId: string): Promise<TareaConRelaciones[]> {
                     },
                 },
             },
-            proyecto: {
+            lastModifiedBy: { 
+            select: { apellido: true, id: true, nombre: true } 
+        },
+        proyecto: {
                 select: {
                     id: true,
                     nombre: true,

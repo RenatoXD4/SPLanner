@@ -2,79 +2,9 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, retry } from 'rxjs/operators';
+import { ColorObj, Estado, Etiqueta, MiembroProyecto, ResponsableTarea, Task, UpdateEstadoBody } from '../types/kanban-interfaces';
+import { EditorJSOutputData } from '../types/block-interfaces';
 
-export interface Usuario {
-  id: string;
-  nombre: string;
-  apellido: string;
-  email: string;
-  avatarUrl?: string;
-}
-
-interface MiembroProyecto {
-  usuario: Usuario;
-  rol: any;
-}
-
-export interface Responsable {
-  usuario: Usuario;
-}
-
-export interface Etiqueta {
-  id: number;
-  nombre: string;
-  color: string;
-}
-
-export interface Color {
-  id: number;
-  nombre: string;
-  codigo: string;
-}
-
-export interface BloqueContenido {
-  id: string;
-  tipo: 'PARAGRAPH' | 'HEADING_1' | 'HEADING_2' | 'CHECKLIST' | 'IMAGE' | 'CODE';
-  contenido: string;
-  posicion: number;
-}
-
-export interface Task {
-  id: string;
-  titulo?: string;
-  fechaLimite?: string | null;
-  posicion: number;
-  createdAt: string;
-  estadoId: number;
-  proyectoId: string;
-
-  // Relaciones
-  responsables?: Responsable[];
-  etiquetas?: Etiqueta[];
-  bloquesContenido?: BloqueContenido[];
-
-  // Campos adicionales opcionales para el frontend
-  priority?: string;
-  description?: string;
-}
-
-export interface Estado {
-  id: number;
-  nombre: string;
-  posicion: number;
-  proyectoId: string;
-  color?: {            // Añadir color como opcional
-    id: number;
-    nombre: string;
-    codigo: string;
-  };
-}
-
-export interface UpdateEstadoBody {
-  nombre?: string;
-  posicion?: number;
-  colorId?: number;
-}
 
 
 @Injectable({
@@ -118,7 +48,7 @@ export class BoardService {
   createTask(data: Partial<Task> & {
     responsablesIds?: string[];
     etiquetaIds?: number[];
-    bloquesContenido?: Partial<BloqueContenido>[];
+    bloquesContenido?: Partial<EditorJSOutputData>[];
   }): Observable<Task> {
     return this.http.post<Task>(`${this.apiUrl}/tasks`, data).pipe(
       catchError(this.handleError)
@@ -158,8 +88,8 @@ export class BoardService {
   }
 
   // Miembros con tareas asignadas (responsables actuales)
-  getMiembrosDelProyecto(proyectoId: string): Observable<Responsable[]> {
-    return this.http.get<Responsable[]>(`${this.apiUrl}/proyectos/${proyectoId}/miembros`).pipe(
+  getMiembrosDelProyecto(proyectoId: string): Observable<ResponsableTarea[]> {
+    return this.http.get<ResponsableTarea[]>(`${this.apiUrl}/proyectos/${proyectoId}/miembros`).pipe(
       catchError(this.handleError)
     );
   }
@@ -214,8 +144,8 @@ export class BoardService {
     );
   }
   /*Obtener todos los colores*/
-  getAllColors(): Observable<Color[]> {
-    return this.http.get<Color[]>(`${this.apiUrl}/colores`).pipe(
+  getAllColors(): Observable<ColorObj[]> {
+    return this.http.get<ColorObj[]>(`${this.apiUrl}/colores`).pipe(
       retry(2),
       catchError(this.handleError)
     );
@@ -224,8 +154,8 @@ export class BoardService {
   /**
    * Obtener un color por ID
    */
-  getColorById(id: number): Observable<Color> {
-    return this.http.get<Color>(`${this.apiUrl}/colores/${id}`).pipe(
+  getColorById(id: number): Observable<ColorObj> {
+    return this.http.get<ColorObj>(`${this.apiUrl}/colores/${id}`).pipe(
       catchError(this.handleError)
     );
   }
@@ -233,8 +163,8 @@ export class BoardService {
   /**
    * Crear un nuevo color
    */
-  createColor(nombre: string, codigo: string): Observable<Color> {
-    return this.http.post<Color>(`${this.apiUrl}/colores`, { nombre, codigo }).pipe(
+  createColor(nombre: string, codigo: string): Observable<ColorObj> {
+    return this.http.post<ColorObj>(`${this.apiUrl}/colores`, { nombre, codigo }).pipe(
       catchError(this.handleError)
     );
   }
@@ -242,8 +172,8 @@ export class BoardService {
   /**
    * Actualizar un color existente por ID
    */
-  updateColor(id: number, nombre: string, codigo: string): Observable<Color> {
-    return this.http.put<Color>(`${this.apiUrl}/colores/${id}`, { nombre, codigo }).pipe(
+  updateColor(id: number, nombre: string, codigo: string): Observable<ColorObj> {
+    return this.http.put<ColorObj>(`${this.apiUrl}/colores/${id}`, { nombre, codigo }).pipe(
       catchError(this.handleError)
     );
   }

@@ -26,6 +26,10 @@ model Usuario {
   password  String
   createdAt DateTime @default(now())
 
+  // 🟢 NUEVAS RELACIONES INVERSAS:
+  tareasModificadas Tarea[]       @relation("LastModifiedBy") // Tareas donde es el último modificador
+  tareasEditadas    TareaEditor[] // Tareas que ha editado alguna vez
+
   // Relaciones: Un usuario puede...
   // ...crear muchos proyectos.
   proyectosCreados Proyectos[]    @relation("ProyectosCreados")
@@ -38,6 +42,21 @@ model Usuario {
   // ...recibir muchas notificaciones.
   notificaciones   Notificacion[]
 
+  @@schema("public")
+}
+
+//Trazabilidad de Editores de Contenido
+model TareaEditor {
+  id        Int      @id @default(autoincrement())
+  
+  tareaId   String
+  tarea     Tarea    @relation(fields: [tareaId], references: [id], onDelete: Cascade)
+  
+  usuarioId String
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  
+  
+  @@unique([tareaId, usuarioId]) // Un usuario solo puede estar una vez en la lista de editores de una tarea
   @@schema("public")
 }
 
@@ -74,6 +93,12 @@ model Tarea {
   // Posición de la tarea dentro de una columna/estado.
   posicion    Int       @default(0)
   createdAt   DateTime  @default(now())
+
+  //Campos para la trazabilidad en Editor de texto
+  lastModifiedAt   DateTime  @updatedAt @default(now()) // Se actualiza automáticamente en cada 'update'
+  lastModifiedById String?   // ID del último usuario que guardó el contenido
+  lastModifiedBy   Usuario?  @relation("LastModifiedBy", fields: [lastModifiedById], references: [id])
+  editores         TareaEditor[]
 
   // Relación con el proyecto al que pertenece.
   proyecto   Proyectos @relation(fields: [proyectoId], references: [id], onDelete: Cascade)

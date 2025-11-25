@@ -12,7 +12,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
 import { Sidebar } from '../../../../shared/ui/sidebar/sidebar';
-import { BoardService, Color as ColorType } from '../../services/kanban-service';
+import { BoardService } from '../../services/kanban-service';
 import { ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../../../services/auth-service';
 import { ProyectoGuard } from '../../../../../guards/proyecto.guard';
@@ -20,103 +20,7 @@ import { TaskDetail } from "../task-detail/task-detail";
 import { NgZone } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Calendario } from '../../../../shared/ui/calendario/calendario';
-export interface User {
-  id: string;
-  nombre: string;
-  apellido: string;
-  email: string;
-  avatarUrl?: string;
-}
-
-export interface MiembroProyecto {
-  usuario: User;
-  rol: any;
-}
-
-export interface ResponsableTarea {
-  usuario: User;
-  tareaId: string;
-  id: number;
-  usuarioId: string;
-}
-
-export interface Categoria {
-  id: string;
-  nombre: string;
-  posicion: number;
-  tasks: Task[];
-  color?: ColorType;   // Añadido para manejar el color de la columna
-}
-
-interface Task {
-  id: string;
-  titulo?: string;
-  fechaLimite?: string | null;
-  posicion: number;
-  createdAt: string;
-  estadoId: number;
-  proyectoId: string;
-
-  // Campos backend opcionales que pueden venir
-  assignee?: User[]; // lista de usuarios asignados
-  etiquetas?: any[];
-  bloquesContenido?: any[];
-
-  // Campos frontend (para UI)
-  title?: string;
-  dueDate?: string;
-
-  //calendario
-  syncedWithCalendar?: boolean;
-  calendarEventId?: string | null;
-}
-
-interface RawTask {
-  id: string;
-  titulo?: string;
-  fechaLimite?: string | null;
-  posicion: number;
-  createdAt: string;
-  estadoId: number;
-  proyectoId: string;
-
-  responsables?: { usuario: User }[]; // ← NUEVO
-  etiquetas?: any[];
-  bloquesContenido?: any[];
-}
-export interface TaskUI {
-  id: string;
-  titulo: string;
-  fechaLimite: string;
-  title: string;
-  dueDate: string;
-  posicion: number;
-  createdAt: string;
-  estadoId: number;
-  proyectoId: string;
-  assignee: User[];         // ← array de usuarios asignados
-  etiquetas: any[];         // ← array de etiquetas
-  etiquetaIds: number[];    // ← ids de etiquetas para checkboxes
-}
-
-
-export interface Etiqueta {
-  id: number;       // ID único de la etiqueta
-  nombre: string;   // Nombre de la etiqueta
-  color: string;
-}
-
-interface ColorObj {
-  id: number;
-  nombre: string;
-  codigo: string;
-}
-
-interface EtiquetaConColor {
-  id: number;
-  nombre: string;
-  color?: ColorObj | string;  // Puede ser objeto o string según tipo recibido
-}
+import { Categoria, ColorObj, Etiqueta, EtiquetaConColor, MiembroProyecto, RawTask, ResponsableTarea, Task, TaskUI, User } from '../../types/kanban-interfaces';
 
 
 @Component({
@@ -130,11 +34,11 @@ export class Board implements OnInit {
   proyectoIdActual: string = '';
   rolUsuario: string = '';
   proyectoActual: any = null;
-  public selectedTask: Task | null = null;
+  public selectedTask: TaskUI | null = null;
   public isDetailPanelHidden: boolean = true;
   public selectedTaskEstadoNombre: string | null = null;
 
-  showTaskDetails(task: Task, categoria: Categoria) {
+  showTaskDetails(task: TaskUI, categoria: Categoria) {
     this.selectedTask = task;
     this.selectedTaskEstadoNombre = categoria.nombre;
     this.isDetailPanelHidden = false;
@@ -159,7 +63,7 @@ export class Board implements OnInit {
 
   CategoriasK: Categoria[] = [];
   miembrosDelProyecto: ResponsableTarea[] = [];
-  colores: ColorType[] = [];
+  colores: ColorObj[] = [];
 
   etiquetasUnicas: Etiqueta[] = [];
 
@@ -394,6 +298,10 @@ export class Board implements OnInit {
               bloquesContenido: Array.isArray(t.bloquesContenido) ? t.bloquesContenido : [],
               title: t.titulo ?? '',
               dueDate: t.fechaLimite ?? '',
+              etiquetaIds: (t as Task).etiquetaIds,
+              lastModifiedAt: (t as Task).lastModifiedAt,
+              lastModifiedBy: (t as Task).lastModifiedBy,
+              editores: (t as Task).editores,
             };
             categoria.tasks.push(task);
           }
@@ -926,6 +834,10 @@ export class Board implements OnInit {
           bloquesContenido: tareaNueva.bloquesContenido ?? [],
           title: tareaNueva.titulo ?? '',
           dueDate: tareaNueva.fechaLimite ?? '',
+          etiquetaIds: (tareaNueva as any).etiquetaIds,
+          lastModifiedAt: (tareaNueva as any).lastModifiedAt,
+          lastModifiedBy: (tareaNueva as any).lastModifiedBy,
+          editores: (tareaNueva as any).editores,
         };
 
         this.zone.run(() => {
@@ -1430,7 +1342,7 @@ export class Board implements OnInit {
   }
 
 
-  cambiarColorColumna(id: string, color: ColorType): void {
+  cambiarColorColumna(id: string, color: ColorObj): void {
     if (!this.puedeCambiarColores()) {
       alert('No tienes permisos para cambiar colores de columnas');
       return;
@@ -1737,7 +1649,7 @@ export class Board implements OnInit {
       etiquetas: Array.isArray(raw.etiquetas) ? raw.etiquetas : [],
       etiquetaIds: Array.isArray(raw.etiquetas)
         ? raw.etiquetas.map(e => typeof e === 'number' ? e : (e.etiquetaId ?? e.id)).filter(id => typeof id === 'number')
-        : []
+        : [],
     };
   }
   extractResponsableIds(t: RawTask | Task | null | undefined): string[] {
@@ -2020,5 +1932,52 @@ export class Board implements OnInit {
   getTodasLasTareas(): any[] {
     if (!this.CategoriasK) return [];
     return this.CategoriasK.flatMap(categoria => categoria.tasks || []);
+  }
+
+
+  onTaskUpdated(updatedTask: Task): void {
+    
+    // 1. Actualizar el selectedTask localmente (para el panel lateral)
+    if (this.selectedTask && this.selectedTask.id === updatedTask.id) {
+        const oldSelectedTask = this.selectedTask; 
+        this.selectedTask = {
+            ...oldSelectedTask, // Preserva campos existentes (incluyendo assignee)
+            ...updatedTask,     // Sobrescribe trazabilidad y otros campos de la respuesta
+            
+            assignee: oldSelectedTask.assignee, 
+            
+        } as Task;
+    }
+
+    // 2. Buscar y FUSIONAR la tarea en la fuente de verdad (this.CategoriasK)
+    let taskUpdated = false;
+    for (const categoria of this.CategoriasK) {
+        const index = categoria.tasks.findIndex(t => t.id === updatedTask.id);
+        
+        if (index !== -1) {
+            
+            const oldTask = categoria.tasks[index];
+            
+            categoria.tasks[index] = {
+                ...oldTask, // Mantiene todas las propiedades antiguas (etiquetas, responsables)
+                ...updatedTask, 
+                
+                titulo: updatedTask.titulo ?? oldTask.titulo,
+                fechaLimite: updatedTask.fechaLimite ?? oldTask.fechaLimite,
+                assignee: oldTask.assignee,
+                
+            } as Task; // Aseguramos el tipo completo
+
+            // Forzar la actualización
+            categoria.tasks = [...categoria.tasks]; 
+
+            taskUpdated = true;
+            break; 
+        }
+    }
+
+    if (taskUpdated) {
+        this.cdr.detectChanges();
+    }
   }
 }

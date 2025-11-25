@@ -15,7 +15,7 @@
   </div>
 
   <div class="flex flex-col gap-2">
-    <h2 class="text-gray-400 font-medium uppercase tracking-wider text-xs">Editores de Contenido</h2>
+    <h2 class="text-gray-400 font-medium uppercase tracking-wider text-xs">Modificado por</h2>
     @if (task.editores && task.editores.length) {
       <div class="flex items-center -space-x-2">
         @for (editor of task.editores; track editor.usuario.id) {

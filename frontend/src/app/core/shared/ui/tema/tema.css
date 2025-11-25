@@ -1,0 +1,239 @@
+.theme-toggle {
+  /* Variables CSS para theming */
+  --toggle-bg-light: #ffffff;
+  --toggle-bg-dark: #1a202c;
+  --toggle-text-light: #2d3748;
+  --toggle-text-dark: #f7fafc;
+  --toggle-border-light: #e2e8f0;
+  --toggle-border-dark: #4a5568;
+  --toggle-shadow-light: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --toggle-shadow-dark: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --toggle-sun-color: #f6ad55;
+  --toggle-moon-color: #e2e8f0;
+  
+  /* Estilos base */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.25rem;
+  border: 2px solid;
+  border-radius: 0.75rem;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  min-width: 140px;
+  
+  /* Estados de interacción */
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
+  
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.5);
+  }
+  
+  /* Estados de tema */
+  &.theme-toggle--light {
+    background-color: var(--toggle-bg-light);
+    color: var(--toggle-text-light);
+    border-color: var(--toggle-border-light);
+    box-shadow: var(--toggle-shadow-light);
+  }
+  
+  &.theme-toggle--dark {
+    background-color: var(--toggle-bg-dark);
+    color: var(--toggle-text-dark);
+    border-color: var(--toggle-border-dark);
+    box-shadow: var(--toggle-shadow-dark);
+  }
+  
+  /* Estado de animación */
+  &.theme-toggle--animating {
+    animation: themeTogglePulse 0.3s ease-in-out;
+  }
+}
+
+/* Contenedor del icono SVG */
+.theme-toggle__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  transition: all 0.3s ease;
+  
+  .theme-toggle:hover & {
+    transform: scale(1.1);
+  }
+  
+  .theme-toggle--animating & {
+    animation: iconSpin 0.6s ease-in-out;
+  }
+}
+
+/* Estilos específicos para el sol */
+.theme-toggle__sun {
+  color: var(--toggle-sun-color);
+  
+  .theme-toggle--light & {
+    animation: sunGlow 2s ease-in-out infinite alternate;
+  }
+}
+
+/* Estilos específicos para la luna */
+.theme-toggle__moon {
+  color: var(--toggle-moon-color);
+  
+  .theme-toggle--dark & {
+    animation: moonGlow 2s ease-in-out infinite alternate;
+  }
+}
+
+/* Texto del botón */
+.theme-toggle__text {
+  font-weight: 600;
+  letter-spacing: 0.025em;
+  transition: opacity 0.2s ease;
+}
+
+/* Efecto de onda al hacer clic */
+.theme-toggle::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+  transform: translate(-50%, -50%);
+  transition: width 0.4s ease, height 0.4s ease;
+}
+
+.theme-toggle:active::before {
+  width: 120px;
+  height: 120px;
+}
+
+/* Animaciones mejoradas */
+@keyframes themeTogglePulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes iconSpin {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    transform: rotate(180deg) scale(1.2);
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+  }
+}
+
+@keyframes sunGlow {
+  0% {
+    filter: drop-shadow(0 0 2px rgba(246, 173, 85, 0.5));
+  }
+  100% {
+    filter: drop-shadow(0 0 6px rgba(246, 173, 85, 0.8));
+  }
+}
+
+@keyframes moonGlow {
+  0% {
+    filter: drop-shadow(0 0 2px rgba(226, 232, 240, 0.5));
+  }
+  100% {
+    filter: drop-shadow(0 0 6px rgba(226, 232, 240, 0.8));
+  }
+}
+
+/* Gradientes sutiles para los iconos */
+.theme-toggle--light .theme-toggle__sun {
+  background: linear-gradient(135deg, #f6ad55 0%, #ed8936 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.theme-toggle--dark .theme-toggle__moon {
+  background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .theme-toggle {
+    padding: 0.625rem 1rem;
+    font-size: 0.8125rem;
+    min-width: 120px;
+    gap: 0.5rem;
+  }
+  
+  .theme-toggle__icon {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+/* Modo de alto contraste para accesibilidad */
+@media (prefers-contrast: high) {
+  .theme-toggle {
+    border-width: 3px;
+  }
+  
+  .theme-toggle--light {
+    border-color: #000000;
+  }
+  
+  .theme-toggle--dark {
+    border-color: #ffffff;
+  }
+  
+  .theme-toggle__sun,
+  .theme-toggle__moon {
+    filter: none !important;
+  }
+}
+
+/* Reduce motion para usuarios que lo prefieren */
+@media (prefers-reduced-motion: reduce) {
+  .theme-toggle,
+  .theme-toggle__icon,
+  .theme-toggle::before {
+    transition: none;
+    animation: none;
+  }
+  
+  .theme-toggle:hover {
+    transform: none;
+  }
+  
+  .theme-toggle__sun,
+  .theme-toggle__moon {
+    animation: none !important;
+  }
+}

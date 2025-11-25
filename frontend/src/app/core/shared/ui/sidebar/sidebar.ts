@@ -1,15 +1,16 @@
-import { Component, Inject, PLATFORM_ID } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, Inject, PLATFORM_ID, inject } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { AuthService } from '../../../services/auth-service';
 import { Router } from '@angular/router';
-import { isPlatformBrowser } from '@angular/common';
+import { AuthService } from '../../../services/auth-service';
 import { ProyectoGuard } from '../../../../guards/proyecto.guard';
+import { TemaService } from '../../../services/tema.service';
+import { TemaComponent } from '../tema/tema';
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TemaComponent],
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.css'
 })
@@ -25,7 +26,13 @@ export class Sidebar {
   sidebarDesktopOpen = true;
   sidebarMobileOpen = false;
   sidebarMobileVisible = false;
+  
+  // Nueva propiedad para controlar el despliegue de Ajustes
+  ajustesAbierto = false;
+  
   private isBrowser: boolean;
+  private temaService = inject(TemaService);
+  isDark = this.temaService.isDark;
 
   constructor(
     private authService: AuthService,
@@ -34,7 +41,6 @@ export class Sidebar {
     @Inject(PLATFORM_ID) platformId: Object
   ) {
     this.isBrowser = isPlatformBrowser(platformId);
-    // Establecer el item activo basado en la ruta actual
     this.setActiveItemFromRoute();
   }
 
@@ -49,11 +55,41 @@ export class Sidebar {
     } else if (currentRoute.includes('/miembros')) {
       this.activeItem = 'compartidos';
     }
-
   }
 
+  // Método para toggle del menú desplegable de Ajustes
   toggleAjustes() {
-//Opciones o logica para la opcion de ajustes
+    this.ajustesAbierto = !this.ajustesAbierto;
+  }
+
+  // Método para seleccionar items del menú
+  selectItem(label: string) {
+    if (label === 'Ajustes') {
+      this.toggleAjustes();
+      return;
+    }
+    
+    this.activeItem = label;
+    this.ajustesAbierto = false; // Cerrar ajustes al seleccionar otro item
+
+    switch(label) {
+      case 'Dashboard':
+        break;
+      case 'Mis Proyectos':
+        this.router.navigate(['/proyectos']);
+        break;
+      case 'compartidos':
+        this.router.navigate(['/miembros']);
+        break;
+      case 'Home':
+        this.router.navigate(['/Menu']);
+        break;
+    }
+  }
+
+  selectItemMobile(label: string) {
+    this.selectItem(label);
+    this.closeSidebarMobile();
   }
 
   openSidebarMobile() {
@@ -73,56 +109,14 @@ export class Sidebar {
     }
   }
 
-  selectItemMobile(label: string) {
-    this.selectItem(label);
-    this.closeSidebarMobile();
-  }
-
-  selectItem(label: string) {
-    this.activeItem = label;
-
-    // Navegación según el item seleccionado
-    switch(label) {
-      case 'Dashboard':
-        break;
-      case 'Mis Proyectos':
-        this.router.navigate(['/proyectos']);
-        break;
-      case 'compartidos':
-        this.router.navigate(['/miembros']);
-        break;
-      case 'Home':
-        this.router.navigate(['/Menu']);
-        break;
-      case 'Equipo':
-        // this.router.navigate(['/equipo']);
-        break;
-      case 'Recientes':
-        // this.router.navigate(['/recientes']);
-        break;
-      case 'Calendario':
-        // this.router.navigate(['/calendario']);
-        break;
-      case 'Ajustes':
-        // this.router.navigate(['/ajustes']);
-        break;
-    }
-  }
-
   logout() {
     if (this.isBrowser) {
-      // LIMPIAR EL PROYECTO ACTUAL ANTES DE HACER LOGOUT
       this.proyectoGuard.clearProyectoActual();
-
-      // Limpia todo el localStorage (token y userData)
       this.authService.logout();
-
-      // Redirige al login
       this.router.navigate(['/login']);
     }
   }
 
-  // Método para obtener el nombre del usuario actual (opcional)
   getCurrentUserName(): string {
     if (this.isBrowser) {
       const userData = localStorage.getItem('userData');
@@ -138,12 +132,10 @@ export class Sidebar {
     return 'Usuario';
   }
 
-  // Método para verificar si hay usuario logueado (opcional)
   isUserLoggedIn(): boolean {
     return this.isBrowser && !!localStorage.getItem('authToken');
   }
 
-  // Método para obtener el SVG del icono
   getIconSvg(iconName: string): string {
     const icons: { [key: string]: string } = {
       dashboard: `

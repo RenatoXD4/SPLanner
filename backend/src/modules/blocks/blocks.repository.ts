@@ -59,13 +59,6 @@ export class BlocksRepository {
           lastModifiedBy: {
             select: { apellido: true, id: true, nombre: true }
           },
-          responsables: { 
-            include: { 
-                usuario: { 
-                    select: { apellido: true, id: true, nombre: true } 
-                }
-            } 
-          },
         },
         
         where: { id: tareaId }

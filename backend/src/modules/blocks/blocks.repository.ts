@@ -34,7 +34,7 @@ export class BlocksRepository {
           tareaId: tareaId,
           usuarioId: usuarioId,
         },
-        update: {}, // No necesitamos actualizar nada, solo asegurarnos de que exista
+        update: {},
         where: {
           tareaId_usuarioId: { 
             tareaId: tareaId,

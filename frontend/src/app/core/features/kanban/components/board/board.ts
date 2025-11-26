@@ -1798,8 +1798,24 @@ export class Board implements OnInit {
         if (categoria) {
           const idx = categoria.tasks.findIndex(t => t.id === tareaActualizada.id);
           if (idx !== -1) {
-            categoria.tasks[idx] = tareaActualizada; // tareaActualizada es TaskUI con etiquetas y etiquetaIds
-            categoria.tasks = [...categoria.tasks];  // Para disparar change detection
+            const oldTask = categoria.tasks[idx];
+            const mergedTask: Task = {
+                    ...oldTask,          // Trae todos los datos que ya teníamos (incluyendo trazabilidad)
+                    ...tareaActualizada, // Sobrescribe con los nuevos datos (título, fecha, y las relaciones reconstruidas)
+                    
+                    lastModifiedAt: tareaActualizada.lastModifiedAt ?? oldTask.lastModifiedAt,
+                    lastModifiedBy: tareaActualizada.lastModifiedBy ?? oldTask.lastModifiedBy,
+                    editores: tareaActualizada.editores ?? oldTask.editores
+                    
+                }; // Para disparar change detection
+
+            categoria.tasks[idx] = mergedTask;
+
+            if (this.selectedTask && this.selectedTask.id === mergedTask.id) {
+                    this.selectedTask = mergedTask;
+                }
+
+             categoria.tasks = [...categoria.tasks];
           }
         }
         this.cerrarModalEditarTarea();
@@ -1945,11 +1961,14 @@ export class Board implements OnInit {
             ...updatedTask,     // Sobrescribe trazabilidad y otros campos de la respuesta
             
             assignee: oldSelectedTask.assignee, 
+            lastModifiedAt: updatedTask.lastModifiedAt ?? oldSelectedTask.lastModifiedAt,
+            lastModifiedBy: updatedTask.lastModifiedBy ?? oldSelectedTask.lastModifiedBy,
+            editores: updatedTask.editores ?? oldSelectedTask.editores,
             
         } as Task;
     }
 
-    // 2. Buscar y FUSIONAR la tarea en la fuente de verdad (this.CategoriasK)
+    //Buscar y FUSIONAR la tarea en la fuente de verdad (this.CategoriasK)
     let taskUpdated = false;
     for (const categoria of this.CategoriasK) {
         const index = categoria.tasks.findIndex(t => t.id === updatedTask.id);
@@ -1965,6 +1984,9 @@ export class Board implements OnInit {
                 titulo: updatedTask.titulo ?? oldTask.titulo,
                 fechaLimite: updatedTask.fechaLimite ?? oldTask.fechaLimite,
                 assignee: oldTask.assignee,
+                lastModifiedAt: updatedTask.lastModifiedAt ?? oldTask.lastModifiedAt,
+                lastModifiedBy: updatedTask.lastModifiedBy ?? oldTask.lastModifiedBy,
+                editores: updatedTask.editores ?? oldTask.editores,
                 
             } as Task; // Aseguramos el tipo completo
 

@@ -1,7 +1,7 @@
 <div class="min-h-screen text-white flex w-full"
   style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%); min-width: fit-content;">
   <app-sidebar></app-sidebar>
-  <app-task-detail [task]="selectedTask" [isHidden]="isDetailPanelHidden" [estadoNombre]="selectedTaskEstadoNombre"
+  <app-task-detail [task]="selectedTask" (taskUpdated)="onTaskUpdated($event)" [isHidden]="isDetailPanelHidden" [estadoNombre]="selectedTaskEstadoNombre"
     (closePanel)="hideTaskDetails()" [rolMiembro]="rolUsuario">
   </app-task-detail>
 

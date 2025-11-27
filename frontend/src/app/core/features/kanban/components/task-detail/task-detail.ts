@@ -3,17 +3,19 @@
 // 1. Asegúrate de tener estas importaciones
 import { AfterViewInit, Component, OnDestroy, Inject, PLATFORM_ID, Output, Input, EventEmitter, SimpleChanges, OnChanges, inject, ViewChild, ViewContainerRef, TemplateRef, ChangeDetectorRef } from '@angular/core';
 import { DatePipe, isPlatformBrowser } from '@angular/common';
-import { Task } from '../../services/kanban-service';
 import type EditorJS from '@editorjs/editorjs';
 import { BlockService } from '../../services/block-service';
 import { EditorJSOutputData } from '../../types/block-interfaces';
 import { firstValueFrom } from 'rxjs';
 import { AiService } from '../../services/aiservice';
 import { AiPromptTool } from './ai-prompt-tool';
+import { Traceability } from '../traceability/traceability';
+import { AuthService } from '../../../../services/auth-service';
+import { Task, TaskUI } from '../../types/kanban-interfaces';
 
 @Component({
   selector: 'app-task-detail',
-  imports: [DatePipe],
+  imports: [DatePipe, Traceability],
   standalone: true,
   templateUrl: './task-detail.html',
   styleUrl: './task-detail.css'
@@ -21,17 +23,19 @@ import { AiPromptTool } from './ai-prompt-tool';
 export class TaskDetail implements AfterViewInit, OnDestroy, OnChanges {
   
   private editor!: EditorJS | undefined;
-  @Input() task: Task | null = null;
+  @Input() task: TaskUI | null = null;
   @Input() isHidden: boolean = true;
   @Output() closePanel = new EventEmitter<void>();
   private aiService = inject(AiService)
   private blockService = inject(BlockService)
   private isEditorReady = false;
   private cdr = inject(ChangeDetectorRef);
+  private usuarioService =  inject(AuthService)
   @Input() estadoNombre: string | null = null;
   @Input() rolMiembro: string | null = null;
   @ViewChild('mensajeContainer', { read: ViewContainerRef }) mensajeContainer!: ViewContainerRef;
   @ViewChild('mensajeTemplate', { read: TemplateRef }) mensajeTemplate!: TemplateRef<any>;
+  @Output() taskUpdated = new EventEmitter<Task>();
   
   constructor(@Inject(PLATFORM_ID) private platformId: Object) {}
   
@@ -224,15 +228,21 @@ export class TaskDetail implements AfterViewInit, OnDestroy, OnChanges {
       console.error('Editor no inicializado o no hay tarea seleccionada');
       return;
     }
+
+    const usuarioId = this.usuarioService.getCurrentUserId()
     
     try {
       const outputData = await this.editor.save();
       
-      this.blockService.actualizarBloquesDeTarea(this.task.id, outputData as any)
+      this.blockService.actualizarBloquesDeTarea(this.task.id, outputData as any, usuarioId ?? "")
         .subscribe({
           next: (respuesta) => {
             this.mostrarMensaje("Cambios guardados exitosamente")
             console.log('Bloques guardados exitosamente:', respuesta);
+            this.task = respuesta;
+
+            this.taskUpdated.emit(respuesta);
+            this.cdr.detectChanges();
           },
           error: (err) => {
             console.error('Error al guardar los bloques:', err);

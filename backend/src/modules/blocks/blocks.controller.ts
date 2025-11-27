@@ -9,7 +9,7 @@ export class BlocksController {
 
   public handleActualizarBloques = async (req: Request, res: Response): Promise<void> => {
     try {
-      const { tareaId } = req.params;
+      const { tareaId, usuarioId } = req.params;
       
       const outputData = req.body as EditorJSOutputData; 
 
@@ -21,7 +21,7 @@ export class BlocksController {
         return;
       }
 
-      const bloquesActualizados = await this.bloquesService.actualizarBloques(tareaId, outputData);
+      const bloquesActualizados = await this.bloquesService.actualizarBloques(tareaId, outputData, usuarioId);
       res.status(200).json(bloquesActualizados);
 
     } catch (error) {

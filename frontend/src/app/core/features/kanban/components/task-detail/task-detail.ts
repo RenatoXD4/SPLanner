@@ -52,15 +52,6 @@ export class TaskDetail implements AfterViewInit, OnDestroy, OnChanges {
     }
   }
 
-  mostrarMensaje(msg: string): void {
-    const view = this.mensajeContainer.createEmbeddedView(this.mensajeTemplate, { $implicit: msg });
-    setTimeout(() => {
-      view.destroy();
-      this.cdr.detectChanges();
-    }, 3000);
-    this.cdr.detectChanges();
-  }
-
   rolMiembroVerificar(): boolean {
     return this.rolMiembro === 'Administrador' || this.rolMiembro === 'Editor';
   }

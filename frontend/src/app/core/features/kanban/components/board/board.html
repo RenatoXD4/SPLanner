@@ -89,8 +89,8 @@
         [isOpen]="calendarioAbierto" (isOpenChange)="calendarioAbierto = $event">
       </app-calendario>
 
-      <!-- Botón de Acciones--->
-      @if (puedeEditar() || puedeCrearColumnas() || puedeGestionarEtiquetas()) {
+      <!-- Botón de Acciones CORREGIDO - Posicionado correctamente -->
+      @if (puedeCrearColumnas() || puedeGestionarEtiquetas()) {
       <div class="relative inline-block text-left ml-auto">
         <button (click)="toggleMenu($event)"
           [class]="menuVisible ?

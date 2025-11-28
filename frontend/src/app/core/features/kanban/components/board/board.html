@@ -1,8 +1,8 @@
 <div class="min-h-screen text-white flex w-full"
   style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%); min-width: fit-content;">
   <app-sidebar></app-sidebar>
-  <app-task-detail [task]="selectedTask" (taskUpdated)="onTaskUpdated($event)" [isHidden]="isDetailPanelHidden" [estadoNombre]="selectedTaskEstadoNombre"
-    (closePanel)="hideTaskDetails()" [rolMiembro]="rolUsuario">
+  <app-task-detail [task]="selectedTask" (taskUpdated)="onTaskUpdated($event)" [isHidden]="isDetailPanelHidden"
+    [estadoNombre]="selectedTaskEstadoNombre" (closePanel)="hideTaskDetails()" [rolMiembro]="rolUsuario">
   </app-task-detail>
 
   <!-- CONTENIDO PRINCIPAL -->
@@ -75,7 +75,7 @@
       </button>
       }
 
-      <!-- Botón Google Calendar - MEJORADO -->
+      <!-- Botón Google Calendar --->
       <button (click)="abrirCalendario()"
         class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-3 rounded-xl flex items-center gap-3 transition-all duration-300 border border-gray-600 hover:border-gray-500 group relative overflow-hidden">
         <div class="absolute inset-0 bg-green-600 opacity-0 group-hover:opacity-5 transition-opacity duration-300">
@@ -133,7 +133,7 @@
           }
         </button>
 
-        <!-- Menú desplegable MEJORADO con más contraste -->
+        <!-- Menú desplegable con más contraste -->
         @if (menuVisible) {
         <div
           class="absolute right-0 mt-2 w-72 rounded-xl shadow-2xl bg-gradient-to-b from-gray-800 to-gray-900 border border-gray-600 backdrop-blur-lg z-50 transform transition-all duration-300 scale-95 hover:scale-100"

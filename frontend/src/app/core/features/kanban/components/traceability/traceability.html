@@ -7,7 +7,7 @@
     
     @if (task.lastModifiedAt && task.lastModifiedBy) {
       <span class="text-white">
-        <b class="hidden sm:inline font-medium text-gray-400">Último cambio: </b> 
+        <b class="hidden sm:inline font-medium text-white">Último cambio: </b> 
         
         <span class="text-gray-300">
           {{ task.lastModifiedAt | date:'dd MMM yyyy, HH:mm' : '' : 'es-CL' }}
@@ -30,7 +30,7 @@
     <div class="hidden sm:block h-4 w-px bg-gray-600 mx-1"></div>
     
     <div class="flex items-center gap-2">
-       <span class="hidden md:inline text-[10px] uppercase text-gray-500">Editores:</span>
+       <span class="hidden md:inline text-[10.5px] uppercase text-white font-medium">Modificado por:</span>
 
        <div class="flex items-center -space-x-1.5">
         @for (editor of task.editores; track editor.usuario.id) {

@@ -293,10 +293,10 @@ export class TaskDetail implements AfterViewInit, OnDestroy, OnChanges {
       this.blockService.actualizarBloquesDeTarea(this.task.id, outputData as any, usuarioId ?? "")
         .subscribe({
           next: (respuesta) => {
-            // SEGURIDAD FINAL: Si el usuario escribió mientras esperábamos al backend
+            //Si el usuario escribió mientras esperábamos al backend
             if (this.saveTimer) return;
 
-            // TODO OK -> MOSTRAR VERDE
+            // Mostrar si se guardó exitosamente
             this.isSaving = false;
             this.showSuccess = true;
             this.cdr.detectChanges(); // <--- Pintar Verde

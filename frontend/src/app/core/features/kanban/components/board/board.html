@@ -90,7 +90,7 @@
       </app-calendario>
 
       <!-- Botón de Acciones CORREGIDO - Posicionado correctamente -->
-      @if (puedeEditar() || puedeCrearColumnas() || puedeGestionarEtiquetas()) {
+      @if (puedeCrearColumnas() || puedeGestionarEtiquetas()) {
       <div class="relative inline-block text-left ml-auto">
         <button (click)="toggleMenu($event)"
           [class]="menuVisible ?

@@ -149,6 +149,7 @@ enum TipoDeBloque {
   CHECKLIST
   IMAGE
   CODE
+  LINKTOOL
 
   @@schema("public")
 }

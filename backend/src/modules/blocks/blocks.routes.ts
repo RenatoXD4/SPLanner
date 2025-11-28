@@ -11,13 +11,18 @@ const bloquesController = new BlocksController(blockSer);
 
 blocksRouter.put(
   '/:tareaId/blocks/:usuarioId', 
-  bloquesController.handleActualizarBloques.bind(bloquesController)
+  bloquesController.handleActualizarBloques
 );
 
 blocksRouter.get(
   '/:tareaId/blocks',
-  bloquesController.handleObtenerBloques.bind(bloquesController) 
+  bloquesController.handleObtenerBloques
 );
+
+blocksRouter.get(
+  '/fetchUrl', 
+  bloquesController.fetchUrlData
+)
 
 
 export default blocksRouter;

@@ -80,6 +80,8 @@ function mapEditorJsTipoAEnum(
       return "HEADING_2";
     case "image":
       return "IMAGE";
+    case "linkTool":
+      return "LINKTOOL";
     case "list":
       // ¡IMPORTANTE! Tu enum tiene CHECKLIST pero tu frontend usa 'List'.
       // Asumiré que 'list' se mapea a 'CHECKLIST'.
@@ -105,6 +107,8 @@ function mapEnumAEditorJsTipo(tipo: TipoDeBloque): string {
       return 'header'; 
     case 'IMAGE':
       return 'image';
+    case 'LINKTOOL':
+      return 'linkTool';
     case 'PARAGRAPH':
       return 'paragraph';
     default:

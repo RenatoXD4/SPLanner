@@ -41,6 +41,85 @@ h6.ce-header{
   @apply text-base font-semibold
 }
 
+/* La tarjeta contenedora */
+.codex-editor .link-tool__content {
+  @apply 
+    /* Base (Light Mode) */
+    bg-white border border-gray-200 shadow-sm text-gray-800
+    /* Dark Mode */
+    dark:bg-slate-800 dark:border-gray-700 dark:text-white
+    /* Común */
+    rounded-xl transition-all duration-300;
+
+  /* Overrides necesarios para el plugin */
+  padding: 16px !important;
+  box-shadow: none !important; 
+}
+
+/* Efecto Hover */
+.codex-editor .link-tool__content:hover {
+  @apply 
+    /* Light Hover */
+    bg-gray-50 border-blue-400/50 shadow-md
+    /* Dark Hover */
+    dark:bg-slate-700/80 dark:border-blue-500/50
+    /* Animación */
+    transform scale-[1.01];
+}
+
+/* La imagen */
+.codex-editor .link-tool__image {
+  @apply 
+    rounded-lg mr-4 bg-cover bg-center 
+    bg-gray-100 dark:bg-slate-900; /* Fondo por si la imagen es transparente */
+  min-width: 65px;
+}
+
+/* El título */
+.codex-editor .link-tool__title {
+  @apply 
+    font-bold text-base mb-1 leading-snug
+    text-gray-900 dark:text-white;
+}
+
+/* La descripción */
+.codex-editor .link-tool__description {
+  @apply 
+    text-sm leading-relaxed line-clamp-2
+    text-gray-600 dark:text-gray-400;
+
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* El enlace (URL) */
+.codex-editor .link-tool__anchor {
+  @apply 
+    text-xs mt-2 block break-all font-mono opacity-90
+    text-blue-600 dark:text-blue-400;
+  
+  border-bottom: none !important;
+}
+
+/* Barra de progreso */
+.codex-editor .link-tool__progress {
+  @apply 
+    h-0.5 absolute bottom-0 left-0 transition-all rounded-b-xl
+    bg-blue-600 dark:bg-blue-500;
+}
+
+/* Ajuste Móvil */
+@media (max-width: 640px) {
+  .codex-editor .link-tool__content {
+    flex-direction: column-reverse;
+  }
+  .codex-editor .link-tool__image {
+    @apply w-full mb-3 mr-0 h-32;
+  }
+}
+
 /*
         FRAMEWORK Daisy
 

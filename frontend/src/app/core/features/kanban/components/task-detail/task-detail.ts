@@ -12,6 +12,7 @@ import { AiPromptTool } from './ai-prompt-tool';
 import { Traceability } from '../traceability/traceability';
 import { AuthService } from '../../../../services/auth-service';
 import { Task, TaskUI } from '../../types/kanban-interfaces';
+import { environment } from '../../../../../../Environments/environment';
 
 @Component({
   selector: 'app-task-detail',
@@ -22,6 +23,7 @@ import { Task, TaskUI } from '../../types/kanban-interfaces';
 })
 export class TaskDetail implements AfterViewInit, OnDestroy, OnChanges {
   
+  private apiUrl = `${environment.apiUrl}/blocks/fetchUrl`;
   private editor!: EditorJS | undefined;
   @Input() task: TaskUI | null = null;
   @Input() isHidden: boolean = true;
@@ -145,6 +147,9 @@ export class TaskDetail implements AfterViewInit, OnDestroy, OnChanges {
     const EditorJS = (await import('@editorjs/editorjs')).default;
     const Header = (await import('@editorjs/header')).default; 
     const List = (await import('@editorjs/list')).default;
+    const Undo = (await import('editorjs-undo')).default;
+    const DragDrop = (await import('editorjs-drag-drop')).default;
+    const LinkTool = (await import('@editorjs/link')).default;
     const aiServiceInstance = this.aiService;
 
     this.editor = new EditorJS({
@@ -169,6 +174,13 @@ export class TaskDetail implements AfterViewInit, OnDestroy, OnChanges {
           },
           toolbox: {
             title: "Lista"
+          }
+        },
+        linkTool: {
+          class: LinkTool,
+          config: {
+            //Este es el endpoint del backend de donde obtiene la url
+            endpoint: this.apiUrl, 
           }
         },
         aiPrompt: {
@@ -219,11 +231,24 @@ export class TaskDetail implements AfterViewInit, OnDestroy, OnChanges {
           }
         }
       },
+      sanitizer: {
+        p: true,
+        b: true,
+        i: true,
+        a: {
+          href: true
+        },
+        ul: true,
+        ol: true,
+        li: true
+      },
       readOnly: !this.rolMiembroVerificar(),
       data: datosParaCargar,
       placeholder: this.rolMiembroVerificar() ? 'Empieza escribiendo aquí' : "",
       onReady: () => {
         this.isEditorReady = true;
+        const undo = new Undo({ editor: this.editor });
+        const dragDrop = new DragDrop(this.editor);
       },
       onChange: async () => {
          this.zone.run(() => {

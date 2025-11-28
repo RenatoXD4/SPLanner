@@ -1,7 +1,7 @@
 // task-detail.ts
 
 // 1. Asegúrate de tener estas importaciones
-import { AfterViewInit, Component, OnDestroy, Inject, PLATFORM_ID, Output, Input, EventEmitter, SimpleChanges, OnChanges, inject, ViewChild, ViewContainerRef, TemplateRef, ChangeDetectorRef } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, Inject, PLATFORM_ID, Output, Input, EventEmitter, SimpleChanges, OnChanges, inject, ViewChild, ViewContainerRef, TemplateRef, ChangeDetectorRef, NgZone } from '@angular/core';
 import { DatePipe, isPlatformBrowser } from '@angular/common';
 import type EditorJS from '@editorjs/editorjs';
 import { BlockService } from '../../services/block-service';
@@ -28,6 +28,7 @@ export class TaskDetail implements AfterViewInit, OnDestroy, OnChanges {
   @Output() closePanel = new EventEmitter<void>();
   private aiService = inject(AiService)
   private blockService = inject(BlockService)
+  private zone = inject(NgZone)
   private isEditorReady = false;
   private cdr = inject(ChangeDetectorRef);
   private usuarioService =  inject(AuthService)
@@ -36,6 +37,12 @@ export class TaskDetail implements AfterViewInit, OnDestroy, OnChanges {
   @ViewChild('mensajeContainer', { read: ViewContainerRef }) mensajeContainer!: ViewContainerRef;
   @ViewChild('mensajeTemplate', { read: TemplateRef }) mensajeTemplate!: TemplateRef<any>;
   @Output() taskUpdated = new EventEmitter<Task>();
+  private saveTimer: any; // Para el debounce
+  private resetTimer: any;
+
+  public isPending: boolean = false; // El usuario está escribiendo / debounce activo
+  public isSaving: boolean = false;  // Enviando datos al servidor
+  public showSuccess: boolean = false; // Mostrar mensaje verde
   
   constructor(@Inject(PLATFORM_ID) private platformId: Object) {}
   
@@ -43,15 +50,6 @@ export class TaskDetail implements AfterViewInit, OnDestroy, OnChanges {
     if (isPlatformBrowser(this.platformId) && !this.isHidden && !this.editor) {
       this.initEditor();
     }
-  }
-
-  mostrarMensaje(msg: string): void {
-    const view = this.mensajeContainer.createEmbeddedView(this.mensajeTemplate, { $implicit: msg });
-    setTimeout(() => {
-      view.destroy();
-      this.cdr.detectChanges();
-    }, 3000);
-    this.cdr.detectChanges();
   }
 
   rolMiembroVerificar(): boolean {
@@ -71,15 +69,24 @@ export class TaskDetail implements AfterViewInit, OnDestroy, OnChanges {
           }
       }
 
-      if (changes['task'] && changes['task'].currentValue) {
-        // Sincronizar la variable local
-        this.cdr.detectChanges(); 
-      }
+      //Este cambio hace que el editor no se reinicie de forma brusca al hacer un cambio.
+      if (changes['task']) {
+      const prevTask = changes['task'].previousValue;
+      const currTask = changes['task'].currentValue;
 
-      if (changes['task'] && this.editor && !changes['task'].firstChange && this.isEditorReady) {
-        // Si se cambia de tarea mientras el edtiro está abierto, se tendrá que recargar el otro editor de texto.
-        this.reloadEditorData();
+      this.cdr.detectChanges(); 
+
+      // Si el ID es el mismo (significa que fue un auto-guardado), NO tocamos el editor.
+      if (this.editor && this.isEditorReady && !changes['task'].firstChange) {
+        
+        // Esto revisa si el usuario abre otro editor de texto mientras está en el actual, haciendo que se recarguen los datos.
+        if (prevTask?.id !== currTask?.id) {
+           this.reloadEditorData();
+        } else {
+           console.log('Auto-guardado: Actualizando metadatos sin recargar editor.');
+        }
       }
+    }
     }
   }
 
@@ -88,12 +95,32 @@ export class TaskDetail implements AfterViewInit, OnDestroy, OnChanges {
   }
 
   private destroyEditor(): void {
+    this.resetSaveState();
+
     if (this.editor && this.isEditorReady) {
       this.editor.destroy();
     }
 
     this.editor = undefined;
     this.isEditorReady = false;
+  }
+
+  //Función para reiniciar las variables de guardado en caso de que el usuario cierre el editor mientras se guardan cambios.
+  private resetSaveState(): void {
+  
+    if (this.saveTimer) {
+      clearTimeout(this.saveTimer);
+      this.saveTimer = null;
+    }
+    if (this.resetTimer) {
+      clearTimeout(this.resetTimer);
+      this.resetTimer = null;
+    }
+
+    this.isPending = false;
+    this.isSaving = false;
+    this.showSuccess = false;
+    
   }
 
   private async initEditor(): Promise<void> {
@@ -149,7 +176,7 @@ export class TaskDetail implements AfterViewInit, OnDestroy, OnChanges {
           config: {
             generateText: (prompt: string) => {
               return firstValueFrom(aiServiceInstance.generateText(prompt));
-            }
+            },
           }
         }
       },
@@ -197,7 +224,12 @@ export class TaskDetail implements AfterViewInit, OnDestroy, OnChanges {
       placeholder: this.rolMiembroVerificar() ? 'Empieza escribiendo aquí' : "",
       onReady: () => {
         this.isEditorReady = true;
-      }
+      },
+      onChange: async () => {
+         this.zone.run(() => {
+            this.handleTyping(); 
+         });
+       }
     });
   }
 
@@ -222,35 +254,88 @@ export class TaskDetail implements AfterViewInit, OnDestroy, OnChanges {
     }
   }
 
-
-  async saveEditorData(): Promise<void> {
-    if (!this.editor || !this.task || !this.isEditorReady) {
-      console.error('Editor no inicializado o no hay tarea seleccionada');
-      return;
+  private handleTyping(): void {
+    if (this.showSuccess) {
+      this.showSuccess = false;
+      if (this.resetTimer) clearTimeout(this.resetTimer);
     }
 
-    const usuarioId = this.usuarioService.getCurrentUserId()
-    
+    if (this.saveTimer) {
+      clearTimeout(this.saveTimer);
+    }
+
+    if (!this.isPending) {
+        this.isPending = true;
+        this.cdr.detectChanges(); 
+    }
+    this.saveTimer = setTimeout(() => {
+       this.saveEditorData();
+    }, 2000);
+  }
+
+
+  private async saveEditorData(): Promise<void> {
+    this.saveTimer = null; 
+
+    if (!this.editor || !this.task) return;
+
+    this.isPending = false; 
+    this.isSaving = true;
+    this.cdr.detectChanges();
+
+    const usuarioId = this.usuarioService.getCurrentUserId();
+
     try {
       const outputData = await this.editor.save();
       
+      if (this.saveTimer) return; 
+
       this.blockService.actualizarBloquesDeTarea(this.task.id, outputData as any, usuarioId ?? "")
         .subscribe({
           next: (respuesta) => {
-            this.mostrarMensaje("Cambios guardados exitosamente")
-            console.log('Bloques guardados exitosamente:', respuesta);
-            this.task = respuesta;
+            //Si el usuario escribió mientras esperábamos al backend
+            if (this.saveTimer) return;
 
+            // Mostrar si se guardó exitosamente
+            this.isSaving = false;
+            this.showSuccess = true;
+            this.cdr.detectChanges(); // <--- Pintar Verde
+
+            // Actualizar datos y renderizar los campos de nuevo si sucede un error.
+            if (this.task) {
+              this.task = {
+                  ...this.task,
+                  lastModifiedAt: respuesta.lastModifiedAt,
+                  lastModifiedBy: respuesta.lastModifiedBy,
+                  editores: respuesta.editores,
+                  titulo: respuesta.titulo ?? this.task.titulo,
+                  assignee: this.task.assignee, 
+                  etiquetaIds: this.task.etiquetaIds,
+                  fechaLimite: this.task.fechaLimite 
+                  
+              } as TaskUI;
+            }
             this.taskUpdated.emit(respuesta);
-            this.cdr.detectChanges();
+
+            // Programar ocultar el verde
+            this.resetTimer = setTimeout(() => {
+               // Solo ocultar si seguimos en estado éxito (no si volvió a escribir)
+               if (this.showSuccess) {
+                 this.showSuccess = false;
+                 this.cdr.detectChanges();
+               }
+            }, 2000);
           },
           error: (err) => {
-            console.error('Error al guardar los bloques:', err);
+            console.error('Error:', err);
+            this.isSaving = false;
+            this.cdr.detectChanges();
           }
         });
-
-    } catch (error) {
-      console.error('Error al obtener datos de EditorJS:', error);
+    } catch (e) {
+      console.error(e);
+      this.isSaving = false;
+      this.cdr.detectChanges();
     }
   }
   

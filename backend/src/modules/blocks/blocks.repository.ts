@@ -19,10 +19,6 @@ export class BlocksRepository {
         where: { tareaId: tareaId },
       });
 
-      if (bloquesData.length === 0) {
-        return [];
-      }
-
       if (bloquesData.length > 0) {
         await tx.bloqueContenido.createMany({
           data: bloquesData,

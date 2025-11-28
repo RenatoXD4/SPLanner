@@ -79,7 +79,7 @@ export class TaskDetail implements AfterViewInit, OnDestroy, OnChanges {
       // Si el ID es el mismo (significa que fue un auto-guardado), NO tocamos el editor.
       if (this.editor && this.isEditorReady && !changes['task'].firstChange) {
         
-        // Verificamos si realmente cambiamos de tarea
+        // Esto revisa si el usuario abre otro editor de texto mientras está en el actual, haciendo que se recarguen los datos.
         if (prevTask?.id !== currTask?.id) {
            this.reloadEditorData();
         } else {

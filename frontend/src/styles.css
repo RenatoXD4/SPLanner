@@ -11,6 +11,7 @@
 @plugin "flyonui";
 @import "flyonui/variants.css";
 @source "../node_modules/flyonui/flyonui.js";
+@plugin "daisyui";
 
 /* Import Third-party override css */
 /* @import "flyonui/src/vendor/flatpickr.css"; */
@@ -120,9 +121,221 @@ h6.ce-header{
   }
 }
 
+.codex-editor .ce-inline-toolbar {
+  @apply bg-black border border-gray-600 rounded-lg shadow-xl;
+}
+
+/* Los botones (Negrita, Itálica, Link) */
+.codex-editor .ce-inline-tool {
+  @apply 
+    text-black         /* Iconos gris claro */
+    hover:text-white      /* Al pasar el mouse: Blanco */
+    hover:bg-gray-800     /* Fondo del botón al pasar mouse: Gris oscuro */
+    transition-colors 
+}
+
+/* Botón activo (ej: cuando el texto ya es negrita) */
+.codex-editor .ce-inline-tool--active {
+  @apply text-blue-400;
+}
+
+/* EL INPUT DE "Add a link" */
+.codex-editor .ce-inline-tool-input {
+  @apply 
+    /* Texto negro y fondo blanco para máximo contraste */
+    text-gray-900 bg-white 
+    /* Bordes y espaciado */
+    rounded px-2 py-1 border border-gray-300
+    /* Tipografía */
+    font-medium text-sm;
+    
+  /* Aseguramos que el placeholder también sea legible */
+  &::placeholder {
+    @apply text-gray-400;
+  }
+}
+
 /*
         FRAMEWORK Daisy
 
 */
 
-@plugin "daisyui";
+/* --- CONTENEDOR PRINCIPAL --- */
+.codex-editor {
+  @apply font-sans px-1;
+}
+
+/* --- TEXTOS Y PÁRRAFOS --- */
+.ce-paragraph {
+  @apply text-base leading-relaxed text-white;
+}
+
+/* Enlaces dentro del texto */
+.ce-paragraph a {
+  @apply text-blue-400 font-medium underline decoration-blue-400/40 
+         transition-all duration-200 rounded-sm;
+}
+
+.ce-paragraph a:hover {
+  @apply text-blue-300 decoration-blue-300 bg-blue-400/10;
+}
+
+/* Placeholder (Texto de ayuda) */
+.codex-editor [data-placeholder-active]:empty:before,
+.codex-editor [data-placeholder-active][data-empty=true]:before {
+  @apply text-gray-500 font-normal pointer-events-none;
+}
+
+/* --- HEADERS --- */
+.ce-block__content .ce-header {
+  @apply text-white m-0 pt-5 pb-2;
+}
+
+/* --- LISTAS --- */
+.ce-list__item {
+  @apply py-1 text-slate-200 text-base leading-relaxed;
+}
+
+.ce-list__item-marker {
+  @apply text-slate-400;
+}
+
+/* --- BARRA LATERAL (TOOLBAR) --- */
+.ce-toolbar__plus, 
+.ce-toolbar__settings-btn {
+  @apply text-white hover:bg-slate-700 rounded-md transition-colors;
+}
+
+/* Bloque seleccionado */
+.ce-block--selected > .ce-block__content {
+  @apply rounded-md ring-2 ring-blue-500 bg-blue-500/10 shadow-none;
+}
+
+
+/* =================================================================
+   POPOVER (BUSCADOR / MENU DE HERRAMIENTAS)
+   ================================================================= */
+
+.ce-popover {
+  @apply bg-slate-800 border border-slate-600 rounded-xl shadow-2xl;
+}
+
+.ce-popover__items {
+  @apply max-h-[200px] overflow-y-auto pr-1;
+  scrollbar-width: thin;
+  scrollbar-color: #475569 #1e293b;
+}
+
+/* Items del menú */
+.ce-popover__item {
+  @apply flex items-center px-3 py-2 rounded-lg cursor-pointer transition-colors duration-150;
+}
+
+.ce-popover__item:hover {
+  @apply bg-slate-700;
+}
+
+.ce-popover__item-icon {
+  @apply text-slate-400 mr-3 w-5 h-5 bg-transparent shadow-none transition-colors;
+}
+
+.ce-popover__item:hover .ce-popover__item-icon,
+.ce-popover__item:hover .ce-popover__item-title {
+  @apply text-white;
+}
+
+.ce-popover__item-title {
+  @apply text-slate-300 text-sm font-medium transition-colors;
+}
+
+/* Item Activo */
+.ce-popover__item--active {
+  @apply bg-blue-600;
+}
+
+.ce-popover__item--active .ce-popover__item-title,
+.ce-popover__item--active .ce-popover__item-icon {
+  @apply text-white;
+}
+
+/* Mensaje "No encontrado" */
+.ce-popover__nothing-found-message {
+  @apply p-3 text-center text-slate-500 text-sm font-medium;
+}
+
+/* --- BUSCADOR DENTRO DEL POPOVER --- */
+.ce-popover__search {
+  @apply relative mb-2 px-1;
+}
+
+.cdx-search-field__icon {
+  @apply absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none;
+}
+
+.cdx-search-field__icon svg {
+  @apply w-4 h-4 stroke-slate-500 stroke-2;
+}
+
+.cdx-search-field__input {
+  @apply w-full rounded-lg bg-slate-900 border border-slate-700 text-slate-200 text-sm
+         pl-9 pr-3 py-2 outline-none transition-all duration-200 shadow-none;
+}
+
+.cdx-search-field__input:focus {
+  @apply border-blue-500 ring-2 ring-blue-500/40 shadow-none;
+}
+
+.cdx-search-field__input::placeholder {
+  @apply text-slate-500 opacity-100;
+}
+
+
+/* =================================================================
+   INPUT DE ENLACE (Barra Flotante)
+   ================================================================= */
+
+/* Input "Pega un enlace" */
+.ce-inline-tool-input {
+  @apply text-gray-900 bg-white font-medium border border-gray-300 rounded px-2 py-1;
+}
+
+.ce-inline-tool-input::placeholder {
+  @apply text-gray-500;
+}
+
+
+/* =================================================================
+   HERRAMIENTA IA (CUSTOM TOOL)
+   ================================================================= */
+
+.ai-prompt-wrapper {
+  @apply flex gap-2 border border-slate-700 p-2.5 rounded-md bg-slate-800 mt-2.5 shadow-sm;
+}
+
+.ai-prompt-input {
+  @apply grow border border-slate-700 bg-slate-900 text-slate-300 
+         px-3 py-2 rounded text-sm transition-all;
+}
+
+.ai-prompt-input::placeholder {
+  @apply text-slate-500;
+}
+
+.ai-prompt-input:focus {
+  @apply outline-none border-blue-500 ring-2 ring-blue-500/40 shadow-none;
+}
+
+.ai-prompt-button {
+  @apply px-4 py-2 text-sm font-medium text-white bg-blue-600 border-none rounded 
+         cursor-pointer transition-colors duration-200;
+}
+
+.ai-prompt-button:hover {
+  @apply bg-blue-700;
+}
+
+.ai-prompt-button:disabled {
+  @apply bg-gray-600 cursor-not-allowed opacity-70;
+}
+
+

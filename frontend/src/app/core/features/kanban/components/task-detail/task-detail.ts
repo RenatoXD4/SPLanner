@@ -95,12 +95,32 @@ export class TaskDetail implements AfterViewInit, OnDestroy, OnChanges {
   }
 
   private destroyEditor(): void {
+    this.resetSaveState();
+
     if (this.editor && this.isEditorReady) {
       this.editor.destroy();
     }
 
     this.editor = undefined;
     this.isEditorReady = false;
+  }
+
+  //Función para reiniciar las variables de guardado en caso de que el usuario cierre el editor mientras se guardan cambios.
+  private resetSaveState(): void {
+  
+    if (this.saveTimer) {
+      clearTimeout(this.saveTimer);
+      this.saveTimer = null;
+    }
+    if (this.resetTimer) {
+      clearTimeout(this.resetTimer);
+      this.resetTimer = null;
+    }
+
+    this.isPending = false;
+    this.isSaving = false;
+    this.showSuccess = false;
+    
   }
 
   private async initEditor(): Promise<void> {
@@ -281,8 +301,20 @@ export class TaskDetail implements AfterViewInit, OnDestroy, OnChanges {
             this.showSuccess = true;
             this.cdr.detectChanges(); // <--- Pintar Verde
 
-            // Actualizar datos
-            this.task = respuesta;
+            // Actualizar datos y renderizar los campos de nuevo si sucede un error.
+            if (this.task) {
+              this.task = {
+                  ...this.task,
+                  lastModifiedAt: respuesta.lastModifiedAt,
+                  lastModifiedBy: respuesta.lastModifiedBy,
+                  editores: respuesta.editores,
+                  titulo: respuesta.titulo ?? this.task.titulo,
+                  assignee: this.task.assignee, 
+                  etiquetaIds: this.task.etiquetaIds,
+                  fechaLimite: this.task.fechaLimite 
+                  
+              } as TaskUI;
+            }
             this.taskUpdated.emit(respuesta);
 
             // Programar ocultar el verde

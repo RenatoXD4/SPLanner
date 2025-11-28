@@ -63,7 +63,7 @@ const defaultColors = [
 ];
 
 // Definición correcta del tipo TipoDeBloque (usa solo comillas simples o dobles sin mezclar)
-type TipoDeBloque = 'CHECKLIST' | 'CODE' | 'HEADING_1' | 'HEADING_2' | 'IMAGE' | 'PARAGRAPH';
+type TipoDeBloque = "LINKTOOL" | 'CHECKLIST' | 'CODE' | 'HEADING_1' | 'HEADING_2' | 'IMAGE' | 'PARAGRAPH';
 
 export class KanbanRepository {
 

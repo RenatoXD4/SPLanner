@@ -78,6 +78,7 @@ export class TaskDetail implements AfterViewInit, OnDestroy, OnChanges {
           }
       }
 
+      //Este cambio hace que el editor no se reinicie de forma brusca al hacer un cambio.
       if (changes['task']) {
       const prevTask = changes['task'].previousValue;
       const currTask = changes['task'].currentValue;

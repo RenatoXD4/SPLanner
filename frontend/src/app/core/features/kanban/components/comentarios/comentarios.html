@@ -48,7 +48,7 @@
                   {{ comment.autor.nombre }} {{ comment.autor.apellido }}
                 </span>
                 <span class="text-[11px] text-gray-500 font-normal">
-                  {{ comment.createdAt | date:'d MMM, H:mm' }}
+                  {{ comment.createdAt | date:'dd MMM yyyy, HH:mm' : '' : 'es-CL' }}
                 </span>
               </div>
 

@@ -13,10 +13,11 @@ import { Traceability } from '../traceability/traceability';
 import { AuthService } from '../../../../services/auth-service';
 import { Task, TaskUI } from '../../types/kanban-interfaces';
 import { environment } from '../../../../../../Environments/environment';
+import { Comentarios } from "../comentarios/comentarios";
 
 @Component({
   selector: 'app-task-detail',
-  imports: [DatePipe, Traceability],
+  imports: [DatePipe, Traceability, Comentarios],
   standalone: true,
   templateUrl: './task-detail.html',
   styleUrl: './task-detail.css'

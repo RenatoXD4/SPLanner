@@ -51,7 +51,9 @@
               <div
                 class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center border border-slate-800 shadow-sm transition-transform duration-200 hover:scale-110 hover:z-10 cursor-help select-none"
                 [title]="user.nombre + ' ' + user.apellido">
-                <span class="text-white text-[9px] font-bold">{{user.nombre.charAt(0)}}</span>
+                
+                <span class="text-white text-[9px] font-bold leading-none">{{user.nombre.charAt(0)}}{{user.apellido.charAt(0)}}</span>
+
               </div>
               }
             </div>

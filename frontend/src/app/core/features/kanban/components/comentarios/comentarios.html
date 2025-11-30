@@ -1,0 +1,105 @@
+<div class="flex flex-col w-full bg-transparent text-sm mt-6">
+  
+  <button 
+    (click)="toggleSection()"
+    class="flex items-center justify-between w-full gap-0.5 mb-2 px-2 py-2 rounded-lg hover:bg-slate-800/50 transition-colors cursor-pointer group select-none text-left border border-transparent hover:border-slate-700/50">
+    
+    <div class="flex items-center gap-2">
+      <svg class="w-3.5 h-3.5 text-white group-hover:text-gray-300 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+      </svg>
+      
+      <h3 class="text-sm font-medium text-white group-hover:text-gray-200 transition-colors">Comentarios</h3>
+      
+      @if (comments().length > 0) {
+        <span class="flex items-center justify-center bg-slate-700/80 text-white text-[10.5px] font-bold px-2 py-0.5 rounded-full border border-slate-600 shadow-sm min-w-[20px]">
+            {{ comments().length }}
+        </span>
+      }
+    </div>
+
+    <svg 
+      class="w-4 h-4 text-white group-hover:text-blue-500 transition-transform duration-200"
+      [class.rotate-180]="isExpanded()"
+      xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+    </svg>
+
+  </button>
+
+  @if (isExpanded()) {
+    <div class="pl-1 animate-slide-down"> <div class="space-y-5 mb-3 mt-2">
+        
+        @if (isLoading()) {
+          <div class="text-gray-500 text-xs italic pl-1">Cargando...</div>
+        }
+
+        @for (comment of comments(); track comment.id) {
+          <div class="group flex gap-3 animate-fadeIn">
+            <div class="flex-shrink-0 mt-0.5">
+              <div class="w-6 h-6 rounded-full bg-slate-700 flex items-center justify-center text-[10px] font-semibold text-gray-300 select-none ring-1 ring-slate-700/50">
+                {{ getInitials(comment.autor.nombre, comment.autor.apellido) }}
+              </div>
+            </div>
+
+            <div class="flex-grow min-w-0">
+              <div class="flex items-baseline gap-2 mb-0.5 leading-none">
+                <span class="font-medium text-gray-200 text-[13px]">
+                  {{ comment.autor.nombre }} {{ comment.autor.apellido }}
+                </span>
+                <span class="text-[11px] text-gray-500 font-normal">
+                  {{ comment.createdAt | date:'dd MMM yyyy, HH:mm' : '' : 'es-CL' }}
+                </span>
+              </div>
+
+              @if (editingCommentId === comment.id) {
+                <div class="mt-1.5">
+                  <textarea [(ngModel)]="editCommentText" class="w-full bg-slate-800/50 border border-blue-500/30 rounded p-2 text-gray-200 text-[13px] focus:ring-1 focus:ring-blue-500 outline-none resize-none transition-all" rows="3"></textarea>
+                  <div class="flex gap-2 mt-2 justify-end">
+                    <button (click)="cancelEdit()" class="text-xs text-gray-500 hover:text-white px-2">Cancelar</button>
+                    <button (click)="saveEdit()" class="text-xs bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-500">Guardar</button>
+                  </div>
+                </div>
+              } @else {
+                <p class="text-gray-300 text-[13px] leading-relaxed whitespace-pre-wrap break-words">
+                  {{ comment.contenido }}
+                </p>
+              }
+            </div>
+
+            @if (currentUserId === comment.usuarioId && editingCommentId !== comment.id) {
+              <div class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5 self-start pt-0.5">
+                <button (click)="startEdit(comment)" title="Editar" class="p-1 hover:bg-slate-800 rounded text-gray-500 hover:text-blue-400 transition-colors">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                </button>
+                <button (click)="deleteComment(comment.id)" title="Eliminar" class="p-1 hover:bg-slate-800 rounded text-gray-500 hover:text-red-400 transition-colors">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                </button>
+              </div>
+            }
+          </div>
+        }
+
+        @if (comments().length === 0 && !isLoading()) {
+          <div class="py-4 text-center">
+            <span class="text-gray-500 text-xs">Aún no hay comentarios.</span>
+          </div>
+        }
+      </div>
+
+      <div class="relative group pt-2 border-t border-gray-800/30">
+        <textarea
+          [(ngModel)]="newCommentText"
+          (keydown)="onKeyDown($event)"
+          placeholder="Agregar un comentario..."
+          class="w-full bg-transparent hover:bg-slate-800/30 focus:bg-slate-800/50 border border-transparent focus:border-slate-700/50 rounded-lg py-2.5 px-3 text-[13px] text-gray-200 placeholder-gray-500 focus:ring-0 outline-none transition-all resize-none overflow-hidden min-h-[40px]"
+          rows="1"
+          style="field-sizing: content;" 
+        ></textarea>
+        <div class="hidden group-hover:block peer-focus:block absolute right-2 bottom-2.5 transition-opacity">
+           <span class="text-[11.5px] text-white bg-slate-800/80 px-1.5 py-0.5 rounded border border-slate-700/50">↵ enviar</span>
+        </div>
+      </div>
+    </div>
+  }
+</div>

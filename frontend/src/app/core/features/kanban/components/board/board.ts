@@ -12,125 +12,33 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
 import { Sidebar } from '../../../../shared/ui/sidebar/sidebar';
-import { BoardService, Color as ColorType } from '../../services/kanban-service';
+import { BoardService } from '../../services/kanban-service';
 import { ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../../../services/auth-service';
 import { ProyectoGuard } from '../../../../../guards/proyecto.guard';
 import { TaskDetail } from "../task-detail/task-detail";
 import { NgZone } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-
-export interface User {
-  id: string;
-  nombre: string;
-  apellido: string;
-  email: string;
-  avatarUrl?: string;
-}
-
-export interface MiembroProyecto {
-  usuario: User;
-  rol: any;
-}
-
-export interface ResponsableTarea {
-  usuario: User;
-  tareaId: string;
-  id: number;
-  usuarioId: string;
-}
-
-export interface Categoria {
-  id: string;
-  nombre: string;
-  posicion: number;
-  tasks: Task[];
-  color?: ColorType;   // Añadido para manejar el color de la columna
-}
-
-interface Task {
-  id: string;
-  titulo?: string;
-  fechaLimite?: string | null;
-  posicion: number;
-  createdAt: string;
-  estadoId: number;
-  proyectoId: string;
-
-  // Campos backend opcionales que pueden venir
-  assignee?: User[]; // lista de usuarios asignados
-  etiquetas?: any[];
-  bloquesContenido?: any[];
-
-  // Campos frontend (para UI)
-  title?: string;
-  dueDate?: string;
-}
-
-interface RawTask {
-  id: string;
-  titulo?: string;
-  fechaLimite?: string | null;
-  posicion: number;
-  createdAt: string;
-  estadoId: number;
-  proyectoId: string;
-
-  responsables?: { usuario: User }[]; // ← NUEVO
-  etiquetas?: any[];
-  bloquesContenido?: any[];
-}
-export interface TaskUI {
-  id: string;
-  titulo: string;
-  fechaLimite: string;
-  title: string;
-  dueDate: string;
-  posicion: number;
-  createdAt: string;
-  estadoId: number;
-  proyectoId: string;
-  assignee: User[];         // ← array de usuarios asignados
-  etiquetas: any[];         // ← array de etiquetas
-  etiquetaIds: number[];    // ← ids de etiquetas para checkboxes
-}
-
-
-export interface Etiqueta {
-  id: number;       // ID único de la etiqueta
-  nombre: string;   // Nombre de la etiqueta
-  color: string;
-}
-
-interface ColorObj {
-  id: number;
-  nombre: string;
-  codigo: string;
-}
-
-interface EtiquetaConColor {
-  id: number;
-  nombre: string;
-  color?: ColorObj | string;  // Puede ser objeto o string según tipo recibido
-}
+import { Calendario } from '../../../../shared/ui/calendario/calendario';
+import { Categoria, ColorObj, Etiqueta, EtiquetaConColor, MiembroProyecto, RawTask, ResponsableTarea, Task, TaskUI, User } from '../../types/kanban-interfaces';
 
 
 @Component({
   selector: 'app-board',
-  imports: [CdkDropList, CdkDrag, CommonModule, FormsModule, Sidebar, TaskDetail, DragDropModule],
+  imports: [CdkDropList, CdkDrag, CommonModule, FormsModule, Sidebar, TaskDetail, DragDropModule, Calendario],
   templateUrl: './board.html',
   styleUrl: './board.css',
 })
 export class Board implements OnInit {
-
+  tareas: any[] = []
   proyectoIdActual: string = '';
   rolUsuario: string = '';
   proyectoActual: any = null;
-  public selectedTask: Task | null = null;
+  public selectedTask: TaskUI | null = null;
   public isDetailPanelHidden: boolean = true;
   public selectedTaskEstadoNombre: string | null = null;
 
-  showTaskDetails(task: Task, categoria: Categoria) {
+  showTaskDetails(task: TaskUI, categoria: Categoria) {
     this.selectedTask = task;
     this.selectedTaskEstadoNombre = categoria.nombre;
     this.isDetailPanelHidden = false;
@@ -151,11 +59,11 @@ export class Board implements OnInit {
   currentUser: string = '';
   sidebarOpen = false;
   modalVisible = false;
-
+ calendarioAbierto = false;
 
   CategoriasK: Categoria[] = [];
   miembrosDelProyecto: ResponsableTarea[] = [];
-  colores: ColorType[] = [];
+  colores: ColorObj[] = [];
 
   etiquetasUnicas: Etiqueta[] = [];
 
@@ -215,7 +123,7 @@ export class Board implements OnInit {
     private router: Router,
     private authService: AuthService,
     private proyectoGuard: ProyectoGuard,
-    @Inject(PLATFORM_ID) private platformId: Object 
+    @Inject(PLATFORM_ID) private platformId: Object
   ) { }
 
   async ngOnInit() {
@@ -255,7 +163,9 @@ export class Board implements OnInit {
       this.mostrarErrorYRedirigir('No tienes acceso a este proyecto');
     }
   }
-
+ abrirCalendario() {
+    this.calendarioAbierto = true;
+  }
   /**
    * Carga la información del proyecto y rol desde localStorage
    */
@@ -388,6 +298,10 @@ export class Board implements OnInit {
               bloquesContenido: Array.isArray(t.bloquesContenido) ? t.bloquesContenido : [],
               title: t.titulo ?? '',
               dueDate: t.fechaLimite ?? '',
+              etiquetaIds: (t as Task).etiquetaIds,
+              lastModifiedAt: (t as Task).lastModifiedAt,
+              lastModifiedBy: (t as Task).lastModifiedBy,
+              editores: (t as Task).editores,
             };
             categoria.tasks.push(task);
           }
@@ -640,6 +554,17 @@ export class Board implements OnInit {
     } else {
       // Cambio de columna
       const nuevoEstadoId = Number(event.container.id);
+
+      if (this.selectedTask && String(this.selectedTask.id) === String(task.id)) {
+
+        const nuevaCategoria = this.CategoriasK.find(c => Number(c.id) === nuevoEstadoId);
+
+        if (nuevaCategoria) {
+           this.selectedTaskEstadoNombre = nuevaCategoria.nombre;
+        }
+
+        this.selectedTask = { ...task };
+      }
 
       // 1. Actualiza localmente antes de enviar al backend
       task.estadoId = nuevoEstadoId;
@@ -909,6 +834,10 @@ export class Board implements OnInit {
           bloquesContenido: tareaNueva.bloquesContenido ?? [],
           title: tareaNueva.titulo ?? '',
           dueDate: tareaNueva.fechaLimite ?? '',
+          etiquetaIds: (tareaNueva as any).etiquetaIds,
+          lastModifiedAt: (tareaNueva as any).lastModifiedAt,
+          lastModifiedBy: (tareaNueva as any).lastModifiedBy,
+          editores: (tareaNueva as any).editores,
         };
 
         this.zone.run(() => {
@@ -1001,6 +930,7 @@ export class Board implements OnInit {
       //alert('No tienes permisos para eliminar tareas');
       return;
     }
+
     //if (confirm('¿Estás seguro de que deseas eliminar esta tarea?')) {
     this.boardService.deleteTask(taskId).subscribe(
       () => {
@@ -1011,12 +941,19 @@ export class Board implements OnInit {
         });
         this.generarListaResponsables();
         this.generarListaPrioridades();
+
+        if(this.selectedTask && this.selectedTask.id == taskId) {
+          this.tareaSeleccionada = null;
+          this.hideTaskDetails()
+
+        }
+
         this.cdr.detectChanges();  // Asegura que Angular detecte los cambios
       },
       (error) => {
         console.error('Error al eliminar la tarea:', error);  // Detalle completo del error
         if (error.message.includes("La tarea con ID")) {
-          //alert(`Error: ${error.message}`);  
+          //alert(`Error: ${error.message}`);
         } else {
           //alert('Error al eliminar la tarea. Por favor, intente nuevamente.');
         }
@@ -1405,7 +1342,7 @@ export class Board implements OnInit {
   }
 
 
-  cambiarColorColumna(id: string, color: ColorType): void {
+  cambiarColorColumna(id: string, color: ColorObj): void {
     if (!this.puedeCambiarColores()) {
       alert('No tienes permisos para cambiar colores de columnas');
       return;
@@ -1712,7 +1649,7 @@ export class Board implements OnInit {
       etiquetas: Array.isArray(raw.etiquetas) ? raw.etiquetas : [],
       etiquetaIds: Array.isArray(raw.etiquetas)
         ? raw.etiquetas.map(e => typeof e === 'number' ? e : (e.etiquetaId ?? e.id)).filter(id => typeof id === 'number')
-        : []
+        : [],
     };
   }
   extractResponsableIds(t: RawTask | Task | null | undefined): string[] {
@@ -1843,12 +1780,42 @@ export class Board implements OnInit {
         console.log('responsablesToRemove:', responsablesToRemove);
 
         const tareaActualizada = this.mapRawTaskToUI(tareaActualizadaRaw);
+
+        //Se realiza un fix acá, porque se necesita actualizar los responsables en la UI del frontend
+        const responsablesReconstruidos: ResponsableTarea[] = this.miembrosDelProyecto
+            .filter(miembro => nuevosResponsablesIds.includes(miembro.usuario.id))
+            .map(miembro => ({
+              usuario: miembro.usuario,
+              tareaId: tareaActualizada.id,
+              id: 0,
+              usuarioId: miembro.usuario.id
+            }));
+
+        (tareaActualizada as any).responsables = responsablesReconstruidos;
+        tareaActualizada.assignee = responsablesReconstruidos.map(r => r.usuario);
+
         const categoria = this.CategoriasK.find(c => c.id === tareaActualizada.estadoId.toString());
         if (categoria) {
           const idx = categoria.tasks.findIndex(t => t.id === tareaActualizada.id);
           if (idx !== -1) {
-            categoria.tasks[idx] = tareaActualizada; // tareaActualizada es TaskUI con etiquetas y etiquetaIds
-            categoria.tasks = [...categoria.tasks];  // Para disparar change detection
+            const oldTask = categoria.tasks[idx];
+            const mergedTask: Task = {
+                    ...oldTask,          // Trae todos los datos que ya teníamos (incluyendo trazabilidad)
+                    ...tareaActualizada, // Sobrescribe con los nuevos datos (título, fecha, y las relaciones reconstruidas)
+                    
+                    lastModifiedAt: tareaActualizada.lastModifiedAt ?? oldTask.lastModifiedAt,
+                    lastModifiedBy: tareaActualizada.lastModifiedBy ?? oldTask.lastModifiedBy,
+                    editores: tareaActualizada.editores ?? oldTask.editores
+                    
+                }; // Para disparar change detection
+
+            categoria.tasks[idx] = mergedTask;
+
+            if (this.selectedTask && this.selectedTask.id === mergedTask.id) {
+                    this.selectedTask = mergedTask;
+                }
+
+             categoria.tasks = [...categoria.tasks];
           }
         }
         this.cerrarModalEditarTarea();
@@ -1958,4 +1925,81 @@ export class Board implements OnInit {
     return nombre.replace(regex, '<mark class="bg-yellow-200 px-0.5 rounded">' + '$1' + '</mark>');
   }
 
+
+ // === MÉTODO PARA MANEJAR TAREAS SINCRONIZADAS CON CALENDARIO ===
+  onTareaSincronizada(tareaActualizada: any) {
+  // Buscar y actualizar la tarea en todas las categorías
+  for (const categoria of this.CategoriasK) {
+    const index = categoria.tasks.findIndex(t => t.id === tareaActualizada.id);
+    if (index !== -1) {
+      // Actualizar con los nuevos campos de sincronización
+      categoria.tasks[index] = {
+        ...categoria.tasks[index],
+        syncedWithCalendar: true,
+        calendarEventId: tareaActualizada.calendarEventId
+      };
+      categoria.tasks = [...categoria.tasks];
+      this.cdr.detectChanges();
+      break;
+    }
+  }
+}
+  // === MÉTODO PARA OBTENER TODAS LAS TAREAS ===
+  getTodasLasTareas(): any[] {
+    if (!this.CategoriasK) return [];
+    return this.CategoriasK.flatMap(categoria => categoria.tasks || []);
+  }
+
+
+  onTaskUpdated(updatedTask: Task): void {
+    
+    // 1. Actualizar el selectedTask localmente (para el panel lateral)
+    if (this.selectedTask && this.selectedTask.id === updatedTask.id) {
+        const oldSelectedTask = this.selectedTask; 
+        this.selectedTask = {
+            ...oldSelectedTask, // Preserva campos existentes (incluyendo assignee)
+            ...updatedTask,     // Sobrescribe trazabilidad y otros campos de la respuesta
+            
+            assignee: oldSelectedTask.assignee, 
+            lastModifiedAt: updatedTask.lastModifiedAt ?? oldSelectedTask.lastModifiedAt,
+            lastModifiedBy: updatedTask.lastModifiedBy ?? oldSelectedTask.lastModifiedBy,
+            editores: updatedTask.editores ?? oldSelectedTask.editores,
+            
+        } as Task;
+    }
+
+    //Buscar y FUSIONAR la tarea en la fuente de verdad (this.CategoriasK)
+    let taskUpdated = false;
+    for (const categoria of this.CategoriasK) {
+        const index = categoria.tasks.findIndex(t => t.id === updatedTask.id);
+        
+        if (index !== -1) {
+            
+            const oldTask = categoria.tasks[index];
+            
+            categoria.tasks[index] = {
+                ...oldTask, // Mantiene todas las propiedades antiguas (etiquetas, responsables)
+                ...updatedTask, 
+                
+                titulo: updatedTask.titulo ?? oldTask.titulo,
+                fechaLimite: updatedTask.fechaLimite ?? oldTask.fechaLimite,
+                assignee: oldTask.assignee,
+                lastModifiedAt: updatedTask.lastModifiedAt ?? oldTask.lastModifiedAt,
+                lastModifiedBy: updatedTask.lastModifiedBy ?? oldTask.lastModifiedBy,
+                editores: updatedTask.editores ?? oldTask.editores,
+                
+            } as Task; // Aseguramos el tipo completo
+
+            // Forzar la actualización
+            categoria.tasks = [...categoria.tasks]; 
+
+            taskUpdated = true;
+            break; 
+        }
+    }
+
+    if (taskUpdated) {
+        this.cdr.detectChanges();
+    }
+  }
 }

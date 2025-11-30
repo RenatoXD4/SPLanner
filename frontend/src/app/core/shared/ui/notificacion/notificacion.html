@@ -1,0 +1,108 @@
+<div class="relative">
+  <!-- Botón de la campana -->
+  <button
+    class="relative p-2 text-gray-400 hover:text-white transition-all duration-300 transform hover:scale-110 ease-out"
+    (click)="toggleDropdown()" [class.text-white]="showDropdown">
+
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+    </svg>
+
+    @if (unreadCount > 0) {
+    <span
+      class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold">
+      {{ unreadCount > 99 ? '99+' : unreadCount }}
+    </span>
+    }
+  </button>
+
+  <!-- Backdrop -->
+  @if (showDropdown) {
+  <div class="fixed inset-0 bg-black/20 z-40" (click)="toggleDropdown()"></div>
+  }
+
+  <!-- Dropdown de notificaciones -->
+  @if (showDropdown) {
+  <div
+    class="fixed top-16 right-4 w-80 bg-gray-800 border border-gray-700 rounded-lg shadow-2xl z-50 max-h-96 flex flex-col">
+    <!-- Header -->
+    <div class="flex items-center justify-between p-4 border-b border-gray-700">
+      <h3 class="text-white font-semibold">Notificaciones</h3>
+      @if (unreadCount > 0) {
+      <button (click)="markAllAsRead()" class="text-sm text-green-400 hover:text-green-300 transition-colors">
+        Marcar todas como leídas
+      </button>
+      }
+    </div>
+
+    <!-- Lista de notificaciones -->
+    <div class="overflow-y-auto flex-1">
+      @for (notificacion of notificaciones; track notificacion.id) {
+      <div
+        [class]="'p-4 border-b border-gray-700 hover:bg-gray-750 transition-colors cursor-pointer ' + (!notificacion.leida ? 'bg-gray-750' : '')"
+        (click)="navigateToTask(notificacion)">
+
+        <div class="flex items-start space-x-3">
+          <div [class]="'p-2 rounded-full ' + getNotificationColor(notificacion.tipo)">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                [attr.d]="getNotificationIcon(notificacion.tipo)" />
+            </svg>
+          </div>
+
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs font-medium px-2 py-1 rounded-full bg-gray-700 text-gray-300">
+                {{ getNotificationTypeText(notificacion.tipo) }}
+              </span>
+              @if (!notificacion.leida) {
+              <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+              }
+            </div>
+            <p class="text-white text-sm mb-2">{{ notificacion.mensaje }}</p>
+
+            @if (notificacion.tarea && notificacion.tarea.titulo) {
+            <p class="text-gray-400 text-xs">
+              Tarea: <span class="text-gray-300">{{ notificacion.tarea.titulo }}</span>
+            </p>
+            }
+
+            @if (notificacion.usuario && notificacion.usuario.nombre && notificacion.usuario.apellido) {
+            <p class="text-gray-400 text-xs mt-1">
+              Por: {{ notificacion.usuario.nombre }} {{ notificacion.usuario.apellido }}
+            </p>
+            }
+
+            <p class="text-gray-500 text-xs mt-2">{{ formatTime(notificacion.createdAt) }}</p>
+          </div>
+        </div>
+      </div>
+      }
+
+      @if (notificaciones.length === 0) {
+      <div class="p-8 text-center">
+        <svg class="w-12 h-12 text-gray-600 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+        </svg>
+        <p class="text-gray-400 text-sm">No hay notificaciones</p>
+        <p class="text-gray-500 text-xs mt-1">Las notificaciones aparecerán aquí</p>
+      </div>
+      }
+    </div>
+
+    <!-- Footer -->
+    <div class="p-3 bg-gray-750 border-t border-gray-700">
+      <button (click)="loadNotificaciones()"
+        class="w-full px-3 py-2 text-xs bg-gray-700 hover:bg-gray-600 text-gray-300 rounded transition-colors flex items-center justify-center space-x-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+        <span>Actualizar notificaciones</span>
+      </button>
+    </div>
+  </div>
+  }
+</div>

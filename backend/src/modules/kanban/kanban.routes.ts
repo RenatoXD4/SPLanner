@@ -88,6 +88,12 @@ routerKanbantask.put('/colores/:id', controladorDeF.updateColor.bind(controlador
 routerKanbantask.delete('/colores/:id', controladorDeF.deleteColor.bind(controladorDeF));
 
 
+routerKanbantask.get('/notificaciones/:usuarioId', controladorDeF.obtenerNotificacionesUsuario.bind(controladorDeF));
+routerKanbantask.patch('/notificaciones/:id/leer', controladorDeF.marcarNotificacionLeida.bind(controladorDeF));
+routerKanbantask.patch('/notificaciones/marcar-todas-leidas/:usuarioId', controladorDeF.marcarTodasLeidas.bind(controladorDeF));
+
+routerKanbantask.get('/notificaciones/contador/:usuarioId', controladorDeF.contarNotificacionesNoLeidas.bind(controladorDeF));
+
 // para usar postman>> http://localhost:9001/api-v1/kanban/tasks/2c1a2523-c447-4b65-a595-17324cad1532       --> debe de ser un Id de proyecto valido   http://localhost:9001/api-v1/kanban/tasks/idproyectoaqui
 
 // Si hay problemas probar con lo siguiente --> en vez de controladorDef usar KanbanController

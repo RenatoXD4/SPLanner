@@ -8,14 +8,18 @@
 
     <!-- Header -->
     <header class="bg-gray-800/50 border-b border-gray-700 p-6 sticky top-0 z-40 backdrop-blur-sm">
+
       <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
         <div>
           <h1 class="text-2xl font-bold text-white">Mis Proyectos</h1>
           <p class="text-gray-400 mt-1 text-sm">Gestiona y organiza todos tus proyectos</p>
         </div>
 
-        <div class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
-          <!-- Barra de búsqueda -->
+        <div class="flex items-center space-x-4">
+          <app-notificacion class="transition-all duration-500 ease-out delay-300"
+            [class]="!loading? 'opacity-100 translate-x-0' : ' translate-x-0'">
+          </app-notificacion>
+
           <div class="relative flex-1">
             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <svg class="h-4 w-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -27,9 +31,10 @@
               class="pl-10 pr-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 w-full focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent">
           </div>
 
+
           <!-- Botón Nuevo Proyecto -->
           <button (click)="abrirModal()"
-            class="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-4 py-2 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all duration-200">
+            class="bg-gradient-to-r from-green-700 to-green-700 hover:from-green-700 hover:to-green-700 text-white px-4 py-2 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all duration-200">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
@@ -161,7 +166,7 @@
 
               <!-- Botón Abrir (existente) -->
               <button (click)="irAlBoard(p.id || ''); $event.stopPropagation()"
-                class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-1 group-hover:scale-105">
+                class="bg-green-700 hover:bg-green-700 text-white px-3 py-1 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-1 group-hover:scale-105">
                 Abrir
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -186,7 +191,7 @@
           <h3 class="text-xl font-bold text-white mb-2">No hay proyectos</h3>
           <p class="text-gray-400 mb-6">Comienza creando tu primer proyecto</p>
           <button (click)="abrirModal()"
-            class="bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-2 rounded-lg font-semibold inline-flex items-center gap-2 transition-colors duration-200 hover:scale-105">
+            class="bg-gradient-to-r from-green-700 to-green-700 text-white px-6 py-2 rounded-lg font-semibold inline-flex items-center gap-2 transition-colors duration-200 hover:scale-105">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>

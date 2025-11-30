@@ -1,6 +1,7 @@
 import { Color, Tarea, TipoDeBloque } from "@prisma/client";
 import { NextFunction, Request, Response } from "express";
 
+import { NotificationService } from '../services/notifications.service.js';
 import { KanbanService } from "./kanban.service.js";
 
 interface BloqueContenidoInput {
@@ -10,7 +11,6 @@ interface BloqueContenidoInput {
   tareaId: string; // <-- Falta en tu tipo
   tipo: TipoDeBloque;
 }
-
 interface CreateColorBody {
   codigo: string;
   nombre: string;
@@ -26,8 +26,6 @@ interface CreateEtiquetaBody {
   nombre: string;
   proyectoId: string;
 }
-
-
 interface CreateTareaInput {
   bloquesContenido?: BloqueContenidoInput[];
   estadoId: number;
@@ -37,6 +35,11 @@ interface CreateTareaInput {
   proyectoId: string;
   responsablesIds?: string[];
   titulo: string;
+}
+
+
+interface MarcarLeidaBody {
+  usuarioId: string;
 }
 
 interface ResponsableConUsuario {
@@ -74,7 +77,29 @@ interface UpdateEtiquetaBody {
 }
 
 export class KanbanController {
+  private notificationService = new NotificationService();
   constructor(private readonly KanbanSer: KanbanService) { }
+
+  public async contarNotificacionesNoLeidas(
+  req: Request<{ usuarioId: string }>, // <-- Define el tipo del param
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const { usuarioId } = req.params;
+
+    if (!usuarioId || usuarioId.trim() === '') {
+      res.status(400).json({ message: 'El ID de usuario es requerido.' });
+      return;
+    }
+
+    const count = await this.notificationService.contarNoLeidas(usuarioId);
+    res.status(200).json({ count });
+  } catch (error) {
+    console.error('Error contando notificaciones no leídas:', error);
+    next(error);
+  }
+}
 
   public async createColor(
     req: Request<Record<string, never>, unknown, CreateColorBody>,
@@ -158,6 +183,7 @@ export class KanbanController {
     }
   }
 
+
   // Obtener un color por ID
   public async getColorById(
     req: Request<{ id: string }>,
@@ -173,7 +199,61 @@ export class KanbanController {
     }
   }
 
+  public async marcarNotificacionLeida(
+  req: Request<{ id: string }, unknown, MarcarLeidaBody>, // <-- Usa la interfaz
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const { id } = req.params;
+    const { usuarioId } = req.body;
 
+    if (!id || id.trim() === '') {
+      res.status(400).json({ message: 'El ID de la notificación es requerido.' });
+      return;
+    }
+
+    if (!usuarioId || usuarioId.trim() === '') {
+      res.status(400).json({ message: 'El ID de usuario es requerido.' });
+      return;
+    }
+
+    const result = await this.notificationService.marcarComoLeida(id, usuarioId);
+    
+    if (result.count === 0) {
+      res.status(404).json({ message: 'Notificación no encontrada.' });
+      return;
+    }
+
+    res.status(200).json({ message: 'Notificación marcada como leída.' });
+  } catch (error) {
+    console.error('Error marcando notificación como leída:', error);
+    next(error);
+  }
+}
+
+  public async marcarTodasLeidas(
+  req: Request<{ usuarioId: string }>,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const { usuarioId } = req.params;
+
+    if (!usuarioId || usuarioId.trim() === '') {
+      res.status(400).json({ message: 'El ID de usuario es requerido.' });
+      return;
+    }
+
+    const result = await this.notificationService.marcarTodasLeidas(usuarioId);
+    res.status(200).json({ 
+      message: result.count.toString() 
+    });
+  } catch (error) {
+    console.error('Error marcando todas las notificaciones como leídas:', error);
+    next(error);
+  }
+}
   // Método para obtener estados por proyectoId
   public async obtenerEstados(req: Request, res: Response) {
     const { proyectoId } = req.params;
@@ -185,6 +265,33 @@ export class KanbanController {
       res.status(500).json({ message: 'Error al obtener los estados del proyecto.' });
     }
   }
+
+  public async obtenerNotificacionesUsuario(
+  req: Request<{ usuarioId: string }>,
+  res: Response,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  next: NextFunction
+): Promise<void> {
+  try {
+    const { usuarioId } = req.params;
+    if (!usuarioId || usuarioId.trim() === '') {
+      res.status(400).json({ message: 'El ID de usuario es requerido.' });
+      return;
+    }
+
+    const notificaciones = await this.notificationService.obtenerNotificacionesUsuario(usuarioId);
+
+    res.status(200).json(notificaciones);
+  } catch (error) {
+
+    
+    // Asegúrate de enviar JSON incluso en errores
+    res.status(500).json({ 
+      error: 'Error interno del servidor',
+      message: error instanceof Error ? error.message : 'Error desconocido'
+    });
+  }
+}
 
   public async requestCreateEtiqueta(
     req: Request<Record<string, never>, unknown, CreateEtiquetaBody>,
@@ -269,6 +376,7 @@ export class KanbanController {
     }
   }
 
+
   public async requestDeleteEtiqueta(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const id = Number(req.params.id);
@@ -349,7 +457,6 @@ export class KanbanController {
       next(e);
     }
   }
-
 
   // Miembros relacionados al proyecto
   public async requestGetEquipoProyecto(
@@ -435,7 +542,6 @@ export class KanbanController {
       next(error);
     }
   }
-
   public async requestGetTaskById(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { id } = req.params;
@@ -474,7 +580,6 @@ export class KanbanController {
       next(error);
     }
   }
-
   public async requestUpdateTask(
     req: Request,
     res: Response,
@@ -528,7 +633,7 @@ export class KanbanController {
     res: Response,
     next: NextFunction
   ): Promise<void> {
-    console.log('🔔 Llegó petición PATCH /tasks/:id', req.params, req.body);
+
     try {
       const tareaId = req.params.id;
       const data = { ...req.body } as Partial<Tarea>;
@@ -558,6 +663,7 @@ export class KanbanController {
       next(e);
     }
   }
+
   // Actualizar color
   public async updateColor(
     req: Request<{ id: string }, unknown, UpdateColorBody>,
@@ -590,5 +696,4 @@ export class KanbanController {
       next(error);
     }
   }
-
 }

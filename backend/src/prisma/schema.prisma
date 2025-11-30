@@ -26,6 +26,10 @@ model Usuario {
   password  String
   createdAt DateTime @default(now())
 
+  // 🟢 NUEVAS RELACIONES INVERSAS:
+  tareasModificadas Tarea[]       @relation("LastModifiedBy") // Tareas donde es el último modificador
+  tareasEditadas    TareaEditor[] // Tareas que ha editado alguna vez
+
   // Relaciones: Un usuario puede...
   // ...crear muchos proyectos.
   proyectosCreados Proyectos[]    @relation("ProyectosCreados")
@@ -38,6 +42,21 @@ model Usuario {
   // ...recibir muchas notificaciones.
   notificaciones   Notificacion[]
 
+  @@schema("public")
+}
+
+//Trazabilidad de Editores de Contenido
+model TareaEditor {
+  id        Int      @id @default(autoincrement())
+  
+  tareaId   String
+  tarea     Tarea    @relation(fields: [tareaId], references: [id], onDelete: Cascade)
+  
+  usuarioId String
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  
+  
+  @@unique([tareaId, usuarioId]) // Un usuario solo puede estar una vez en la lista de editores de una tarea
   @@schema("public")
 }
 
@@ -60,7 +79,8 @@ model Proyectos {
   // ...muchas tareas.
   tareas   Tarea[]
 
-  etiquetas Etiqueta[] // Cada etiqueta pertenece a un unico proyecto / Cada proyecto puede tener muchas etiquetas
+  etiquetas     Etiqueta[] // Cada etiqueta pertenece a un unico proyecto / Cada proyecto puede tener muchas etiquetas
+  notificacions Notificacion[]
 
   @@schema("public")
 }
@@ -73,6 +93,12 @@ model Tarea {
   // Posición de la tarea dentro de una columna/estado.
   posicion    Int       @default(0)
   createdAt   DateTime  @default(now())
+
+  //Campos para la trazabilidad en Editor de texto
+  lastModifiedAt   DateTime  @updatedAt @default(now()) // Se actualiza automáticamente en cada 'update'
+  lastModifiedById String?   // ID del último usuario que guardó el contenido
+  lastModifiedBy   Usuario?  @relation("LastModifiedBy", fields: [lastModifiedById], references: [id])
+  editores         TareaEditor[]
 
   // Relación con el proyecto al que pertenece.
   proyecto   Proyectos @relation(fields: [proyectoId], references: [id], onDelete: Cascade)
@@ -123,6 +149,7 @@ enum TipoDeBloque {
   CHECKLIST
   IMAGE
   CODE
+  LINKTOOL
 
   @@schema("public")
 }
@@ -169,8 +196,8 @@ model Estado {
   proyecto   Proyectos @relation(fields: [proyectoId], references: [id], onDelete: Cascade)
   proyectoId String
 
-  colorId   Int       // Relación con tabla Color
-  color     Color     @relation(fields: [colorId], references: [id])
+  colorId Int // Relación con tabla Color
+  color   Color @relation(fields: [colorId], references: [id])
 
   // Relación: Un estado puede contener muchas tareas.
   tareas Tarea[]
@@ -212,19 +239,23 @@ model Comentario {
 
 // Modelo para las notificaciones de los usuarios.        --> Solo en las que se menciona al usuario
 model Notificacion {
-  id        Int      @id @default(autoincrement())
-  // Tipo de notificación: 'comentario', 'asignacion', 'cambio_estado', etc.
-  tipo      String   @db.VarChar(50)
-  mensaje   String   @db.Text
+  id        String   @id @default(uuid())
+  tipo      String // 'tarea_creada', 'tarea_editada', 'tarea_eliminada', 'tarea_por_vencer'
+  mensaje   String
   leida     Boolean  @default(false)
   createdAt DateTime @default(now())
 
-  // Relación con el usuario que recibe la notificación.
+  // Relación con el usuario que recibe la notificación
   usuario   Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
   usuarioId String
-  // Relación opcional con una tarea.
-  tarea     Tarea?  @relation(fields: [tareaId], references: [id], onDelete: Cascade)
-  tareaId   String?
+
+  // Relación con la tarea
+  tarea   Tarea?  @relation(fields: [tareaId], references: [id], onDelete: Cascade)
+  tareaId String?
+
+  // Relación con el proyecto
+  proyecto   Proyectos @relation(fields: [proyectoId], references: [id], onDelete: Cascade)
+  proyectoId String
 
   @@schema("public")
 }
@@ -272,5 +303,6 @@ model Color {
   etiquetas Etiqueta[] // Relación con las etiquetas
 
   Estado Estado[]
+
   @@schema("public")
 }

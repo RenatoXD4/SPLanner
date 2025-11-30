@@ -1,37 +1,51 @@
 // task-detail.ts
 
 // 1. Asegúrate de tener estas importaciones
-import { AfterViewInit, Component, OnDestroy, Inject, PLATFORM_ID, Output, Input, EventEmitter, SimpleChanges, OnChanges, inject, ViewChild, ViewContainerRef, TemplateRef, ChangeDetectorRef } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, Inject, PLATFORM_ID, Output, Input, EventEmitter, SimpleChanges, OnChanges, inject, ViewChild, ViewContainerRef, TemplateRef, ChangeDetectorRef, NgZone } from '@angular/core';
 import { DatePipe, isPlatformBrowser } from '@angular/common';
-import { Task } from '../../services/kanban-service';
 import type EditorJS from '@editorjs/editorjs';
 import { BlockService } from '../../services/block-service';
 import { EditorJSOutputData } from '../../types/block-interfaces';
 import { firstValueFrom } from 'rxjs';
 import { AiService } from '../../services/aiservice';
 import { AiPromptTool } from './ai-prompt-tool';
+import { Traceability } from '../traceability/traceability';
+import { AuthService } from '../../../../services/auth-service';
+import { Task, TaskUI } from '../../types/kanban-interfaces';
+import { environment } from '../../../../../../Environments/environment';
+import { Comentarios } from "../comentarios/comentarios";
 
 @Component({
   selector: 'app-task-detail',
-  imports: [DatePipe],
+  imports: [DatePipe, Traceability, Comentarios],
   standalone: true,
   templateUrl: './task-detail.html',
   styleUrl: './task-detail.css'
 })
 export class TaskDetail implements AfterViewInit, OnDestroy, OnChanges {
   
+  private apiUrl = `${environment.apiUrl}/blocks/fetchUrl`;
   private editor!: EditorJS | undefined;
-  @Input() task: Task | null = null;
+  @Input() task: TaskUI | null = null;
   @Input() isHidden: boolean = true;
   @Output() closePanel = new EventEmitter<void>();
   private aiService = inject(AiService)
   private blockService = inject(BlockService)
+  private zone = inject(NgZone)
   private isEditorReady = false;
   private cdr = inject(ChangeDetectorRef);
+  private usuarioService =  inject(AuthService)
   @Input() estadoNombre: string | null = null;
   @Input() rolMiembro: string | null = null;
   @ViewChild('mensajeContainer', { read: ViewContainerRef }) mensajeContainer!: ViewContainerRef;
   @ViewChild('mensajeTemplate', { read: TemplateRef }) mensajeTemplate!: TemplateRef<any>;
+  @Output() taskUpdated = new EventEmitter<Task>();
+  private saveTimer: any; // Para el debounce
+  private resetTimer: any;
+
+  public isPending: boolean = false; // El usuario está escribiendo / debounce activo
+  public isSaving: boolean = false;  // Enviando datos al servidor
+  public showSuccess: boolean = false; // Mostrar mensaje verde
   
   constructor(@Inject(PLATFORM_ID) private platformId: Object) {}
   
@@ -39,15 +53,6 @@ export class TaskDetail implements AfterViewInit, OnDestroy, OnChanges {
     if (isPlatformBrowser(this.platformId) && !this.isHidden && !this.editor) {
       this.initEditor();
     }
-  }
-
-  mostrarMensaje(msg: string): void {
-    const view = this.mensajeContainer.createEmbeddedView(this.mensajeTemplate, { $implicit: msg });
-    setTimeout(() => {
-      view.destroy();
-      this.cdr.detectChanges();
-    }, 3000);
-    this.cdr.detectChanges();
   }
 
   rolMiembroVerificar(): boolean {
@@ -67,10 +72,24 @@ export class TaskDetail implements AfterViewInit, OnDestroy, OnChanges {
           }
       }
 
-      if (changes['task'] && this.editor && !changes['task'].firstChange && this.isEditorReady) {
-        // Si se cambia de tarea mientras el edtiro está abierto, se tendrá que recargar el otro editor de texto.
-        this.reloadEditorData();
+      //Este cambio hace que el editor no se reinicie de forma brusca al hacer un cambio.
+      if (changes['task']) {
+      const prevTask = changes['task'].previousValue;
+      const currTask = changes['task'].currentValue;
+
+      this.cdr.detectChanges(); 
+
+      // Si el ID es el mismo (significa que fue un auto-guardado), NO tocamos el editor.
+      if (this.editor && this.isEditorReady && !changes['task'].firstChange) {
+        
+        // Esto revisa si el usuario abre otro editor de texto mientras está en el actual, haciendo que se recarguen los datos.
+        if (prevTask?.id !== currTask?.id) {
+           this.reloadEditorData();
+        } else {
+           console.log('Auto-guardado: Actualizando metadatos sin recargar editor.');
+        }
       }
+    }
     }
   }
 
@@ -79,12 +98,32 @@ export class TaskDetail implements AfterViewInit, OnDestroy, OnChanges {
   }
 
   private destroyEditor(): void {
+    this.resetSaveState();
+
     if (this.editor && this.isEditorReady) {
       this.editor.destroy();
     }
 
     this.editor = undefined;
     this.isEditorReady = false;
+  }
+
+  //Función para reiniciar las variables de guardado en caso de que el usuario cierre el editor mientras se guardan cambios.
+  private resetSaveState(): void {
+  
+    if (this.saveTimer) {
+      clearTimeout(this.saveTimer);
+      this.saveTimer = null;
+    }
+    if (this.resetTimer) {
+      clearTimeout(this.resetTimer);
+      this.resetTimer = null;
+    }
+
+    this.isPending = false;
+    this.isSaving = false;
+    this.showSuccess = false;
+    
   }
 
   private async initEditor(): Promise<void> {
@@ -109,6 +148,9 @@ export class TaskDetail implements AfterViewInit, OnDestroy, OnChanges {
     const EditorJS = (await import('@editorjs/editorjs')).default;
     const Header = (await import('@editorjs/header')).default; 
     const List = (await import('@editorjs/list')).default;
+    const Undo = (await import('editorjs-undo')).default;
+    const DragDrop = (await import('editorjs-drag-drop')).default;
+    const LinkTool = (await import('@editorjs/link')).default;
     const aiServiceInstance = this.aiService;
 
     this.editor = new EditorJS({
@@ -120,6 +162,9 @@ export class TaskDetail implements AfterViewInit, OnDestroy, OnChanges {
             placeholder: 'Ingresa un encabezado',
             levels: [2, 3, 4],
             defaultLevel: 3
+          },
+          toolbox: {
+            title: "Encabezado"
           }
         },
         list: {
@@ -127,6 +172,16 @@ export class TaskDetail implements AfterViewInit, OnDestroy, OnChanges {
           inlineToolbar: true,
           config: {
             defaultStyle: 'unordered'
+          },
+          toolbox: {
+            title: "Lista"
+          }
+        },
+        linkTool: {
+          class: LinkTool,
+          config: {
+            //Este es el endpoint del backend de donde obtiene la url
+            endpoint: this.apiUrl, 
           }
         },
         aiPrompt: {
@@ -134,16 +189,73 @@ export class TaskDetail implements AfterViewInit, OnDestroy, OnChanges {
           config: {
             generateText: (prompt: string) => {
               return firstValueFrom(aiServiceInstance.generateText(prompt));
-            }
+            },
           }
         }
+      },
+      i18n: {
+        messages: {
+            ui: {
+              "popover": {
+              "Filter": "Filtro",
+              "Nothing found": "No encontrado",
+              "Convert to": "Convertir a",
+            }
+          },
+          blockTunes: {
+              "delete": {
+                "Delete": "Eliminar",
+                "Click to delete": "Click para eliminar"
+              },
+              "moveUp": {
+                "Move up": "Mover arriba"
+              },
+              "moveDown": {
+                "Move down": "Mover abajo"
+              }
+          },
+            // Traducciones específicas de las herramientas (como Header)
+          toolNames: {
+            "Text": "Texto",
+          },
+          tools: {
+              header: {
+                'Heading 2': 'Título 2',
+                'Heading 3': 'Título 3', 
+                'Heading 4': 'Título 4', 
+              },
+              list: {
+              "Ordered": "Lista ordenada",
+              "Unordered": "Lista desordenada",
+              "Checklist": "Lista de tareas",
+              },
+          }
+        }
+      },
+      sanitizer: {
+        p: true,
+        b: true,
+        i: true,
+        a: {
+          href: true
+        },
+        ul: true,
+        ol: true,
+        li: true
       },
       readOnly: !this.rolMiembroVerificar(),
       data: datosParaCargar,
       placeholder: this.rolMiembroVerificar() ? 'Empieza escribiendo aquí' : "",
       onReady: () => {
         this.isEditorReady = true;
-      }
+        const undo = new Undo({ editor: this.editor });
+        const dragDrop = new DragDrop(this.editor);
+      },
+      onChange: async () => {
+         this.zone.run(() => {
+            this.handleTyping(); 
+         });
+       }
     });
   }
 
@@ -168,29 +280,88 @@ export class TaskDetail implements AfterViewInit, OnDestroy, OnChanges {
     }
   }
 
-
-  async saveEditorData(): Promise<void> {
-    if (!this.editor || !this.task || !this.isEditorReady) {
-      console.error('Editor no inicializado o no hay tarea seleccionada');
-      return;
+  private handleTyping(): void {
+    if (this.showSuccess) {
+      this.showSuccess = false;
+      if (this.resetTimer) clearTimeout(this.resetTimer);
     }
-    
+
+    if (this.saveTimer) {
+      clearTimeout(this.saveTimer);
+    }
+
+    if (!this.isPending) {
+        this.isPending = true;
+        this.cdr.detectChanges(); 
+    }
+    this.saveTimer = setTimeout(() => {
+       this.saveEditorData();
+    }, 2000);
+  }
+
+
+  private async saveEditorData(): Promise<void> {
+    this.saveTimer = null; 
+
+    if (!this.editor || !this.task) return;
+
+    this.isPending = false; 
+    this.isSaving = true;
+    this.cdr.detectChanges();
+
+    const usuarioId = this.usuarioService.getCurrentUserId();
+
     try {
       const outputData = await this.editor.save();
       
-      this.blockService.actualizarBloquesDeTarea(this.task.id, outputData as any)
+      if (this.saveTimer) return; 
+
+      this.blockService.actualizarBloquesDeTarea(this.task.id, outputData as any, usuarioId ?? "")
         .subscribe({
           next: (respuesta) => {
-            this.mostrarMensaje("Cambios guardados exitosamente")
-            console.log('Bloques guardados exitosamente:', respuesta);
+            //Si el usuario escribió mientras esperábamos al backend
+            if (this.saveTimer) return;
+
+            // Mostrar si se guardó exitosamente
+            this.isSaving = false;
+            this.showSuccess = true;
+            this.cdr.detectChanges(); // <--- Pintar Verde
+
+            // Actualizar datos y renderizar los campos de nuevo si sucede un error.
+            if (this.task) {
+              this.task = {
+                  ...this.task,
+                  lastModifiedAt: respuesta.lastModifiedAt,
+                  lastModifiedBy: respuesta.lastModifiedBy,
+                  editores: respuesta.editores,
+                  titulo: respuesta.titulo ?? this.task.titulo,
+                  assignee: this.task.assignee, 
+                  etiquetaIds: this.task.etiquetaIds,
+                  fechaLimite: this.task.fechaLimite 
+                  
+              } as TaskUI;
+            }
+            this.taskUpdated.emit(respuesta);
+
+            // Programar ocultar el verde
+            this.resetTimer = setTimeout(() => {
+               // Solo ocultar si seguimos en estado éxito (no si volvió a escribir)
+               if (this.showSuccess) {
+                 this.showSuccess = false;
+                 this.cdr.detectChanges();
+               }
+            }, 2000);
           },
           error: (err) => {
-            console.error('Error al guardar los bloques:', err);
+            console.error('Error:', err);
+            this.isSaving = false;
+            this.cdr.detectChanges();
           }
         });
-
-    } catch (error) {
-      console.error('Error al obtener datos de EditorJS:', error);
+    } catch (e) {
+      console.error(e);
+      this.isSaving = false;
+      this.cdr.detectChanges();
     }
   }
   

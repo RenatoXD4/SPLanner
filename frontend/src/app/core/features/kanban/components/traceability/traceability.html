@@ -1,0 +1,47 @@
+<div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-400 animate-fadeIn ml-2 select-none">
+  
+  <div class="flex items-center gap-1.5 whitespace-nowrap">
+    <svg class="w-3.5 h-3.5 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    
+    @if (task.lastModifiedAt && task.lastModifiedBy) {
+      <span class="text-white">
+        <b class="hidden sm:inline font-medium text-white">Último cambio: </b> 
+        
+        <span class="text-gray-300">
+          {{ task.lastModifiedAt | date:'dd MMM yyyy, HH:mm' : '' : 'es-CL' }}
+        </span>
+      </span>
+
+      <span class="hidden sm:inline text-gray-500">por</span> 
+      
+      <span class="text-white font-medium">
+        {{ task.lastModifiedBy.nombre }} {{ task.lastModifiedBy.apellido }}
+      </span>
+
+    } @else {
+      <span>Sin cambios</span>
+    }
+  </div>
+
+  @if (task.editores && task.editores.length > 0) {
+    
+    <div class="hidden sm:block h-4 w-px bg-gray-600 mx-1"></div>
+    
+    <div class="flex items-center gap-2">
+       <span class="hidden md:inline text-[10.5px] uppercase text-white font-medium">Modificado por:</span>
+
+       <div class="flex items-center -space-x-1.5">
+        @for (editor of task.editores; track editor.usuario.id) {
+          <div
+            class="w-5 h-5 bg-purple-500 rounded-full flex items-center justify-center border border-slate-800 transition-transform hover:scale-110 hover:z-10 cursor-help"
+            [title]="'Editado por: ' + editor.usuario.nombre + ' ' + editor.usuario.apellido">
+            <span class="text-white text-[9px] font-bold">{{editor.usuario.nombre.charAt(0)}}{{editor.usuario.apellido.charAt(0)}}</span>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+</div>

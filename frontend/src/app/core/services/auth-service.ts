@@ -1,10 +1,12 @@
-import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
+import { Injectable, Inject, PLATFORM_ID, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject, throwError } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { environment } from '../../../Environments/environment';
 import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
+import { TemaService } from './tema.service'; // ← Agregar esta importación
+
 export interface LoginResponse {
   message: string;
   user: {
@@ -35,6 +37,7 @@ export class AuthService {
   private readonly API_URL = environment.apiUrl;
   private currentUserSubject = new BehaviorSubject<any>(null);
   private isBrowser: boolean;
+  private temaService = inject(TemaService); // ← Inyectar TemaService
 
   constructor(
     private http: HttpClient,
@@ -48,7 +51,6 @@ export class AuthService {
     }
   }
 
-
   get currentUser$() {
     return this.currentUserSubject.asObservable();
   }
@@ -60,7 +62,14 @@ export class AuthService {
     try {
       const userData = localStorage.getItem('userData');
       if (userData) {
-        this.currentUserSubject.next(JSON.parse(userData));
+        const user = JSON.parse(userData);
+        this.currentUserSubject.next(user);
+        
+        // ← AGREGAR: Cargar tema del usuario al iniciar
+        const userId = this.getUserIdFromUser(user);
+        if (userId) {
+          this.temaService.setCurrentUser(userId);
+        }
       }
     } catch (error) {
       console.error('Error loading user from storage:', error);
@@ -75,6 +84,13 @@ export class AuthService {
         tap(response => {
           this.setUser(response.user);
           if (response.token) this.setToken(response.token);
+          
+          // ← AGREGAR: Establecer tema del usuario después del login
+          const userId = this.getUserIdFromUser(response.user);
+          if (userId) {
+            this.temaService.setCurrentUser(userId);
+          }
+          
           if (this.isBrowser) this.router.navigate(['/Menu']);
         }),
         catchError(error => {
@@ -90,6 +106,13 @@ export class AuthService {
         tap(response => {
           this.setUser(response.user);
           if (response.token) this.setToken(response.token);
+          
+          // ← AGREGAR: Establecer tema del usuario después del registro
+          const userId = this.getUserIdFromUser(response.user);
+          if (userId) {
+            this.temaService.setCurrentUser(userId);
+          }
+          
           if (this.isBrowser) this.router.navigate(['/Menu']);
         }),
         catchError(error => {
@@ -113,6 +136,13 @@ export class AuthService {
         const processedUser = this.processGoogleUser(userData);
         this.setUser(processedUser);
         this.setToken(token);
+        
+        // ← AGREGAR: Establecer tema del usuario Google
+        const userId = this.getUserIdFromUser(processedUser);
+        if (userId) {
+          this.temaService.setCurrentUser(userId);
+        }
+        
         setTimeout(() => this.router.navigate(['/Menu']), 100);
       } else {
         this.setToken(token);
@@ -151,6 +181,12 @@ export class AuthService {
     }).subscribe({
       next: (realUserData) => {
         this.setUser(realUserData);
+        
+        // ← AGREGAR: Establecer tema del usuario real
+        const userId = this.getUserIdFromUser(realUserData);
+        if (userId) {
+          this.temaService.setCurrentUser(userId);
+        }
       },
       error: () => {
         setTimeout(() => this.router.navigate(['/Menu']), 100);
@@ -163,7 +199,6 @@ export class AuthService {
   }
 
   // --- MÉTODOS DE USUARIO ---
-
 
   setUser(user: any): void {
     if (!this.isBrowser || !user) return;
@@ -182,6 +217,11 @@ export class AuthService {
 
   getCurrentUserId(): string | null {
     const user = this.getCurrentUser();
+    return this.getUserIdFromUser(user);
+  }
+
+  // ← AGREGAR: Método auxiliar para extraer ID del usuario
+  private getUserIdFromUser(user: any): string | null {
     if (!user) return null;
     const userId = user.id || user.userId || user.sub;
     return userId ? userId.toString() : null;
@@ -216,6 +256,10 @@ export class AuthService {
       localStorage.removeItem('authToken');
       localStorage.removeItem('userData');
       this.currentUserSubject.next(null);
+      
+      // ← AGREGAR: Limpiar tema del usuario al cerrar sesión
+      this.temaService.setCurrentUser(null);
+      
       this.router.navigate(['/login']);
     } catch (error) {
       console.error('Error al cerrar sesión:', error);

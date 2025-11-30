@@ -65,7 +65,7 @@ export class Dashboard implements OnInit, OnDestroy {
       type: 'bar',
       description: 'Distribución de tareas por estado',
       enabled: true,
-      icon: '',
+      icon: 'bar_chart',
       category: 'basic'
     },
     {
@@ -74,7 +74,7 @@ export class Dashboard implements OnInit, OnDestroy {
       type: 'pie',
       description: 'Tareas por prioridad',
       enabled: true,
-      icon: '',
+      icon: 'pie_chart',
       category: 'basic'
     },
     {
@@ -83,7 +83,7 @@ export class Dashboard implements OnInit, OnDestroy {
       type: 'line',
       description: 'Área apilada - Progreso general histórico',
       enabled: true,
-      icon: '',
+      icon: 'trending_up',
       category: 'analytics'
     },
     {
@@ -92,7 +92,7 @@ export class Dashboard implements OnInit, OnDestroy {
       type: 'doughnut',
       description: 'Eficiencia por usuario',
       enabled: true,
-      icon: '',
+      icon: 'people',
       category: 'advanced'
     }
   ];
@@ -105,22 +105,15 @@ export class Dashboard implements OnInit, OnDestroy {
   chartAnimationEnabled: boolean = true;
   isBrowser: boolean = false;
 
-  // PROPIEDADES PARA EXPORTACIÓN PDF Y HTML
+  // PROPIEDADES PARA EXPORTACIÓN HTML ULTRA PREMIUM
   showExportModal: boolean = false;
   exportFormats = [
     { 
-      id: 'pdf', 
-      name: 'PDF Ejecutivo', 
-      description: 'Reporte formateado para impresión', 
-      icon: '📄',
-      color: 'text-red-400'
-    },
-    { 
       id: 'html', 
-      name: 'HTML Interactivo', 
-      description: 'Reporte con gráficos SVG interactivos', 
-      icon: '🌐',
-      color: 'text-blue-400'
+      name: 'Reporte Ejecutivo ', 
+      description: 'Reporte ejecutivo con diseño de clase mundial', 
+      icon: 'description',
+      color: 'text-blue-600'
     }
   ];
   exportando: boolean = false;
@@ -136,7 +129,7 @@ export class Dashboard implements OnInit, OnDestroy {
         display: true,
         position: 'top',
         labels: {
-          color: 'rgba(255, 255, 255, 0.9)',
+          color: 'rgba(150, 150, 150, 0.9)',
           font: {
             size: 13,
             weight: 600
@@ -149,7 +142,7 @@ export class Dashboard implements OnInit, OnDestroy {
       title: {
         display: true,
         text: ' Distribución de Tareas por Estado',
-        color: 'rgba(255, 255, 255, 0.95)',
+        color: 'rgba(150, 150, 150, 0.9)',
         font: {
           size: 18,
           weight: 700
@@ -185,10 +178,10 @@ export class Dashboard implements OnInit, OnDestroy {
     scales: {
       x: {
         grid: {
-          color: 'rgba(255, 255, 255, 0.1)',
+          color: 'rgba(150, 150, 150, 0.2)',
         },
         ticks: {
-          color: 'rgba(255, 255, 255, 0.8)',
+          color: 'rgba(150, 150, 150, 0.9)',
           font: {
             size: 12,
             weight: 500
@@ -198,10 +191,10 @@ export class Dashboard implements OnInit, OnDestroy {
       },
       y: {
         grid: {
-          color: 'rgba(255, 255, 255, 0.1)',
+          color: 'rgba(150, 150, 150, 0.2)',
         },
         ticks: {
-          color: 'rgba(255, 255, 255, 0.7)',
+          color: 'rgba(150, 150, 150, 0.9)',
           font: {
             size: 11,
             weight: 500
@@ -222,7 +215,7 @@ export class Dashboard implements OnInit, OnDestroy {
       bar: {
         borderRadius: 12,
         borderSkipped: false,
-        backgroundColor: 'rgba(59, 130, 246, 0.8)',
+        backgroundColor: 'rgba(150, 150, 150, 0.9)',
         borderWidth: 2,
         borderColor: 'rgba(255, 255, 255, 0.3)'
       }
@@ -278,7 +271,7 @@ export class Dashboard implements OnInit, OnDestroy {
         display: true,
         position: 'right',
         labels: {
-          color: 'rgba(255, 255, 255, 0.9)',
+          color: 'rgba(150, 150, 150, 0.9)',
           font: {
             size: 12,
             weight: 600
@@ -294,7 +287,7 @@ export class Dashboard implements OnInit, OnDestroy {
       title: {
         display: true,
         text: ' Distribución por Prioridad',
-        color: 'rgba(255, 255, 255, 0.95)',
+        color: 'rgba(150, 150, 150, 0.9)',
         font: {
           size: 18,
           weight: 700
@@ -374,7 +367,7 @@ export class Dashboard implements OnInit, OnDestroy {
         display: true,
         position: 'top',
         labels: {
-          color: 'rgba(255, 255, 255, 0.9)',
+          color: 'rgba(150, 150, 150, 0.9)',
           font: {
             size: 12,
             weight: 600
@@ -387,7 +380,7 @@ export class Dashboard implements OnInit, OnDestroy {
       title: {
         display: true,
         text: 'Evolución General del Proyecto',
-        color: 'rgba(255, 255, 255, 0.95)',
+        color: 'rgba(150, 150, 150, 0.9)',
         font: {
           size: 18,
           weight: 700
@@ -423,10 +416,10 @@ export class Dashboard implements OnInit, OnDestroy {
     scales: {
       x: {
         grid: {
-          color: 'rgba(255, 255, 255, 0.1)',
+          color: 'rgba(150, 150, 150, 0.2)',
         },
         ticks: {
-          color: 'rgba(255, 255, 255, 0.8)',
+          color: 'rgba(150, 150, 150, 0.9)',
           font: {
             size: 11,
             weight: 500
@@ -437,10 +430,10 @@ export class Dashboard implements OnInit, OnDestroy {
       y: {
         stacked: true,
         grid: {
-          color: 'rgba(255, 255, 255, 0.1)',
+          color: 'rgba(150, 150, 150, 0.2)',
         },
         ticks: {
-          color: 'rgba(255, 255, 255, 0.7)',
+          color: 'rgba(150, 150, 150, 0.9)',
           font: {
             size: 11,
             weight: 500
@@ -541,7 +534,7 @@ export class Dashboard implements OnInit, OnDestroy {
         display: true,
         position: 'right',
         labels: {
-          color: 'rgba(255, 255, 255, 0.9)',
+          color: 'rgba(150, 150, 150, 0.9)',
           font: {
             size: 11,
             weight: 600
@@ -556,7 +549,7 @@ export class Dashboard implements OnInit, OnDestroy {
       title: {
         display: true,
         text: ' Eficiencia por Usuario',
-        color: 'rgba(255, 255, 255, 0.95)',
+        color: 'rgba(150, 150, 150, 0.9)',
         font: {
           size: 18,
           weight: 700
@@ -723,11 +716,10 @@ export class Dashboard implements OnInit, OnDestroy {
     return !!metrics && !!(metrics as ProjectDashboardMetricsWithEficiencia).usuariosEficiencia;
   }
 
-  // ========== MÉTODOS DE EXPORTACIÓN PDF Y HTML MEJORADOS ==========
+  // ========== MÉTODOS DE EXPORTACIÓN HTML ULTRA PREMIUM ==========
 
   abrirMenuExportacion(): void {
     this.showExportModal = true;
-    console.log('Abriendo modal de exportación');
   }
 
   cerrarMenuExportacion(): void {
@@ -735,52 +727,40 @@ export class Dashboard implements OnInit, OnDestroy {
   }
 
   seleccionarFormatoExportacion(formato: string): void {
-    if (formato === 'pdf') {
-      console.log('Formato seleccionado: PDF');
-      this.exportarComoPDF();
-    } else if (formato === 'html') {
-      console.log('Formato seleccionado: HTML');
+    if (formato === 'html') {
       this.exportarComoHTML();
     } else {
-      console.warn(`Formato no válido: ${formato}`);
       this.mostrarNotificacionExportacion('error', `Formato ${formato} no es válido`);
     }
     this.cerrarMenuExportacion();
   }
 
-  // MÉTODO PARA EXPORTAR COMO HTML CON GRÁFICOS SVG
   async exportarComoHTML(): Promise<void> {
     const isBrowserEnvironment = typeof window !== 'undefined' && 
                                 typeof document !== 'undefined' && 
                                 window && document;
     
     if (!isBrowserEnvironment) {
-      console.error('No se puede exportar: No está en un entorno de navegador');
       this.mostrarNotificacionExportacion('error', 'La exportación solo está disponible en el navegador');
       return;
     }
 
     this.exportando = true;
     this.cdr.detectChanges();
-    
-    console.log('Generando HTML con gráficos SVG interactivos...');
 
     try {
-      await this.generarHTMLConGraficos();
-      
-      console.log('HTML con gráficos generado correctamente');
-      this.mostrarNotificacionExportacion('success', 'Archivo HTML con gráficos generado y descargado correctamente');
-      
+      await this.generarHTMLPremium();
+      this.mostrarNotificacionExportacion('success', 'Reporte ejecutivo  generado correctamente');
     } catch (error) {
-      console.error('Error generando HTML con gráficos:', error);
-      this.mostrarNotificacionExportacion('error', 'Error al generar el archivo HTML: ' + (error as Error).message);
+      console.error('Error generando HTML :', error);
+      this.mostrarNotificacionExportacion('error', 'Error al generar el reporte: ' + (error as Error).message);
     } finally {
       this.exportando = false;
       this.cdr.detectChanges();
     }
   }
 
-  private async generarHTMLConGraficos(): Promise<void> {
+  private async generarHTMLPremium(): Promise<void> {
     return new Promise((resolve, reject) => {
       try {
         const proyecto = this.metrics?.proyecto;
@@ -800,11 +780,9 @@ export class Dashboard implements OnInit, OnDestroy {
           tareasPendientes: stats?.tareasPendientes || 0
         };
 
-        // Generar el contenido HTML con gráficos SVG
-        const htmlContent = this.generarContenidoHTMLConGraficos(datosProyecto, datosStats);
-        
-        // Crear y descargar el archivo
-        this.descargarArchivoHTML(htmlContent, `dashboard-${this.proyectoId || 'proyecto'}-${new Date().toISOString().split('T')[0]}.html`);
+        const htmlContent = this.generarContenidoHTMLPremium(datosProyecto, datosStats);
+        const nombreArchivo = `reporte-premium-${this.proyectoId || 'proyecto'}-${new Date().toISOString().split('T')[0]}.html`;
+        this.descargarArchivoHTML(htmlContent, nombreArchivo);
         
         resolve();
       } catch (error) {
@@ -813,22 +791,62 @@ export class Dashboard implements OnInit, OnDestroy {
     });
   }
 
-  private generarContenidoHTMLConGraficos(datosProyecto: any, datosStats: any): string {
+  private generarContenidoHTMLPremium(datosProyecto: any, datosStats: any): string {
     const fechaGeneracion = new Date().toLocaleString('es-ES');
     const usuario = this.getNombreUsuario();
 
-    // Datos para los gráficos SVG
-    const datosBarras = this.barChartData.datasets[0].data as number[];
-    const datosPie = this.pieChartData.datasets[0].data as number[];
-    const datosEvolucion = this.generarEvolucionProyecto();
+    // Obtener datos EXACTOS del dashboard para la evolución temporal
+    const datosEvolucionExacta = this.obtenerEvolucionExacta();
 
     return `<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Interactivo - ${datosProyecto.nombre}</title>
+    <title>Reporte Ejecutivo - ${datosProyecto.nombre}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        :root {
+            --primary: #6366F1;
+            --primary-dark: #4F46E5;
+            --primary-light: #8B5CF6;
+            --secondary: #10B981;
+            --accent: #F59E0B;
+            --danger: #EF4444;
+            --warning: #F59E0B;
+            --info: #3B82F6;
+            --dark: #0F172A;
+            --light: #F8FAFC;
+            --gray-50: #F9FAFB;
+            --gray-100: #F3F4F6;
+            --gray-200: #E5E7EB;
+            --gray-300: #D1D5DB;
+            --gray-400: #9CA3AF;
+            --gray-500: #6B7280;
+            --gray-600: #4B5563;
+            --gray-700: #374151;
+            --gray-800: #1F2937;
+            --gray-900: #111827;
+            
+            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-success: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            --gradient-warning: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+            --gradient-danger: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+            --gradient-premium: linear-gradient(135deg, #8B5CF6 0%, #6366F1 50%, #4F46E5 100%);
+            
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            
+            --border-radius: 12px;
+            --border-radius-lg: 16px;
+            --border-radius-xl: 20px;
+        }
+        
         * {
             margin: 0;
             padding: 0;
@@ -836,27 +854,34 @@ export class Dashboard implements OnInit, OnDestroy {
         }
         
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
             line-height: 1.6;
-            color: #2d3748;
+            color: var(--gray-800);
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
         }
         
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
         .container {
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
             background: white;
-            border-radius: 20px;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+            border-radius: var(--border-radius-xl);
+            box-shadow: var(--shadow-2xl);
             overflow: hidden;
         }
         
+        /* Header Premium */
         .header {
-            background: linear-gradient(135deg, #2c3e50, #34495e);
+            background: var(--gradient-premium);
             color: white;
-            padding: 40px 30px;
+            padding: 50px 40px;
             text-align: center;
             position: relative;
             overflow: hidden;
@@ -869,36 +894,84 @@ export class Dashboard implements OnInit, OnDestroy {
             left: 0;
             right: 0;
             bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="rgba(255,255,255,0.1)"><circle cx="50" cy="50" r="2"/></svg>') repeat;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255,255,255,0.05) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(255,255,255,0.08) 0%, transparent 50%);
+        }
+        
+        .header-content {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .badge-premium {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
         }
         
         .header h1 {
-            font-size: 3em;
-            margin-bottom: 15px;
-            font-weight: 300;
-            position: relative;
+            font-size: 2.5rem;
+            font-weight: 900;
+            margin-bottom: 12px;
+            letter-spacing: -0.025em;
+            background: linear-gradient(135deg, #FFFFFF 0%, #F3F4F6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
         
         .header .subtitle {
-            font-size: 1.3em;
+            font-size: 1.2rem;
             opacity: 0.9;
-            font-weight: 300;
+            font-weight: 400;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.5;
+        }
+        
+        /* Project Info - Tamaños ajustados */
+        .project-info {
+            background: var(--gray-50);
+            padding: 40px;
+            border-bottom: 1px solid var(--gray-200);
+        }
+        
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--gray-900);
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 30px;
             position: relative;
         }
         
-        .project-info {
-            background: #f8fafc;
-            padding: 30px;
-            border-bottom: 1px solid #e2e8f0;
+        .section-title::after {
+            content: '';
+            flex: 1;
+            height: 3px;
+            background: var(--gradient-primary);
+            border-radius: 3px;
+            margin-left: 15px;
         }
         
-        .project-info h2 {
-            color: #2d3748;
-            margin-bottom: 20px;
-            font-size: 1.6em;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        .section-title .material-icons {
+            color: var(--primary);
+            font-size: 2rem;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
         
         .info-grid {
@@ -907,70 +980,58 @@ export class Dashboard implements OnInit, OnDestroy {
             gap: 20px;
         }
         
-        .info-item {
+        .info-card {
             background: white;
-            padding: 20px;
-            border-radius: 12px;
-            border-left: 5px solid #4299e1;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            padding: 24px;
+            border-radius: var(--border-radius-lg);
+            border-left: 4px solid var(--primary);
+            box-shadow: var(--shadow-md);
+            transition: all 0.3s ease;
         }
         
-        .info-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        .info-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
         }
         
-        .info-item strong {
-            color: #2d3748;
+        .info-card strong {
+            color: var(--gray-600);
             display: block;
             margin-bottom: 8px;
-            font-size: 0.9em;
+            font-size: 0.8rem;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.1em;
+            font-weight: 700;
         }
         
+        .info-card span {
+            color: var(--gray-900);
+            font-size: 1.1rem;
+            font-weight: 600;
+            line-height: 1.4;
+        }
+        
+        /* KPI Cards Premium - Tamaños ajustados */
         .metrics-section {
-            padding: 40px 30px;
+            padding: 50px 40px;
             background: white;
-        }
-        
-        .section-title {
-            color: #2d3748;
-            font-size: 2em;
-            margin-bottom: 30px;
-            text-align: center;
             position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-        }
-        
-        .section-title::after {
-            content: '';
-            display: block;
-            width: 80px;
-            height: 4px;
-            background: linear-gradient(135deg, #4299e1, #48bb78);
-            margin: 10px auto;
-            border-radius: 2px;
         }
         
         .kpi-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 25px;
-            margin-bottom: 40px;
+            margin-bottom: 50px;
         }
         
         .kpi-card {
             background: white;
-            padding: 30px 25px;
-            border-radius: 16px;
+            padding: 30px 20px;
+            border-radius: var(--border-radius-lg);
             text-align: center;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-            border: 1px solid #e2e8f0;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--gray-200);
             transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
@@ -983,80 +1044,126 @@ export class Dashboard implements OnInit, OnDestroy {
             left: 0;
             right: 0;
             height: 4px;
+            background: var(--gradient-primary);
         }
         
         .kpi-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+            transform: translateY(-6px);
+            box-shadow: var(--shadow-xl);
         }
         
         .kpi-icon {
-            font-size: 2.5em;
-            margin-bottom: 15px;
+            width: 70px;
+            height: 70px;
+            margin: 0 auto 20px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: white;
+            position: relative;
+            z-index: 2;
+            box-shadow: var(--shadow-md);
         }
         
         .kpi-value {
-            font-size: 2.8em;
-            font-weight: bold;
-            margin: 10px 0;
-            background: linear-gradient(135deg, #2d3748, #4a5568);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            font-size: 2.5rem;
+            font-weight: 900;
+            margin: 15px 0;
+            line-height: 1;
+            position: relative;
+            z-index: 2;
         }
         
         .kpi-label {
-            color: #718096;
-            font-size: 0.95em;
+            color: var(--gray-600);
+            font-size: 0.9rem;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            font-weight: 600;
+            letter-spacing: 0.1em;
+            font-weight: 700;
+            position: relative;
+            z-index: 2;
         }
         
-        .total-tareas::before { background: linear-gradient(135deg, #4299e1, #3182ce); }
-        .completadas::before { background: linear-gradient(135deg, #48bb78, #38a169); }
-        .en-progreso::before { background: linear-gradient(135deg, #ed8936, #dd6b20); }
-        .pendientes::before { background: linear-gradient(135deg, #f56565, #e53e3e); }
-        .progreso::before { background: linear-gradient(135deg, #9f7aea, #805ad5); }
+        .total-tareas .kpi-icon { background: var(--gradient-primary); }
+        .completadas .kpi-icon { background: var(--gradient-success); }
+        .en-progreso .kpi-icon { background: var(--gradient-warning); }
+        .pendientes .kpi-icon { background: var(--gradient-danger); }
+        .progreso .kpi-icon { background: var(--gradient-premium); }
         
+        .total-tareas .kpi-value { background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .completadas .kpi-value { background: var(--gradient-success); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .en-progreso .kpi-value { background: var(--gradient-warning); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .pendientes .kpi-value { background: var(--gradient-danger); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .progreso .kpi-value { background: var(--gradient-premium); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
+        /* Charts Section Premium - Tamaños ajustados */
         .charts-section {
-            padding: 40px 30px;
-            background: #f7fafc;
+            padding: 50px 40px;
+            background: var(--gray-50);
+            position: relative;
         }
         
         .charts-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
             gap: 30px;
-            margin-bottom: 40px;
+            margin-bottom: 50px;
         }
         
         .chart-container {
             background: white;
             padding: 30px;
-            border-radius: 16px;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-            border: 1px solid #e2e8f0;
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--gray-200);
+            transition: all 0.3s ease;
+        }
+        
+        .chart-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--gradient-primary);
+        }
+        
+        .chart-container:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
         }
         
         .chart-title {
-            color: #2d3748;
-            font-size: 1.4em;
-            margin-bottom: 25px;
-            text-align: center;
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 10px;
+            gap: 12px;
+            color: var(--gray-900);
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 25px;
         }
         
-        .chart-svg-container {
+        .chart-title .material-icons {
+            color: var(--primary);
+            font-size: 1.5rem;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .chart-canvas-container {
             width: 100%;
             height: 300px;
             background: white;
-            border-radius: 12px;
-            padding: 20px;
+            border-radius: var(--border-radius);
+            padding: 15px;
+            position: relative;
         }
         
+        /* Data Tables Premium - Tamaños ajustados */
         .data-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
@@ -1065,209 +1172,293 @@ export class Dashboard implements OnInit, OnDestroy {
         
         .data-table {
             background: white;
-            border-radius: 12px;
+            border-radius: var(--border-radius-lg);
             overflow: hidden;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-            border: 1px solid #e2e8f0;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--gray-200);
+            transition: all 0.3s ease;
+        }
+        
+        .data-table:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
         }
         
         .table-header {
-            background: linear-gradient(135deg, #2c3e50, #34495e);
+            background: var(--gradient-primary);
             color: white;
             padding: 20px;
-            font-weight: 600;
-            font-size: 1.1em;
+            font-weight: 700;
+            font-size: 1.2rem;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
         }
         
         .table-row {
             display: grid;
             grid-template-columns: 1fr auto auto;
-            padding: 18px 20px;
-            border-bottom: 1px solid #e2e8f0;
+            padding: 20px;
+            border-bottom: 1px solid var(--gray-200);
             align-items: center;
-            transition: background-color 0.2s ease;
+            transition: all 0.2s ease;
+            gap: 15px;
         }
         
         .table-row:hover {
-            background: #f7fafc;
+            background: var(--gray-50);
         }
         
         .table-row:nth-child(even) {
-            background: #fafafa;
+            background: var(--gray-50);
+        }
+        
+        .progress-bar-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 180px;
         }
         
         .progress-bar {
-            width: 120px;
-            height: 10px;
-            background: #e2e8f0;
-            border-radius: 5px;
+            flex: 1;
+            height: 12px;
+            background: var(--gray-200);
+            border-radius: 6px;
             overflow: hidden;
             position: relative;
         }
         
         .progress-fill {
             height: 100%;
-            border-radius: 5px;
-            transition: width 0.3s ease;
+            border-radius: 6px;
+            transition: width 0.6s ease;
+            background: var(--gradient-primary);
+            position: relative;
         }
         
+        /* Footer Premium - Tamaños ajustados */
         .footer {
-            background: #2d3748;
+            background: var(--dark);
             color: white;
-            padding: 30px;
-            text-align: center;
+            padding: 40px;
+            position: relative;
         }
         
         .footer-info {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 15px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
             max-width: 1000px;
             margin: 0 auto;
         }
         
         .footer-section {
-            flex: 1;
-            min-width: 200px;
+            text-align: center;
         }
         
         .footer-section strong {
-            color: #cbd5e0;
+            color: var(--gray-300);
             display: block;
-            margin-bottom: 5px;
-            font-size: 0.9em;
+            margin-bottom: 8px;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-weight: 600;
         }
         
-        @media (max-width: 768px) {
-            .header h1 {
-                font-size: 2.2em;
-            }
-            
-            .charts-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .data-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .kpi-grid {
-                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            }
-            
-            .info-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .footer-info {
-                flex-direction: column;
-                text-align: center;
-            }
+        .footer-section span {
+            color: white;
+            font-size: 1rem;
+            font-weight: 500;
         }
-
+        
         /* Animaciones */
         @keyframes fadeInUp {
             from {
                 opacity: 0;
-                transform: translateY(30px);
+                transform: translateY(40px);
             }
             to {
                 opacity: 1;
                 transform: translateY(0);
             }
         }
-
+        
         .fade-in {
-            animation: fadeInUp 0.6s ease-out;
+            animation: fadeInUp 0.8s ease both;
         }
-
-        /* Estilos para gráficos SVG */
-        .bar {
-            transition: all 0.3s ease;
+        
+        /* Responsive Design Mejorado */
+        @media (max-width: 1024px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .chart-container {
+                padding: 25px;
+            }
         }
-
-        .bar:hover {
-            opacity: 0.8;
-            transform: scale(1.05);
+        
+        @media (max-width: 768px) {
+            .header {
+                padding: 40px 20px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .project-info,
+            .metrics-section,
+            .charts-section {
+                padding: 30px 20px;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .kpi-grid {
+                grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+                gap: 20px;
+            }
+            
+            .kpi-card {
+                padding: 25px 15px;
+            }
+            
+            .kpi-icon {
+                width: 60px;
+                height: 60px;
+                font-size: 1.8rem;
+            }
+            
+            .kpi-value {
+                font-size: 2rem;
+            }
+            
+            .data-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .charts-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .chart-canvas-container {
+                height: 250px;
+            }
+            
+            .table-row {
+                grid-template-columns: 1fr;
+                gap: 10px;
+                text-align: center;
+            }
+            
+            .progress-bar-container {
+                justify-content: center;
+            }
+            
+            .footer-info {
+                grid-template-columns: 1fr;
+                gap: 25px;
+            }
         }
-
-        .pie-segment {
-            transition: all 0.3s ease;
-        }
-
-        .pie-segment:hover {
-            opacity: 0.8;
-            transform: scale(1.02);
-        }
-
-        .line-path {
-            transition: all 0.3s ease;
-        }
-
-        .line-path:hover {
-            stroke-width: 4;
+        
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                border-radius: var(--border-radius);
+            }
+            
+            .kpi-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .chart-canvas-container {
+                height: 200px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container fade-in">
         <header class="header">
-            <h1>📊 DASHBOARD INTERACTIVO</h1>
-            <p class="subtitle">Sistema de Gestión de Proyectos - Reporte Ejecutivo con Gráficos</p>
+            <div class="header-content">
+                <div class="badge-premium">Reporte Ejecutivo </div>
+                <h1>ANÁLISIS DE DESEMPEÑO</h1>
+                <p class="subtitle">Dashboard ejecutivo con métricas avanzadas y visualizaciones precisas</p>
+            </div>
         </header>
         
         <section class="project-info">
-            <h2>📋 Información del Proyecto</h2>
+            <h2 class="section-title">
+                <span class="material-icons">business</span>
+                INFORMACIÓN DEL PROYECTO
+            </h2>
             <div class="info-grid">
-                <div class="info-item">
+                <div class="info-card">
                     <strong>Proyecto</strong>
                     <span>${this.escapeHtml(datosProyecto.nombre)}</span>
                 </div>
-                <div class="info-item">
+                <div class="info-card">
                     <strong>Descripción</strong>
                     <span>${this.escapeHtml(datosProyecto.descripcion)}</span>
                 </div>
-                <div class="info-item">
+                <div class="info-card">
                     <strong>Fecha de Creación</strong>
                     <span>${this.formatearFechaHTML(datosProyecto.createdAt.toISOString())}</span>
                 </div>
-                <div class="info-item">
+                <div class="info-card">
                     <strong>ID del Proyecto</strong>
-                    <span>${this.proyectoId || 'N/A'}</span>
+                    <span style="font-family: 'Monaco', 'Consolas', monospace; font-weight: 600;">${this.proyectoId || 'N/A'}</span>
                 </div>
             </div>
         </section>
         
         <section class="metrics-section">
-            <h2 class="section-title">📈 Métricas Principales del Proyecto</h2>
+            <h2 class="section-title">
+                <span class="material-icons">analytics</span>
+                MÉTRICAS PRINCIPALES
+            </h2>
             <div class="kpi-grid">
                 <div class="kpi-card total-tareas">
-                    <div class="kpi-icon">📝</div>
+                    <div class="kpi-icon">
+                        <span class="material-icons">assignment</span>
+                    </div>
                     <div class="kpi-value">${datosStats.totalTareas}</div>
                     <div class="kpi-label">Total de Tareas</div>
                 </div>
                 <div class="kpi-card completadas">
-                    <div class="kpi-icon">✅</div>
+                    <div class="kpi-icon">
+                        <span class="material-icons">check_circle</span>
+                    </div>
                     <div class="kpi-value">${datosStats.tareasCompletadas}</div>
                     <div class="kpi-label">Completadas</div>
                 </div>
                 <div class="kpi-card en-progreso">
-                    <div class="kpi-icon">🔄</div>
+                    <div class="kpi-icon">
+                        <span class="material-icons">autorenew</span>
+                    </div>
                     <div class="kpi-value">${datosStats.tareasEnProgreso}</div>
                     <div class="kpi-label">En Progreso</div>
                 </div>
                 <div class="kpi-card pendientes">
-                    <div class="kpi-icon">⏳</div>
+                    <div class="kpi-icon">
+                        <span class="material-icons">schedule</span>
+                    </div>
                     <div class="kpi-value">${datosStats.tareasPendientes}</div>
                     <div class="kpi-label">Pendientes</div>
                 </div>
                 <div class="kpi-card progreso">
-                    <div class="kpi-icon">📊</div>
+                    <div class="kpi-icon">
+                        <span class="material-icons">trending_up</span>
+                    </div>
                     <div class="kpi-value">${datosStats.porcentajeCompletado}%</div>
                     <div class="kpi-label">Progreso General</div>
                 </div>
@@ -1275,43 +1466,58 @@ export class Dashboard implements OnInit, OnDestroy {
         </section>
         
         <section class="charts-section">
-            <h2 class="section-title">📊 Visualizaciones Interactivas</h2>
+            <h2 class="section-title">
+                <span class="material-icons">insights</span>
+                ANÁLISIS VISUAL AVANZADO
+            </h2>
             
             <div class="charts-grid">
-                <!-- Gráfico de Barras SVG -->
                 <div class="chart-container">
-                    <h3 class="chart-title">📈 Distribución de Tareas por Estado</h3>
-                    <div class="chart-svg-container">
-                        ${this.generarGraficoBarrasSVG(datosBarras)}
+                    <h3 class="chart-title">
+                        <span class="material-icons">bar_chart</span>
+                        DISTRIBUCIÓN POR ESTADO
+                    </h3>
+                    <div class="chart-canvas-container">
+                        <canvas id="barChart"></canvas>
                     </div>
                 </div>
                 
-                <!-- Gráfico Circular SVG -->
                 <div class="chart-container">
-                    <h3 class="chart-title">🎯 Distribución por Prioridad</h3>
-                    <div class="chart-svg-container">
-                        ${this.generarGraficoCircularSVG(datosPie)}
+                    <h3 class="chart-title">
+                        <span class="material-icons">pie_chart</span>
+                        DISTRIBUCIÓN POR PRIORIDAD
+                    </h3>
+                    <div class="chart-canvas-container">
+                        <canvas id="pieChart"></canvas>
                     </div>
                 </div>
                 
-                <!-- Gráfico de Evolución SVG -->
                 <div class="chart-container" style="grid-column: 1 / -1;">
-                    <h3 class="chart-title">📈 Evolución del Proyecto</h3>
-                    <div class="chart-svg-container">
-                        ${this.generarGraficoEvolucionSVG(datosEvolucion)}
+                    <h3 class="chart-title">
+                        <span class="material-icons">show_chart</span>
+                        EVOLUCIÓN TEMPORAL DEL PROYECTO
+                    </h3>
+                    <div class="chart-canvas-container">
+                        <canvas id="areaChart"></canvas>
                     </div>
                 </div>
             </div>
             
             <div class="data-grid">
                 <div class="data-table">
-                    <div class="table-header">📋 Distribución por Estado</div>
-                    ${this.generarTablaEstadosHTML()}
+                    <div class="table-header">
+                        <span class="material-icons">table_chart</span>
+                        DISTRIBUCIÓN POR ESTADO
+                    </div>
+                    ${this.generarTablaEstadosPremium()}
                 </div>
                 
                 <div class="data-table">
-                    <div class="table-header">👥 Eficiencia por Usuario</div>
-                    ${this.generarTablaEficienciaHTML()}
+                    <div class="table-header">
+                        <span class="material-icons">people</span>
+                        EFICIENCIA POR USUARIO
+                    </div>
+                    ${this.generarTablaEficienciaPremium()}
                 </div>
             </div>
         </section>
@@ -1331,252 +1537,321 @@ export class Dashboard implements OnInit, OnDestroy {
                     <span>${this.proyectoId || 'N/A'}</span>
                 </div>
                 <div class="footer-section">
-                    <strong>Sistema de Gestión de Proyectos</strong>
-                    <span>v2.0</span>
+                    <strong>Sistema de Gestión</strong>
+                    <span>v4.0 Executive</span>
                 </div>
             </div>
         </footer>
     </div>
 
     <script>
-        // Interactividad para los gráficos
-        document.addEventListener('DOMContentLoaded', function() {
-            // Animación de barras al hacer hover
-            const bars = document.querySelectorAll('.bar');
-            bars.forEach(bar => {
-                bar.addEventListener('mouseenter', function() {
-                    this.style.filter = 'brightness(1.2)';
-                });
-                
-                bar.addEventListener('mouseleave', function() {
-                    this.style.filter = 'brightness(1)';
-                });
+        // Configuración de gráficos con Chart.js - Datos EXACTOS del dashboard
+        function initCharts() {
+            // Datos para los gráficos - Replicación exacta del dashboard
+            const barData = ${JSON.stringify(this.barChartData.datasets[0].data)};
+            const pieData = ${JSON.stringify(this.pieChartData.datasets[0].data)};
+            const areaData = ${JSON.stringify(datosEvolucionExacta)};
+            
+            // Gráfico de Barras - Réplica exacta
+            new Chart(document.getElementById('barChart'), {
+                type: 'bar',
+                data: {
+                    labels: ['Pendientes', 'En Progreso', 'Completadas'],
+                    datasets: [{
+                        label: 'Cantidad de Tareas',
+                        data: barData,
+                        backgroundColor: [
+                            'rgba(239, 68, 68, 0.9)',
+                            'rgba(245, 158, 11, 0.9)',
+                            'rgba(34, 197, 94, 0.9)'
+                        ],
+                        borderColor: [
+                            'rgba(239, 68, 68, 1)',
+                            'rgba(245, 158, 11, 1)',
+                            'rgba(34, 197, 94, 1)'
+                        ],
+                        borderWidth: 3,
+                        borderRadius: 16,
+                        borderSkipped: false,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            },
+                            ticks: {
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                font: {
+                                    size: 12,
+                                    weight: '500'
+                                }
+                            }
+                        }
+                    },
+                    animation: {
+                        duration: 1500,
+                        easing: 'easeOutQuart'
+                    }
+                }
             });
-
-            // Animación de segmentos del pie chart
-            const pieSegments = document.querySelectorAll('.pie-segment');
-            pieSegments.forEach(segment => {
-                segment.addEventListener('mouseenter', function() {
-                    this.style.filter = 'brightness(1.2)';
-                });
-                
-                segment.addEventListener('mouseleave', function() {
-                    this.style.filter = 'brightness(1)';
-                });
+            
+            // Gráfico Circular - Réplica exacta
+            new Chart(document.getElementById('pieChart'), {
+                type: 'pie',
+                data: {
+                    labels: ['Alta Prioridad', 'Media Prioridad', 'Baja Prioridad'],
+                    datasets: [{
+                        data: pieData,
+                        backgroundColor: [
+                            'rgba(239, 68, 68, 0.95)',
+                            'rgba(245, 158, 11, 0.95)',
+                            'rgba(34, 197, 94, 0.95)'
+                        ],
+                        borderColor: [
+                            'rgba(239, 68, 68, 1)',
+                            'rgba(245, 158, 11, 1)',
+                            'rgba(34, 197, 94, 1)'
+                        ],
+                        borderWidth: 3,
+                        hoverOffset: 20
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                font: {
+                                    size: 12,
+                                    weight: '600'
+                                },
+                                padding: 15
+                            }
+                        }
+                    },
+                    animation: {
+                        duration: 1500,
+                        easing: 'easeOutQuart'
+                    }
+                }
             });
+            
+            // Gráfico de Área - Réplica EXACTA del dashboard
+            new Chart(document.getElementById('areaChart'), {
+                type: 'line',
+                data: {
+                    labels: areaData.labels,
+                    datasets: [
+                        {
+                            label: 'Completadas',
+                            data: areaData.completadas,
+                            borderColor: 'rgba(34, 197, 94, 1)',
+                            backgroundColor: 'rgba(34, 197, 94, 0.4)',
+                            fill: true,
+                            tension: 0.4,
+                            borderWidth: 3,
+                            pointBackgroundColor: 'rgba(34, 197, 94, 1)',
+                            pointBorderColor: 'rgba(255, 255, 255, 0.9)',
+                            pointBorderWidth: 2,
+                            pointRadius: 6,
+                            pointHoverRadius: 10
+                        },
+                        {
+                            label: 'En Progreso',
+                            data: areaData.enProgreso,
+                            borderColor: 'rgba(59, 130, 246, 1)',
+                            backgroundColor: 'rgba(59, 130, 246, 0.4)',
+                            fill: true,
+                            tension: 0.4,
+                            borderWidth: 3,
+                            pointBackgroundColor: 'rgba(59, 130, 246, 1)',
+                            pointBorderColor: 'rgba(255, 255, 255, 0.9)',
+                            pointBorderWidth: 2,
+                            pointRadius: 6,
+                            pointHoverRadius: 10
+                        },
+                        {
+                            label: 'Pendientes',
+                            data: areaData.pendientes,
+                            borderColor: 'rgba(107, 114, 128, 1)',
+                            backgroundColor: 'rgba(107, 114, 128, 0.4)',
+                            fill: true,
+                            tension: 0.4,
+                            borderWidth: 3,
+                            pointBackgroundColor: 'rgba(107, 114, 128, 1)',
+                            pointBorderColor: 'rgba(255, 255, 255, 0.9)',
+                            pointBorderWidth: 2,
+                            pointRadius: 6,
+                            pointHoverRadius: 10
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    size: 12,
+                                    weight: '600'
+                                }
+                            }
+                        }
+                    },
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            },
+                            ticks: {
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        },
+                        y: {
+                            stacked: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            },
+                            ticks: {
+                                font: {
+                                    size: 11
+                                }
+                            },
+                            beginAtZero: true
+                        }
+                    },
+                    animation: {
+                        duration: 1800,
+                        easing: 'easeOutQuart'
+                    }
+                }
+            });
+        }
 
-            // Efectos hover para las tarjetas KPI
-            const kpiCards = document.querySelectorAll('.kpi-card');
-            kpiCards.forEach(card => {
+        // Efectos interactivos mejorados
+        function initInteractions() {
+            // Efectos hover en tarjetas
+            const cards = document.querySelectorAll('.kpi-card, .info-card, .chart-container, .data-table');
+            cards.forEach(card => {
                 card.addEventListener('mouseenter', function() {
-                    this.style.transform = 'translateY(-8px) scale(1.02)';
+                    this.style.transform = this.classList.contains('kpi-card') 
+                        ? 'translateY(-6px)' 
+                        : 'translateY(-4px)';
                 });
                 
                 card.addEventListener('mouseleave', function() {
-                    this.style.transform = 'translateY(0) scale(1)';
+                    this.style.transform = 'translateY(0)';
                 });
             });
+
+            // Animaciones escalonadas
+            const animateElements = () => {
+                const elements = document.querySelectorAll('.kpi-card, .info-card, .chart-container, .data-table');
+                elements.forEach((element, index) => {
+                    element.style.animationDelay = (index * 0.1) + 's';
+                    element.classList.add('fade-in');
+                });
+            };
+
+            // Contadores animados para KPIs
+            const animateCounters = () => {
+                const counters = document.querySelectorAll('.kpi-value');
+                counters.forEach(counter => {
+                    const target = parseInt(counter.textContent);
+                    let current = 0;
+                    const increment = target / 40;
+                    const timer = setInterval(() => {
+                        current += increment;
+                        if (current >= target) {
+                            counter.textContent = target;
+                            clearInterval(timer);
+                        } else {
+                            counter.textContent = Math.floor(current);
+                        }
+                    }, 40);
+                });
+            };
+
+            animateElements();
+            setTimeout(animateCounters, 500);
+        }
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            initCharts();
+            initInteractions();
+            
+            // Efecto de carga suave
+            setTimeout(() => {
+                document.body.style.opacity = '1';
+            }, 100);
         });
+
+        // Efecto de carga inicial
+        document.body.style.opacity = '0';
+        document.body.style.transition = 'opacity 0.6s ease';
     </script>
 </body>
 </html>`;
   }
 
-  private generarGraficoBarrasSVG(datos: number[]): string {
-    const maxValue = Math.max(...datos, 1);
-    const colors = ['#ef4444', '#f59e0b', '#22c55e'];
-    const labels = ['Pendientes', 'En Progreso', 'Completadas'];
-    const width = 500;
-    const height = 250;
-    const padding = 60;
-    const barWidth = 80;
-    const spacing = 30;
-
-    let svg = `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">`;
-    
-    // Ejes
-    svg += `<line x1="${padding}" y1="${padding}" x2="${padding}" y2="${height - padding}" stroke="#cbd5e0" stroke-width="2"/>`;
-    svg += `<line x1="${padding}" y1="${height - padding}" x2="${width - padding}" y2="${height - padding}" stroke="#cbd5e0" stroke-width="2"/>`;
-    
-    // Líneas de guía
-    for (let i = 0; i <= 4; i++) {
-      const y = padding + (i * (height - 2 * padding) / 4);
-      svg += `<line x1="${padding}" y1="${y}" x2="${width - padding}" y2="${y}" stroke="#e2e8f0" stroke-width="1"/>`;
-      
-      // Etiquetas del eje Y
-      const value = Math.round(maxValue * (1 - i / 4));
-      svg += `<text x="${padding - 10}" y="${y + 4}" text-anchor="end" fill="#718096" font-size="12">${value}</text>`;
+  private obtenerEvolucionExacta(): { 
+    labels: string[]; 
+    completadas: number[]; 
+    enProgreso: number[]; 
+    pendientes: number[] 
+  } {
+    // Usar los datos EXACTOS del dashboard
+    if (this.metrics?.evolucionProyecto) {
+      return {
+        labels: this.metrics.evolucionProyecto.labels,
+        completadas: this.metrics.evolucionProyecto.completadas,
+        enProgreso: this.metrics.evolucionProyecto.enProgreso,
+        pendientes: this.metrics.evolucionProyecto.pendientes
+      };
     }
-    
-    // Barras
-    datos.forEach((value: number, index: number) => {
-      const barHeight = ((value / maxValue) * (height - 2 * padding)) * 0.8;
-      const x = padding + (index * (barWidth + spacing));
-      const y = height - padding - barHeight;
-      
-      svg += `<rect class="bar" x="${x}" y="${y}" width="${barWidth}" height="${barHeight}" 
-                   fill="${colors[index]}" rx="4" data-value="${value}"/>`;
-      
-      // Valor sobre la barra
-      svg += `<text x="${x + barWidth / 2}" y="${y - 10}" text-anchor="middle" fill="#2d3748" font-weight="bold" font-size="14">${value}</text>`;
-      
-      // Etiqueta
-      svg += `<text x="${x + barWidth / 2}" y="${height - padding + 20}" text-anchor="middle" fill="#718096" font-size="12">${labels[index]}</text>`;
-    });
-    
-    svg += `</svg>`;
-    return svg;
-  }
 
-  private generarGraficoCircularSVG(datos: number[]): string {
-    const total = datos.reduce((sum: number, value: number) => sum + value, 0) || 1;
-    const colors = ['#ef4444', '#f59e0b', '#22c55e'];
-    const labels = ['Alta', 'Media', 'Baja'];
-    const centerX = 250;
-    const centerY = 125;
-    const radius = 80;
-    
-    let svg = `<svg width="500" height="250" viewBox="0 0 500 250">`;
-    
-    let startAngle = 0;
-    
-    datos.forEach((value: number, index: number) => {
-      if (value === 0) return;
-      
-      const percentage = value / total;
-      const angle = percentage * 360;
-      const endAngle = startAngle + angle;
-      
-      const startRad = (startAngle - 90) * Math.PI / 180;
-      const endRad = (endAngle - 90) * Math.PI / 180;
-      
-      const x1 = centerX + radius * Math.cos(startRad);
-      const y1 = centerY + radius * Math.sin(startRad);
-      const x2 = centerX + radius * Math.cos(endRad);
-      const y2 = centerY + radius * Math.sin(endRad);
-      
-      const largeArcFlag = angle > 180 ? 1 : 0;
-      
-      svg += `<path class="pie-segment" d="M ${centerX} ${centerY} L ${x1} ${y1} A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2} Z" 
-                    fill="${colors[index]}"/>`;
-      
-      // Etiqueta en el segmento
-      const midAngle = startAngle + angle / 2;
-      const midRad = (midAngle - 90) * Math.PI / 180;
-      const labelRadius = radius * 0.6;
-      const labelX = centerX + labelRadius * Math.cos(midRad);
-      const labelY = centerY + labelRadius * Math.sin(midRad);
-      
-      svg += `<text x="${labelX}" y="${labelY}" text-anchor="middle" fill="white" font-weight="bold" font-size="12">${Math.round(percentage * 100)}%</text>`;
-      
-      startAngle = endAngle;
-    });
-    
-    // Leyenda
-    const legendX = 350;
-    const legendY = 50;
-    
-    datos.forEach((value: number, index: number) => {
-      if (value === 0) return;
-      
-      const y = legendY + (index * 25);
-      const percentage = ((value / total) * 100).toFixed(1);
-      
-      svg += `<rect x="${legendX}" y="${y - 8}" width="12" height="12" fill="${colors[index]}" rx="2"/>`;
-      svg += `<text x="${legendX + 20}" y="${y + 2}" fill="#2d3748" font-size="12">${labels[index]} Prioridad</text>`;
-      svg += `<text x="${legendX + 120}" y="${y + 2}" fill="#718096" font-size="11">${value} tareas (${percentage}%)</text>`;
-    });
-    
-    // Total en el centro
-    svg += `<circle cx="${centerX}" cy="${centerY}" r="${radius * 0.3}" fill="white"/>`;
-    svg += `<text x="${centerX}" y="${centerY - 5}" text-anchor="middle" fill="#2d3748" font-weight="bold" font-size="14">Total</text>`;
-    svg += `<text x="${centerX}" y="${centerY + 10}" text-anchor="middle" fill="#4299e1" font-weight="bold" font-size="16">${total}</text>`;
-    
-    svg += `</svg>`;
-    return svg;
-  }
-
-  private generarGraficoEvolucionSVG(datosEvolucion: any): string {
-    const { labels, completadas, enProgreso, pendientes } = datosEvolucion;
-    const maxValue = Math.max(...completadas, ...enProgreso, ...pendientes, 1);
-    const width = 900;
-    const height = 300;
-    const padding = 60;
-    
-    let svg = `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">`;
-    
-    // Ejes
-    svg += `<line x1="${padding}" y1="${padding}" x2="${padding}" y2="${height - padding}" stroke="#cbd5e0" stroke-width="2"/>`;
-    svg += `<line x1="${padding}" y1="${height - padding}" x2="${width - padding}" y2="${height - padding}" stroke="#cbd5e0" stroke-width="2"/>`;
-    
-    // Líneas de guía
-    for (let i = 0; i <= 4; i++) {
-      const y = padding + (i * (height - 2 * padding) / 4);
-      svg += `<line x1="${padding}" y1="${y}" x2="${width - padding}" y2="${y}" stroke="#e2e8f0" stroke-width="1"/>`;
-    }
-    
-    // Calcular puntos
-    const pointSpacing = (width - 2 * padding) / (labels.length - 1);
-    
-    // Función para generar path de línea
-    const generarPath = (data: number[], color: string) => {
-      let path = `M ${padding} ${height - padding - ((data[0] / maxValue) * (height - 2 * padding))}`;
-      
-      for (let i = 1; i < data.length; i++) {
-        const x = padding + (i * pointSpacing);
-        const y = height - padding - ((data[i] / maxValue) * (height - 2 * padding));
-        path += ` L ${x} ${y}`;
-      }
-      
-      return `<path class="line-path" d="${path}" stroke="${color}" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+    // Si no hay datos de evolución, usar los datos actuales del área chart
+    return {
+      labels: this.areaChartData.labels as string[],
+      completadas: this.areaChartData.datasets[0].data as number[],
+      enProgreso: this.areaChartData.datasets[1].data as number[],
+      pendientes: this.areaChartData.datasets[2].data as number[]
     };
-    
-    // Dibujar líneas
-    svg += generarPath(completadas, '#22c55e');
-    svg += generarPath(enProgreso, '#3b82f6');
-    svg += generarPath(pendientes, '#6b7280');
-    
-    // Dibujar puntos y etiquetas
-    const datasets = [completadas, enProgreso, pendientes];
-    const colors = ['#22c55e', '#3b82f6', '#6b7280'];
-    
-    datasets.forEach((dataset: number[], datasetIndex: number) => {
-      dataset.forEach((value: number, i: number) => {
-        const x = padding + (i * pointSpacing);
-        const y = height - padding - ((value / maxValue) * (height - 2 * padding));
-        
-        svg += `<circle cx="${x}" cy="${y}" r="4" fill="${colors[datasetIndex]}" stroke="white" stroke-width="2"/>`;
-        
-        // Etiquetas del eje X
-        if (i === dataset.length - 1) {
-          svg += `<text x="${x}" y="${height - padding + 20}" text-anchor="middle" fill="#718096" font-size="11">${labels[i]}</text>`;
-        }
-      });
-    });
-    
-    // Leyenda
-    const legendItems = [
-      { color: '#22c55e', label: 'Completadas' },
-      { color: '#3b82f6', label: 'En Progreso' },
-      { color: '#6b7280', label: 'Pendientes' }
-    ];
-    
-    legendItems.forEach((item, index: number) => {
-      const legendX = width - 150;
-      const legendY = padding + (index * 25);
-      
-      svg += `<line x1="${legendX}" y1="${legendY}" x2="${legendX + 30}" y2="${legendY}" stroke="${item.color}" stroke-width="3"/>`;
-      svg += `<circle cx="${legendX + 15}" cy="${legendY}" r="3" fill="${item.color}" stroke="white" stroke-width="1"/>`;
-      svg += `<text x="${legendX + 40}" y="${legendY + 4}" fill="#2d3748" font-size="12">${item.label}</text>`;
-    });
-    
-    svg += `</svg>`;
-    return svg;
   }
 
-  private generarTablaEstadosHTML(): string {
+  private generarTablaEstadosPremium(): string {
     if (!this.metrics?.tareasPorEstado || this.metrics.tareasPorEstado.length === 0) {
-      return '<div class="table-row" style="text-align: center; padding: 30px; color: #718096;">No hay datos disponibles</div>';
+      return '<div class="table-row" style="text-align: center; padding: 40px; color: var(--gray-500); font-style: italic; grid-template-columns: 1fr;">No hay datos disponibles para mostrar</div>';
     }
 
     const total = this.metrics.stats.totalTareas || 1;
@@ -1585,58 +1860,77 @@ export class Dashboard implements OnInit, OnDestroy {
       const porcentaje = ((estado.cantidad / total) * 100).toFixed(1);
       const anchoBarra = Math.max(5, (estado.cantidad / total) * 100);
       
-      let color = '#e2e8f0';
-      if (estado.estado.toLowerCase().includes('complet')) color = '#48bb78';
-      else if (estado.estado.toLowerCase().includes('progreso')) color = '#ed8936';
-      else if (estado.estado.toLowerCase().includes('pendiente')) color = '#f56565';
+      let color = 'var(--gradient-primary)';
+      let icon = 'circle';
+      if (estado.estado.toLowerCase().includes('complet')) {
+        color = 'var(--gradient-success)';
+        icon = 'check_circle';
+      } else if (estado.estado.toLowerCase().includes('progreso')) {
+        color = 'var(--gradient-warning)';
+        icon = 'autorenew';
+      } else if (estado.estado.toLowerCase().includes('pendiente')) {
+        color = 'var(--gradient-danger)';
+        icon = 'schedule';
+      }
       
       return `
         <div class="table-row">
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <div style="width: 12px; height: 12px; border-radius: 50%; background: ${color};"></div>
-                <span>${this.escapeHtml(estado.estado)}</span>
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span class="material-icons" style="font-size: 1.5rem; background: ${color}; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">${icon}</span>
+                <span style="font-weight: 600; color: var(--gray-900);">${this.escapeHtml(estado.estado)}</span>
             </div>
-            <div style="font-weight: 600;">${estado.cantidad}</div>
-            <div style="display: flex; align-items: center; gap: 15px;">
+            <div style="font-weight: 700; color: var(--gray-900); text-align: center;">${estado.cantidad}</div>
+            <div class="progress-bar-container">
                 <div class="progress-bar">
                     <div class="progress-fill" style="width: ${anchoBarra}%; background: ${color};"></div>
                 </div>
-                <span style="font-weight: 600; color: #2d3748; min-width: 50px;">${porcentaje}%</span>
+                <span style="font-weight: 700; color: var(--gray-900); min-width: 50px;">${porcentaje}%</span>
             </div>
         </div>
       `;
     }).join('');
   }
 
-  private generarTablaEficienciaHTML(): string {
+  private generarTablaEficienciaPremium(): string {
     if (!this.tieneUsuariosEficiencia(this.metrics) || !this.metrics.usuariosEficiencia || this.metrics.usuariosEficiencia.length === 0) {
-      return '<div class="table-row" style="text-align: center; padding: 30px; color: #718096;">No hay datos de eficiencia disponibles</div>';
+      return '<div class="table-row" style="text-align: center; padding: 40px; color: var(--gray-500); font-style: italic; grid-template-columns: 1fr;">No hay datos de eficiencia disponibles</div>';
     }
 
     return this.metrics.usuariosEficiencia.slice(0, 6).map((usuario: UsuarioEficiencia) => {
       const eficiencia = usuario.totalTareas > 0 ? 
         Math.round((usuario.tareasCompletadas / usuario.totalTareas) * 100) : 0;
       
-      let color = '#f56565'; // Rojo por defecto
-      if (eficiencia >= 80) color = '#48bb78'; // Verde
-      else if (eficiencia >= 60) color = '#ed8936'; // Amarillo
+      let color = 'var(--gradient-danger)';
+      let icon = 'person';
+      let status = 'Baja';
       
-      let emoji = '🔴';
-      if (eficiencia >= 80) emoji = '🟢';
-      else if (eficiencia >= 60) emoji = '🟡';
+      if (eficiencia >= 80) {
+        color = 'var(--gradient-success)';
+        icon = 'star';
+        status = 'Alta';
+      } else if (eficiencia >= 60) {
+        color = 'var(--gradient-warning)';
+        icon = 'trending_up';
+        status = 'Media';
+      }
       
       return `
         <div class="table-row">
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <span style="font-size: 1.2em;">${emoji}</span>
-                <span>${this.escapeHtml(usuario.nombreCompleto)}</span>
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span class="material-icons" style="font-size: 1.5rem; background: ${color}; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">${icon}</span>
+                <div>
+                    <div style="font-weight: 600; color: var(--gray-900);">${this.escapeHtml(usuario.nombreCompleto)}</div>
+                    <div style="font-size: 0.8rem; color: var(--gray-600);">${status} Eficiencia</div>
+                </div>
             </div>
-            <div style="font-weight: 600; color: #4a5568;">${usuario.tareasCompletadas}/${usuario.totalTareas}</div>
-            <div style="display: flex; align-items: center; gap: 15px;">
+            <div style="font-weight: 700; color: var(--gray-700); text-align: center;">
+                ${usuario.tareasCompletadas}<span style="color: var(--gray-400);">/</span>${usuario.totalTareas}
+            </div>
+            <div class="progress-bar-container">
                 <div class="progress-bar">
                     <div class="progress-fill" style="width: ${eficiencia}%; background: ${color};"></div>
                 </div>
-                <span style="font-weight: bold; color: ${color}; min-width: 50px; font-size: 1.1em;">${eficiencia}%</span>
+                <span style="font-weight: 800; color: var(--gray-900); min-width: 50px; background: ${color}; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">${eficiencia}%</span>
             </div>
         </div>
       `;
@@ -1655,7 +1949,6 @@ export class Dashboard implements OnInit, OnDestroy {
     document.body.appendChild(link);
     link.click();
     
-    // Limpieza
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
   }
@@ -1670,51 +1963,9 @@ export class Dashboard implements OnInit, OnDestroy {
     return new Date(fecha).toLocaleDateString('es-ES', {
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
-    });
-  }
-
-  // MÉTODOS PARA EXPORTACIÓN PDF (se mantienen del código original)
-  async exportarComoPDF(): Promise<void> {
-    const isBrowserEnvironment = typeof window !== 'undefined' && 
-                                typeof document !== 'undefined' && 
-                                window && document;
-    
-    if (!isBrowserEnvironment) {
-      console.error('No se puede exportar: No está en un entorno de navegador');
-      this.mostrarNotificacionExportacion('error', 'La exportación solo está disponible en el navegador');
-      return;
-    }
-
-    this.exportando = true;
-    this.cdr.detectChanges();
-    
-    console.log('Generando PDF con diseño profesional...');
-
-    try {
-      await this.generarPDFConJsPDF();
-      
-      console.log('PDF generado correctamente');
-      this.mostrarNotificacionExportacion('success', 'PDF generado y descargado correctamente');
-      
-    } catch (error) {
-      console.error('Error generando PDF:', error);
-      this.mostrarNotificacionExportacion('error', 'Error al generar el PDF: ' + (error as Error).message);
-    } finally {
-      this.exportando = false;
-      this.cdr.detectChanges();
-    }
-  }
-
-  private async generarPDFConJsPDF(): Promise<void> {
-    // Implementación simplificada para mantener el foco en HTML
-    return new Promise((resolve, reject) => {
-      try {
-        this.mostrarNotificacionExportacion('success', 'Exportación PDF en desarrollo');
-        resolve();
-      } catch (error) {
-        reject(error);
-      }
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
     });
   }
 
@@ -1734,24 +1985,26 @@ export class Dashboard implements OnInit, OnDestroy {
         top: 20px;
         right: 20px;
         z-index: 10000;
-        padding: 16px 20px;
+        padding: 16px 24px;
         border-radius: 12px;
-        backdrop-filter: blur(10px);
+        backdrop-filter: blur(20px);
         transform: translateX(0);
         transition: all 0.3s ease;
-        font-family: system-ui, -apple-system, sans-serif;
-        font-weight: 500;
+        font-family: 'Inter', sans-serif;
+        font-weight: 600;
+        font-size: 0.9rem;
         ${tipo === 'success' 
-          ? 'background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); color: rgb(34, 197, 94);' 
-          : 'background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: rgb(239, 68, 68);'
+          ? 'background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); color: rgb(16, 185, 129);' 
+          : 'background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: rgb(239, 68, 68);'
         }
+        box-shadow: 0 8px 20px -5px rgba(0, 0, 0, 0.1);
       `;
       
       notification.innerHTML = `
         <div style="display: flex; align-items: center; gap: 12px;">
           <div style="width: 24px; height: 24px; border-radius: 50%; background: currentColor; opacity: 0.2; display: flex; align-items: center; justify-content: center;">
             <span style="color: currentColor; font-size: 14px; font-weight: bold;">
-              ${tipo === 'success' ? '✓' : '⚠'}
+              ${tipo === 'success' ? '✓' : '!'}
             </span>
           </div>
           <span>${mensaje}</span>
@@ -1845,147 +2098,130 @@ export class Dashboard implements OnInit, OnDestroy {
     }
   }
 
-actualizarGraficos(): void {
-  if (!this.metrics) return;
+  actualizarGraficos(): void {
+    if (!this.metrics) return;
 
-  // 1. GRÁFICO DE BARRAS - Solo 3 estados
-  this.barChartData.datasets[0].data = [
-    this.metrics.stats.tareasPendientes,
-    this.metrics.stats.tareasEnProgreso,
-    this.metrics.stats.tareasCompletadas
-  ];
-
-  // 2. GRÁFICO CIRCULAR - Distribución por Prioridad
-  if (this.metrics.tareasPorPrioridad && this.metrics.tareasPorPrioridad.length > 0) {
-    console.log('Usando datos REALES de prioridad del backend:', this.metrics.tareasPorPrioridad);
-    
-    const prioridadesMap = new Map<string, number>();
-    
-    this.metrics.tareasPorPrioridad.forEach((item: { prioridad: string; cantidad: number }) => {
-      if (item.prioridad && item.cantidad !== undefined) {
-        prioridadesMap.set(item.prioridad.toLowerCase(), item.cantidad);
-      }
-    });
-
-    const datosPrioridad = [
-      prioridadesMap.get('alta') || 0,
-      prioridadesMap.get('media') || 0,
-      prioridadesMap.get('baja') || 0
+    // 1. GRÁFICO DE BARRAS - Solo 3 estados
+    this.barChartData.datasets[0].data = [
+      this.metrics.stats.tareasPendientes,
+      this.metrics.stats.tareasEnProgreso,
+      this.metrics.stats.tareasCompletadas
     ];
 
-    console.log('Datos de prioridad para gráfico:', datosPrioridad);
-    this.pieChartData.datasets[0].data = datosPrioridad;
-  } else {
-    console.log('No hay datos de prioridad del backend, mostrando ceros');
-    this.pieChartData.datasets[0].data = [0, 0, 0];
-  }
-
-  // 3. GRÁFICO DE ÁREA APILADO - Evolución General del Proyecto (DATOS REALES)
-  if (this.metrics.evolucionProyecto) {
-    console.log('📈 Usando datos REALES de evolución del proyecto:', this.metrics.evolucionProyecto);
-    
-    // Usar los datos reales del backend
-    this.areaChartData.labels = this.metrics.evolucionProyecto.labels;
-    this.areaChartData.datasets[0].data = this.metrics.evolucionProyecto.completadas;
-    this.areaChartData.datasets[1].data = this.metrics.evolucionProyecto.enProgreso;
-    this.areaChartData.datasets[2].data = this.metrics.evolucionProyecto.pendientes;
-  } else {
-    console.log('📈 No hay datos de evolución, usando datos simulados');
-    // Fallback a datos simulados si no hay datos reales
-    const datosEvolucion = this.generarEvolucionProyecto();
-    this.areaChartData.labels = datosEvolucion.labels;
-    this.areaChartData.datasets[0].data = datosEvolucion.completadas;
-    this.areaChartData.datasets[1].data = datosEvolucion.enProgreso;
-    this.areaChartData.datasets[2].data = datosEvolucion.pendientes;
-  }
-
-  // 4. GRÁFICO DE ANILLO - Eficiencia por Usuario
-  if (this.tieneUsuariosEficiencia(this.metrics) && this.metrics.usuariosEficiencia!.length > 0) {
-    console.log('Usando datos REALES de eficiencia del backend:', this.metrics.usuariosEficiencia);
-    
-    const eficienciaUsuarios = this.metrics.usuariosEficiencia!.map((usuario: UsuarioEficiencia) => {
-      let eficiencia = 0;
-      if (usuario.totalTareas > 0) {
-        eficiencia = Math.round((usuario.tareasCompletadas / usuario.totalTareas) * 100);
-      }
+    // 2. GRÁFICO CIRCULAR - Distribución por Prioridad
+    if (this.metrics.tareasPorPrioridad && this.metrics.tareasPorPrioridad.length > 0) {
+      const prioridadesMap = new Map<string, number>();
       
-      return {
-        usuario: usuario.nombreCompleto,
-        eficiencia: Math.max(0, Math.min(100, eficiencia))
-      };
-    });
+      this.metrics.tareasPorPrioridad.forEach((item: { prioridad: string; cantidad: number }) => {
+        if (item.prioridad && item.cantidad !== undefined) {
+          prioridadesMap.set(item.prioridad.toLowerCase(), item.cantidad);
+        }
+      });
 
-    this.doughnutChartData.labels = eficienciaUsuarios.map((item: { usuario: string; eficiencia: number }) => item.usuario);
-    this.doughnutChartData.datasets[0].data = eficienciaUsuarios.map((item: { usuario: string; eficiencia: number }) => item.eficiencia);
-    
-    console.log('Eficiencia por usuario para gráfico:', eficienciaUsuarios);
-  } else {
-    console.log('No hay datos de eficiencia de usuarios del backend, mostrando datos básicos');
-    
-    const usuarioActual = this.authService.getCurrentUser();
-    const nombreUsuario = usuarioActual ? `${usuarioActual.nombre} ${usuarioActual.apellido}` : 'Usuario';
-    
-    const eficienciaBase = this.metrics.stats.porcentajeCompletado || 0;
-    
-    this.doughnutChartData.labels = [nombreUsuario];
-    this.doughnutChartData.datasets[0].data = [eficienciaBase];
+      const datosPrioridad = [
+        prioridadesMap.get('alta') || 0,
+        prioridadesMap.get('media') || 0,
+        prioridadesMap.get('baja') || 0
+      ];
+
+      this.pieChartData.datasets[0].data = datosPrioridad;
+    } else {
+      this.pieChartData.datasets[0].data = [0, 0, 0];
+    }
+
+    // 3. GRÁFICO DE ÁREA APILADO - Evolución General del Proyecto (DATOS REALES)
+    if (this.metrics.evolucionProyecto) {
+      this.areaChartData.labels = this.metrics.evolucionProyecto.labels;
+      this.areaChartData.datasets[0].data = this.metrics.evolucionProyecto.completadas;
+      this.areaChartData.datasets[1].data = this.metrics.evolucionProyecto.enProgreso;
+      this.areaChartData.datasets[2].data = this.metrics.evolucionProyecto.pendientes;
+    } else {
+      const datosEvolucion = this.generarEvolucionProyecto();
+      this.areaChartData.labels = datosEvolucion.labels;
+      this.areaChartData.datasets[0].data = datosEvolucion.completadas;
+      this.areaChartData.datasets[1].data = datosEvolucion.enProgreso;
+      this.areaChartData.datasets[2].data = datosEvolucion.pendientes;
+    }
+
+    // 4. GRÁFICO DE ANILLO - Eficiencia por Usuario
+    if (this.tieneUsuariosEficiencia(this.metrics) && this.metrics.usuariosEficiencia!.length > 0) {
+      const eficienciaUsuarios = this.metrics.usuariosEficiencia!.map((usuario: UsuarioEficiencia) => {
+        let eficiencia = 0;
+        if (usuario.totalTareas > 0) {
+          eficiencia = Math.round((usuario.tareasCompletadas / usuario.totalTareas) * 100);
+        }
+        
+        return {
+          usuario: usuario.nombreCompleto,
+          eficiencia: Math.max(0, Math.min(100, eficiencia))
+        };
+      });
+
+      this.doughnutChartData.labels = eficienciaUsuarios.map((item: { usuario: string; eficiencia: number }) => item.usuario);
+      this.doughnutChartData.datasets[0].data = eficienciaUsuarios.map((item: { usuario: string; eficiencia: number }) => item.eficiencia);
+    } else {
+      const usuarioActual = this.authService.getCurrentUser();
+      const nombreUsuario = usuarioActual ? `${usuarioActual.nombre} ${usuarioActual.apellido}` : 'Usuario';
+      
+      const eficienciaBase = this.metrics.stats.porcentajeCompletado || 0;
+      
+      this.doughnutChartData.labels = [nombreUsuario];
+      this.doughnutChartData.datasets[0].data = [eficienciaBase];
+    }
+
+    setTimeout(() => {
+      this.cdr.detectChanges();
+    }, 50);
   }
 
-  setTimeout(() => {
-    this.cdr.detectChanges();
-  }, 50);
-}
+  // MÉTODO PARA GENERAR EVOLUCIÓN DEL PROYECTO (SOLO COMO FALLBACK)
+  private generarEvolucionProyecto(): { 
+    labels: string[]; 
+    completadas: number[]; 
+    enProgreso: number[]; 
+    pendientes: number[] 
+  } {
+    if (!this.metrics) {
+      return { 
+        labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'], 
+        completadas: Array(12).fill(0), 
+        enProgreso: Array(12).fill(0), 
+        pendientes: Array(12).fill(0) 
+      };
+    }
 
-// MÉTODO PARA GENERAR EVOLUCIÓN DEL PROYECTO (SOLO COMO FALLBACK)
-private generarEvolucionProyecto(): { 
-  labels: string[]; 
-  completadas: number[]; 
-  enProgreso: number[]; 
-  pendientes: number[] 
-} {
-  if (!this.metrics) {
-    return { 
-      labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'], 
-      completadas: Array(12).fill(0), 
-      enProgreso: Array(12).fill(0), 
-      pendientes: Array(12).fill(0) 
+    const totalTareas = this.metrics.stats.totalTareas;
+    const completadasActual = this.metrics.stats.tareasCompletadas;
+    const enProgresoActual = this.metrics.stats.tareasEnProgreso;
+    const pendientesActual = this.metrics.stats.tareasPendientes;
+
+    const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    const completadas: number[] = Array(12).fill(0);
+    const enProgreso: number[] = Array(12).fill(0);
+    const pendientes: number[] = Array(12).fill(0);
+
+    const mesActual = new Date().getMonth();
+    
+    for (let i = 0; i <= mesActual && i < 12; i++) {
+      const factor = i / Math.max(1, mesActual);
+      completadas[i] = Math.round(completadasActual * factor * 0.8);
+      enProgreso[i] = Math.round(enProgresoActual * (0.3 + factor * 0.7));
+      pendientes[i] = Math.max(0, totalTareas - completadas[i] - enProgreso[i]);
+    }
+
+    if (mesActual < 12) {
+      completadas[mesActual] = completadasActual;
+      enProgreso[mesActual] = enProgresoActual;
+      pendientes[mesActual] = pendientesActual;
+    }
+
+    return {
+      labels: meses,
+      completadas,
+      enProgreso,
+      pendientes
     };
   }
-
-  const totalTareas = this.metrics.stats.totalTareas;
-  const completadasActual = this.metrics.stats.tareasCompletadas;
-  const enProgresoActual = this.metrics.stats.tareasEnProgreso;
-  const pendientesActual = this.metrics.stats.tareasPendientes;
-
-  const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-  const completadas: number[] = Array(12).fill(0);
-  const enProgreso: number[] = Array(12).fill(0);
-  const pendientes: number[] = Array(12).fill(0);
-
-  // Simular distribución a lo largo del año (solo como fallback)
-  const mesActual = new Date().getMonth();
-  
-  for (let i = 0; i <= mesActual && i < 12; i++) {
-    const factor = i / Math.max(1, mesActual);
-    completadas[i] = Math.round(completadasActual * factor * 0.8);
-    enProgreso[i] = Math.round(enProgresoActual * (0.3 + factor * 0.7));
-    pendientes[i] = Math.max(0, totalTareas - completadas[i] - enProgreso[i]);
-  }
-
-  // Asegurar que el mes actual coincida con los datos reales
-  if (mesActual < 12) {
-    completadas[mesActual] = completadasActual;
-    enProgreso[mesActual] = enProgresoActual;
-    pendientes[mesActual] = pendientesActual;
-  }
-
-  return {
-    labels: meses,
-    completadas,
-    enProgreso,
-    pendientes
-  };
-}
 
   // MÉTODOS AUXILIARES
   getNombreUsuario(): string {

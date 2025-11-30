@@ -2,18 +2,18 @@
   
   <button 
     (click)="toggleSection()"
-    class="flex items-center justify-between w-full gap-2 mb-2 px-2 py-2 rounded-lg hover:bg-slate-800/50 transition-colors cursor-pointer group select-none text-left border border-transparent hover:border-slate-700/50">
+    class="flex items-center justify-between w-full gap-0.5 mb-2 px-2 py-2 rounded-lg hover:bg-slate-800/50 transition-colors cursor-pointer group select-none text-left border border-transparent hover:border-slate-700/50">
     
     <div class="flex items-center gap-2">
-      <svg class="w-3.5 h-3.5 text-gray-500 group-hover:text-gray-300 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <svg class="w-3.5 h-3.5 text-white group-hover:text-gray-300 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
       </svg>
       
-      <h3 class="text-sm font-medium text-gray-400 group-hover:text-gray-200 transition-colors">Comentarios</h3>
+      <h3 class="text-sm font-medium text-white group-hover:text-gray-200 transition-colors">Comentarios</h3>
       
       @if (comments().length > 0) {
-        <span class="text-xs text-gray-500 font-normal ml-1">
-          {{ comments().length }}
+        <span class="flex items-center justify-center bg-slate-700/80 text-white text-[10.5px] font-bold px-2 py-0.5 rounded-full border border-slate-600 shadow-sm min-w-[20px]">
+            {{ comments().length }}
         </span>
       }
     </div>
@@ -28,7 +28,7 @@
   </button>
 
   @if (isExpanded()) {
-    <div class="pl-1 animate-slide-down"> <div class="space-y-5 mb-6 mt-2">
+    <div class="pl-1 animate-slide-down"> <div class="space-y-5 mb-3 mt-2">
         
         @if (isLoading()) {
           <div class="text-gray-500 text-xs italic pl-1">Cargando...</div>
@@ -97,7 +97,7 @@
           style="field-sizing: content;" 
         ></textarea>
         <div class="hidden group-hover:block peer-focus:block absolute right-2 bottom-2.5 transition-opacity">
-           <span class="text-[10px] text-gray-500 bg-slate-800/80 px-1.5 py-0.5 rounded border border-slate-700/50">↵ enviar</span>
+           <span class="text-[11.5px] text-white bg-slate-800/80 px-1.5 py-0.5 rounded border border-slate-700/50">↵ enviar</span>
         </div>
       </div>
     </div>

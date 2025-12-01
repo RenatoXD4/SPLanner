@@ -541,6 +541,11 @@ export class Board implements OnInit {
 
 
   drop(event: CdkDragDrop<Task[]>) {
+
+    if(!this.puedeEditar()){
+      return
+    }
+
     const prevTasks = event.previousContainer.data;
     const currTasks = event.container.data;
 

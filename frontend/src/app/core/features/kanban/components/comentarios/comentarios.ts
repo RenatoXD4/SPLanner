@@ -146,7 +146,7 @@ export class Comentarios {
 
   confirmDelete() {
     if (this.commentIdToDelete) {
-      // Llamamos a tu lógica existente de borrado
+      // Llamar a lógica de borrar comentario
       this.deleteComment(this.commentIdToDelete); 
     }
     this.closeDeleteModal();

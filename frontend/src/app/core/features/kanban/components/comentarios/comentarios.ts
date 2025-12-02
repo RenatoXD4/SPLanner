@@ -5,10 +5,11 @@ import { AuthService } from '../../../../services/auth-service';
 import { Comentario } from '../../types/comment-interface';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ConfirmPopup } from "../../../../shared/ui/confirm-popup/confirm-popup";
 
 @Component({
   selector: 'app-comentarios',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ConfirmPopup],
   templateUrl: './comentarios.html',
   styleUrl: './comentarios.css'
 })
@@ -24,6 +25,9 @@ export class Comentarios {
   public isLoading = signal<boolean>(false);
   public currentUserId: string = '';
   public isExpanded = signal<boolean>(false);
+
+  public isDeleteModalOpen = false;
+  private commentIdToDelete: number | null = null;
 
 
   // Inputs del formulario
@@ -126,7 +130,6 @@ export class Comentarios {
   // --- Lógica de Eliminación ---
 
   async deleteComment(id: number) {
-    if (!confirm('¿Borrar comentario?')) return;
 
     try {
       await firstValueFrom(this.commentService.deleteComment(id, this.currentUserId));
@@ -134,6 +137,24 @@ export class Comentarios {
     } catch (error) {
       console.error('Error eliminando', error);
     }
+  }
+
+  requestDelete(commentId: number) {
+    this.commentIdToDelete = commentId; // Guardamos el ID
+    this.isDeleteModalOpen = true;      // Abrimos el modal
+  }
+
+  confirmDelete() {
+    if (this.commentIdToDelete) {
+      // Llamamos a tu lógica existente de borrado
+      this.deleteComment(this.commentIdToDelete); 
+    }
+    this.closeDeleteModal();
+  }
+
+  closeDeleteModal() {
+    this.isDeleteModalOpen = false;
+    this.commentIdToDelete = null; // Limpiamos la referencia
   }
   
   // Helper para iniciales del avatar

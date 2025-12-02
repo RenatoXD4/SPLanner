@@ -20,7 +20,7 @@ export class ConfirmPopup implements OnChanges, AfterViewInit {
 
   @ViewChild('myDialog') dialogRef!: ElementRef<HTMLDialogElement>;
 
-  //Mostrar el fondo siempre al centro ignorando todos los componentes padre y estilos pasando al top-layer del navegador.
+
   ngAfterViewInit() {
     if (this.isOpen && this.dialogRef?.nativeElement && !this.dialogRef.nativeElement.open) {
       this.dialogRef.nativeElement.showModal();
@@ -30,6 +30,7 @@ export class ConfirmPopup implements OnChanges, AfterViewInit {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['isOpen'] && this.dialogRef) {
       if (this.isOpen) {
+        //Mostrar el modal siempre al centro ignorando todos los componentes padre y estilos pasando al top-layer del navegador.
         this.dialogRef.nativeElement.showModal(); 
       } else {
         this.dialogRef.nativeElement.close();

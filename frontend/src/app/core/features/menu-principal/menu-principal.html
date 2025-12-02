@@ -256,16 +256,10 @@
                   </div>
                   <div>
                     <h3 class="text-white font-semibold">{{project.nombre}}</h3>
-                    <p class="text-gray-400 text-sm">{{project.totalTareas}} tareas • {{project.porcentajeCompletado}}%
-                      completado</p>
+                    <p class="text-gray-400 text-sm">{{project.totalTareas}} tareas</p>
                   </div>
                 </div>
-                <div class="text-right">
-                  <p [class]="getProjectStatusClass(project.porcentajeCompletado) + ' text-sm font-semibold'">
-                    {{getProjectStatusText(project.porcentajeCompletado)}}
-                  </p>
-                  <p class="text-gray-400 text-xs">Creado {{project.createdAt | date:'dd/MM/yy'}}</p>
-                </div>
+
               </div>
               } @empty {
               <div class="text-center py-8">

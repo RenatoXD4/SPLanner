@@ -257,6 +257,301 @@ export class TemaService {
         --gradient-login-card: linear-gradient(to bottom, #ffffff, #f8fafc);
       }
 
+      /* ===== BOTONES DE TEMA - ESTILOS CLAROS ===== */
+
+      /* Contenedor de botones de tema */
+      [data-theme="light"] .theme-toggle-container {
+        background: var(--bg-card) !important;
+        border: 1px solid var(--border-primary) !important;
+        border-radius: 12px !important;
+        padding: 8px !important;
+        box-shadow: var(--shadow-card) !important;
+        display: flex !important;
+        gap: 4px !important;
+        align-items: center !important;
+      }
+
+      /* Botones de tema individuales */
+      [data-theme="light"] .theme-btn {
+        background: transparent !important;
+        border: 2px solid transparent !important;
+        border-radius: 8px !important;
+        padding: 10px 16px !important;
+        color: var(--text-primary) !important;
+        transition: all 0.3s ease !important;
+        font-weight: 500 !important;
+        cursor: pointer !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        min-width: 100px !important;
+      }
+
+      [data-theme="light"] .theme-btn:hover {
+        background: var(--bg-sidebar-hover) !important;
+        transform: translateY(-2px) !important;
+        box-shadow: var(--shadow-card) !important;
+      }
+
+      /* Botón activo */
+      [data-theme="light"] .theme-btn.active {
+        background: var(--gradient-button-green) !important;
+        color: white !important;
+        border-color: var(--accent-green) !important;
+        box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3) !important;
+      }
+
+      /* Botón modo claro */
+      [data-theme="light"] .theme-btn.light {
+        border-color: var(--border-primary) !important;
+      }
+
+      [data-theme="light"] .theme-btn.light:hover {
+        border-color: var(--accent-blue) !important;
+      }
+
+      /* Botón modo oscuro */
+      [data-theme="light"] .theme-btn.dark {
+        border-color: var(--border-primary) !important;
+      }
+
+      [data-theme="light"] .theme-btn.dark:hover {
+        border-color: var(--accent-purple) !important;
+      }
+
+      /* Botón modo sistema */
+      [data-theme="light"] .theme-btn.system {
+        border-color: var(--border-primary) !important;
+      }
+
+      [data-theme="light"] .theme-btn.system:hover {
+        border-color: var(--accent-orange) !important;
+      }
+
+      /* Iconos en botones */
+      [data-theme="light"] .theme-btn i,
+      [data-theme="light"] .theme-btn svg {
+        color: inherit !important;
+        margin-right: 8px !important;
+        width: 16px !important;
+        height: 16px !important;
+      }
+
+      /* ===== HEADER CON BOTONES DE TEMA ===== */
+
+      [data-theme="light"] header .theme-toggle-container {
+        background: var(--bg-header) !important;
+        border: 1px solid var(--border-header) !important;
+      }
+
+      [data-theme="light"] header .theme-btn {
+        color: var(--text-header) !important;
+      }
+
+      /* ===== BOTÓN DE ACCIONES Y MENÚ DESPLEGABLE - MODO CLARO ===== */
+
+      /* Botón acciones principal */
+      [data-theme="light"] .bg-gradient-to-r.from-green-600.to-green-700 {
+        background: var(--gradient-button-green) !important;
+        color: white !important;
+        border-color: var(--accent-green) !important;
+      }
+
+      [data-theme="light"] .bg-gradient-to-r.from-gray-700.to-gray-800 {
+        background: var(--gradient-button-blue) !important;
+        color: white !important;
+        border-color: var(--border-input) !important;
+      }
+
+      [data-theme="light"] .bg-gradient-to-r.from-gray-700.to-gray-800:hover {
+        background: var(--accent-blue-hover) !important;
+      }
+
+      /* Menú desplegable de acciones */
+      [data-theme="light"] .absolute.right-0.mt-2.w-72.rounded-xl.shadow-2xl.bg-gradient-to-b.from-gray-800.to-gray-900 {
+        background: var(--gradient-modal) !important;
+        border: 1px solid var(--border-primary) !important;
+        color: var(--text-primary) !important;
+        box-shadow: var(--shadow-modal) !important;
+      }
+
+      /* Header del menú desplegable */
+      [data-theme="light"] .p-3.border-b.border-gray-700 {
+        border-bottom: 1px solid var(--border-primary) !important;
+      }
+
+      [data-theme="light"] .p-3.border-b.border-gray-700 h3 {
+        color: var(--text-primary) !important;
+        font-weight: 600 !important;
+      }
+
+      [data-theme="light"] .p-3.border-b.border-gray-700 .text-green-400 {
+        color: var(--accent-green) !important;
+      }
+
+      /* Elementos del menú desplegable */
+      [data-theme="light"] .w-full.px-4.py-3.text-left.rounded-lg.transition-all.duration-200.flex.items-center.gap-3 {
+        color: var(--text-primary) !important;
+        background: transparent !important;
+        border: none !important;
+      }
+
+      [data-theme="light"] .w-full.px-4.py-3.text-left.rounded-lg.transition-all.duration-200.flex.items-center.gap-3:hover {
+        background: var(--bg-sidebar-hover) !important;
+        transform: translateY(-1px) !important;
+        box-shadow: var(--shadow-card) !important;
+      }
+
+      /* Iconos del menú desplegable */
+      [data-theme="light"] .bg-green-500\\/20 {
+        background: rgba(5, 150, 105, 0.1) !important;
+        border-radius: 8px !important;
+        padding: 8px !important;
+      }
+
+      [data-theme="light"] .bg-red-500\\/20 {
+        background: rgba(220, 38, 38, 0.1) !important;
+        border-radius: 8px !important;
+        padding: 8px !important;
+      }
+
+      [data-theme="light"] .text-green-400 {
+        color: var(--accent-green) !important;
+      }
+
+      [data-theme="light"] .text-red-400 {
+        color: var(--accent-red) !important;
+      }
+
+      /* Textos del menú desplegable */
+      [data-theme="light"] .text-sm.font-semibold.text-white {
+        color: var(--text-primary) !important;
+        font-weight: 600 !important;
+      }
+
+      [data-theme="light"] .text-xs.text-gray-300 {
+        color: var(--text-secondary) !important;
+        font-size: 0.75rem !important;
+      }
+
+      /* ===== COLUMNAS KANBAN - MANTENER COLORES ORIGINALES ===== */
+
+      /* Columnas Kanban - Mantener colores originales */
+      [data-theme="light"] .bg-blue-100 { background-color: #dbeafe !important; }
+      [data-theme="light"] .bg-green-100 { background-color: #d1fae5 !important; }
+      [data-theme="light"] .bg-yellow-100 { background-color: #fef3c7 !important; }
+      [data-theme="light"] .bg-red-100 { background-color: #fee2e2 !important; }
+      [data-theme="light"] .bg-purple-100 { background-color: #f3e8ff !important; }
+      [data-theme="light"] .bg-pink-100 { background-color: #fce7f3 !important; }
+      [data-theme="light"] .bg-indigo-100 { background-color: #e0e7ff !important; }
+      [data-theme="light"] .bg-orange-100 { background-color: #ffedd5 !important; }
+      [data-theme="light"] .bg-cyan-100 { background-color: #cffafe !important; }
+      [data-theme="light"] .bg-teal-100 { background-color: #ccfbf1 !important; }
+
+      /* Bordes de columnas - Mantener colores originales */
+      [data-theme="light"] .border-blue-200 { border-color: #bfdbfe !important; }
+      [data-theme="light"] .border-green-200 { border-color: #a7f3d0 !important; }
+      [data-theme="light"] .border-yellow-200 { border-color: #fde68a !important; }
+      [data-theme="light"] .border-red-200 { border-color: #fecaca !important; }
+      [data-theme="light"] .border-purple-200 { border-color: #ddd6fe !important; }
+      [data-theme="light"] .border-pink-200 { border-color: #fbcfe8 !important; }
+      [data-theme="light"] .border-indigo-200 { border-color: #c7d2fe !important; }
+      [data-theme="light"] .border-orange-200 { border-color: #fdba74 !important; }
+      [data-theme="light"] .border-cyan-200 { border-color: #a5f3fc !important; }
+      [data-theme="light"] .border-teal-200 { border-color: #99f6e4 !important; }
+
+      /* Textos de columnas - Mantener contraste */
+      [data-theme="light"] .text-blue-800 { color: #1e40af !important; }
+      [data-theme="light"] .text-green-800 { color: #065f46 !important; }
+      [data-theme="light"] .text-yellow-800 { color: #92400e !important; }
+      [data-theme="light"] .text-red-800 { color: #991b1b !important; }
+      [data-theme="light"] .text-purple-800 { color: #5b21b6 !important; }
+      [data-theme="light"] .text-pink-800 { color: #9d174d !important; }
+      [data-theme="light"] .text-indigo-800 { color: #3730a3 !important; }
+      [data-theme="light"] .text-orange-800 { color: #9a3412 !important; }
+      [data-theme="light"] .text-cyan-800 { color: #155e75 !important; }
+      [data-theme="light"] .text-teal-800 { color: #115e59 !important; }
+
+      /* Badges de contador en columnas */
+      [data-theme="light"] .bg-blue-200 { background-color: #bfdbfe !important; }
+      [data-theme="light"] .bg-green-200 { background-color: #a7f3d0 !important; }
+      [data-theme="light"] .bg-yellow-200 { background-color: #fde68a !important; }
+      [data-theme="light"] .bg-red-200 { background-color: #fecaca !important; }
+      [data-theme="light"] .bg-purple-200 { background-color: #ddd6fe !important; }
+      [data-theme="light"] .bg-pink-200 { background-color: #fbcfe8 !important; }
+      [data-theme="light"] .bg-indigo-200 { background-color: #c7d2fe !important; }
+      [data-theme="light"] .bg-orange-200 { background-color: #fdba74 !important; }
+      [data-theme="light"] .bg-cyan-200 { background-color: #a5f3fc !important; }
+      [data-theme="light"] .bg-teal-200 { background-color: #99f6e4 !important; }
+
+      /* ===== PÁGINA DE CONFIGURACIÓN DE TEMA ===== */
+
+      [data-theme="light"] .theme-settings-page {
+        background: var(--gradient-bg) !important;
+        min-height: 100vh !important;
+        padding: 20px !important;
+      }
+
+      [data-theme="light"] .theme-settings-card {
+        background: var(--bg-card) !important;
+        border: 1px solid var(--border-card) !important;
+        border-radius: 16px !important;
+        box-shadow: var(--shadow-modal) !important;
+        padding: 24px !important;
+        max-width: 600px !important;
+        margin: 0 auto !important;
+      }
+
+      [data-theme="light"] .theme-preview {
+        background: var(--bg-secondary) !important;
+        border: 2px dashed var(--border-primary) !important;
+        border-radius: 12px !important;
+        padding: 20px !important;
+        margin: 16px 0 !important;
+        text-align: center !important;
+      }
+
+      [data-theme="light"] .theme-option {
+        border: 2px solid var(--border-input) !important;
+        border-radius: 12px !important;
+        padding: 16px !important;
+        cursor: pointer !important;
+        transition: all 0.3s ease !important;
+        margin-bottom: 12px !important;
+      }
+
+      [data-theme="light"] .theme-option:hover {
+        border-color: var(--accent-green) !important;
+        transform: scale(1.02) !important;
+      }
+
+      [data-theme="light"] .theme-option.selected {
+        border-color: var(--accent-green) !important;
+        background: var(--bg-sidebar-active) !important;
+        box-shadow: 0 4px 12px rgba(5, 150, 105, 0.2) !important;
+      }
+
+      /* ===== INDICADOR VISUAL DEL TEMA ACTIVO ===== */
+
+      [data-theme="light"] .theme-indicator {
+        position: fixed !important;
+        bottom: 20px !important;
+        right: 20px !important;
+        background: var(--gradient-button-green) !important;
+        color: white !important;
+        padding: 8px 12px !important;
+        border-radius: 20px !important;
+        font-size: 12px !important;
+        font-weight: 600 !important;
+        box-shadow: var(--shadow-card) !important;
+        z-index: 1000 !important;
+        pointer-events: none !important;
+      }
+
+      [data-theme="light"] .theme-indicator::before {
+        content: "🌞 Modo Claro" !important;
+      }
+
       /* ===== PÁGINA DE LOGIN - MODO CLARO ===== */
 
       /* Fondo principal del login */
@@ -451,9 +746,19 @@ export class TemaService {
         [data-theme="light"] .max-w-\\[300px\\] {
           max-width: 300px;
         }
+
+        [data-theme="light"] .theme-toggle-container {
+          flex-direction: column !important;
+          width: 100% !important;
+        }
+
+        [data-theme="light"] .theme-btn {
+          min-width: auto !important;
+          width: 100% !important;
+        }
       }
 
-      /* ===== RESTANTE DE LOS ESTILOS EXISTENTES (manteniendo la estructura anterior) ===== */
+      /* ===== RESTANTE DE LOS ESTILOS EXISTENTES ===== */
 
       /* Aplicación global del modo claro - TEXTOS NEGROS */
       [data-theme="light"] {
@@ -887,7 +1192,7 @@ export class TemaService {
         background: var(--gradient-bg) !important;
       }
 
-      /* Columnas del Kanban */
+      /* Columnas del Kanban - Mantener estructura pero con fondos claros */
       [data-theme="light"] .bg-gray-50 {
         background-color: var(--bg-kanban-column) !important;
         border-color: var(--border-kanban) !important;
@@ -2209,6 +2514,30 @@ export class TemaService {
         localStorage.removeItem(userThemeKey);
       }
       this.isDark.set(this.getTemaInicial());
+    }
+  }
+
+  // Nuevos métodos para gestión avanzada de temas
+  getTemasDisponibles(): Array<{id: string, nombre: string, descripcion: string}> {
+    return [
+      { id: 'claro', nombre: 'Modo Claro', descripcion: 'Tema claro con colores vibrantes' },
+      { id: 'oscuro', nombre: 'Modo Oscuro', descripcion: 'Tema oscuro para uso nocturno' },
+      { id: 'auto', nombre: 'Automático', descripcion: 'Se adapta a la preferencia del sistema' }
+    ];
+  }
+
+  // Método para aplicar tema específico
+  aplicarTemaEspecifico(temaId: string): void {
+    switch (temaId) {
+      case 'claro':
+        this.setTemaClaro();
+        break;
+      case 'oscuro':
+        this.setTemaOscuro();
+        break;
+      case 'auto':
+        this.resetearTema();
+        break;
     }
   }
 }

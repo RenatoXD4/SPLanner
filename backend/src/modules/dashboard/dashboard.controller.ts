@@ -16,6 +16,14 @@ interface ProyectoEspecifico {
   totalTareas: number;
 }
 
+// Interface para distribución por estado dinámica
+interface DistribucionEstadoDinamica {
+  id: number;
+  nombre: string;
+  cantidad: number;
+  color?: string;
+}
+
 export class DashboardController {
   private dashboardService: DashboardService;
   private userRepository: UserRepository;
@@ -153,7 +161,7 @@ export class DashboardController {
   }
 
   /**
-   * Obtener dashboard de un proyecto específico - ACTUALIZADO CON EVOLUCIÓN REAL
+   * Obtener dashboard de un proyecto específico - ACTUALIZADO CON ESTADOS DINÁMICOS
    */
   public async getProjectDashboard(
     req: Request,
@@ -179,9 +187,12 @@ export class DashboardController {
         return;
       }
 
-      console.log('Obteniendo dashboard para proyecto:', projectId);
+      console.log('🔄 Obteniendo dashboard DINÁMICO para proyecto:', projectId);
       
-      // Usar el método del repository que ya tienes
+      // Obtener todos los estados del proyecto con sus colores y tareas
+      const estados = await this.userRepository.getEstadosDelProyecto(projectId);
+      
+      // Obtener datos del proyecto específico
       const dashboardData = await this.userRepository.getUserDashboardStats(userId);
       
       if (!dashboardData) {
@@ -205,31 +216,55 @@ export class DashboardController {
         return;
       }
 
-      // ✅ OBTENER DATOS REALES incluyendo evolución basada en fechas límite
+      // ✅ OBTENER DISTRIBUCIÓN DINÁMICA POR ESTADO (TODAS LAS COLUMNAS)
+      const distribucionPorEstadoCompleta: DistribucionEstadoDinamica[] = estados.map(estado => ({
+        id: estado.id,
+        nombre: estado.nombre,
+        cantidad: estado.tareas?.length || 0,
+        color: estado.color?.codigo || null
+      }));
+
+      // Calcular estadísticas principales basadas en la distribución completa
+      const totalTareas = distribucionPorEstadoCompleta.reduce((sum, item) => sum + item.cantidad, 0);
+      
+      // Clasificar tareas según el nombre del estado
+      const tareasCompletadas = distribucionPorEstadoCompleta
+        .filter(item => this.isEstadoCompletado(item.nombre))
+        .reduce((sum, item) => sum + item.cantidad, 0);
+      
+      const tareasEnProgreso = distribucionPorEstadoCompleta
+        .filter(item => this.isEstadoEnProgreso(item.nombre))
+        .reduce((sum, item) => sum + item.cantidad, 0);
+      
+      const tareasPendientes = distribucionPorEstadoCompleta
+        .filter(item => this.isEstadoPendiente(item.nombre))
+        .reduce((sum, item) => sum + item.cantidad, 0);
+
+      // Obtener otros datos del proyecto
       const [
-        tareasPorEstado, 
         tareasPorPrioridad, 
-        actividadReciente, 
-        tareasEnRevision, 
-        usuariosEficiencia,
-        evolucionProyecto  // ✅ NUEVO: Datos reales de evolución
+        usuariosEficiencia, 
+        evolucionProyecto
       ] = await Promise.all([
-        this.getTareasPorEstado(projectId),
         this.getTareasPorPrioridad(projectId),
-        this.getActividadReciente(),
-        this.userRepository.getTareasEnRevisionCount(projectId),
         this.userRepository.getEficienciaPorMiembro(projectId),
-        this.userRepository.getEvolucionProyecto(projectId) // ✅ NUEVO
+        this.userRepository.getEvolucionProyecto(projectId)
       ]);
 
       // ✅ CORREGIDO: Usar valores de forma segura sin 'any'
       const proyecto = proyectoEspecifico as ProyectoEspecifico;
-      const tareasEnProgreso = proyecto.tareasEnProgreso ?? Math.floor(proyecto.totalTareas * 0.3);
-      const tareasPendientes = proyecto.tareasPendientes ?? (proyecto.totalTareas - proyecto.tareasCompletadas);
 
-      // Estructurar la respuesta para el dashboard del proyecto
+      // Estructurar la respuesta para el dashboard del proyecto CON DATOS DINÁMICOS
       const projectDashboard = {
-        actividadReciente,
+        // ✅ NUEVO: Incluir todos los estados disponibles
+        estadosDisponibles: estados.map(e => ({
+          id: e.id,
+          nombre: e.nombre,
+          color: e.color?.codigo,
+          posicion: e.posicion
+        })),
+        // ✅ NUEVO: Distribución completa por estado (todas las columnas)
+        distribucionPorEstadoCompleta: distribucionPorEstadoCompleta,
         // ✅ NUEVO: Incluir evolución real del proyecto
         evolucionProyecto: evolucionProyecto,
         proyecto: {
@@ -239,22 +274,26 @@ export class DashboardController {
           nombre: proyectoEspecifico.nombre
         },
         stats: {
-          porcentajeCompletado: proyectoEspecifico.porcentajeCompletado,
-          tareasCompletadas: proyectoEspecifico.tareasCompletadas,
-          tareasEnProgreso: tareasEnProgreso,
-          tareasEnRevision: tareasEnRevision,
-          tareasPendientes: tareasPendientes,
-          totalTareas: proyectoEspecifico.totalTareas
+          porcentajeCompletado: totalTareas > 0 ? Math.round((tareasCompletadas / totalTareas) * 100) : 0,
+          tareasCompletadas,
+          tareasEnProgreso,
+          tareasEnRevision: await this.userRepository.getTareasEnRevisionCount(projectId),
+          tareasPendientes,
+          totalTareas
         },
-        // ✅ Estos ahora son datos REALES del repository
-        tareasPorEstado,
+        // ✅ Mantener compatibilidad con el frontend existente
+        tareasPorEstado: distribucionPorEstadoCompleta.map(item => ({
+          cantidad: item.cantidad,
+          estado: item.nombre
+        })),
         tareasPorPrioridad,
-        tendenciaUltimaSemana: this.generateTrendData(proyectoEspecifico.tareasCompletadas),
+        tendenciaUltimaSemana: this.generateTrendData(tareasCompletadas),
         // ✅ NUEVO: Incluir eficiencia de todos los miembros
         usuariosEficiencia: usuariosEficiencia
       };
 
-
+      console.log(`✅ Dashboard dinámico generado: ${distribucionPorEstadoCompleta.length} estados encontrados`);
+      console.log('📊 Distribución por estado:', distribucionPorEstadoCompleta);
 
       res.json({
         data: projectDashboard,
@@ -461,5 +500,61 @@ export class DashboardController {
       console.error('Error obteniendo tareas por prioridad:', error);
       return [];
     }
+  }
+
+  /**
+   * ✅ NUEVO: Método auxiliar para clasificar estados completados
+   */
+  private isEstadoCompletado(nombre: string): boolean {
+    const normalized = nombre.toLowerCase();
+    return normalized.includes('completado') || 
+           normalized.includes('finalizado') || 
+           normalized.includes('hecho') || 
+           normalized.includes('done') ||
+           normalized.includes('terminado') ||
+           normalized === 'completado' ||
+           normalized === 'finalizado' ||
+           normalized === 'hecho' ||
+           normalized === 'done';
+  }
+
+  /**
+   * ✅ NUEVO: Método auxiliar para clasificar estados en progreso
+   */
+  private isEstadoEnProgreso(nombre: string): boolean {
+    const normalized = nombre.toLowerCase();
+    return normalized.includes('progreso') || 
+           normalized.includes('proceso') || 
+           normalized.includes('haciendo') || 
+           normalized.includes('doing') ||
+           normalized.includes('desarrollo') ||
+           normalized.includes('trabajando') ||
+           normalized.includes('en curso') ||
+           normalized.includes('activo');
+  }
+
+  /**
+   * ✅ NUEVO: Método auxiliar para clasificar estados pendientes
+   */
+  private isEstadoPendiente(nombre: string): boolean {
+    const normalized = nombre.toLowerCase();
+    return normalized.includes('pendiente') || 
+           normalized.includes('espera') || 
+           normalized.includes('to do') || 
+           normalized.includes('por hacer') ||
+           normalized.includes('sin empezar') ||
+           normalized.includes('no iniciado') ||
+           normalized.includes('futuro');
+  }
+
+  /**
+   * ✅ NUEVO: Método auxiliar para clasificar estados en revisión
+   */
+  private isEstadoEnRevision(nombre: string): boolean {
+    const normalized = nombre.toLowerCase();
+    return normalized.includes('revisión') || 
+           normalized.includes('revision') || 
+           normalized.includes('review') ||
+           normalized.includes('revisando');
   }
 }

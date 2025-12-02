@@ -17,8 +17,79 @@ interface UsuarioEficiencia {
   totalTareas: number;
 }
 
+// Interface para estado con tareas y color
+interface EstadoConTareas {
+  id: number;
+  nombre: string;
+  posicion: number;
+  tareas?: any[];
+  color?: {
+    codigo: string;
+    nombre: string;
+  } | null;
+}
+
 export class UserRepository {
   
+  // ✅ NUEVO MÉTODO: Obtener todos los estados de un proyecto con sus colores y tareas
+  async getEstadosDelProyecto(projectId: string): Promise<EstadoConTareas[]> {
+    try {
+      console.log('🔄 Obteniendo todos los estados del proyecto:', projectId);
+      
+      const estados = await prisma.estado.findMany({
+        include: {
+          color: true,
+          tareas: {
+            where: {
+              proyectoId: projectId
+            }
+          }
+        },
+        orderBy: {
+          posicion: 'asc'
+        },
+        where: { 
+          proyectoId: projectId 
+        }
+      });
+
+      console.log(`✅ ${estados.length} estados encontrados para el proyecto ${projectId}`);
+      
+      return estados.map(estado => ({
+        id: estado.id,
+        nombre: estado.nombre,
+        posicion: estado.posicion,
+        tareas: estado.tareas,
+        color: estado.color ? {
+          codigo: estado.color.codigo,
+          nombre: estado.color.nombre
+        } : null
+      }));
+
+    } catch (error) {
+      console.error('❌ Error obteniendo estados del proyecto:', error);
+      return [];
+    }
+  }
+
+  // ✅ NUEVO MÉTODO: Obtener distribución dinámica por estado
+  async getDistribucionPorEstadoDinamica(projectId: string): Promise<any[]> {
+    try {
+      const estados = await this.getEstadosDelProyecto(projectId);
+      
+      return estados.map(estado => ({
+        id: estado.id,
+        nombre: estado.nombre,
+        cantidad: estado.tareas?.length || 0,
+        color: estado.color?.codigo || null,
+        posicion: estado.posicion
+      }));
+    } catch (error) {
+      console.error('Error obteniendo distribución dinámica:', error);
+      return [];
+    }
+  }
+
   // Crear nuevo usuario
   async createUser(userData: {
     apellido: string;
@@ -65,7 +136,7 @@ export class UserRepository {
     });
   }
 
-  // ✅ NUEVO MÉTODO: Obtener eficiencia de TODOS los miembros del proyecto
+  // ✅ MÉTODO: Obtener eficiencia de TODOS los miembros del proyecto
   async getEficienciaPorMiembro(projectId: string): Promise<UsuarioEficiencia[]> {
     try {
       console.log('📊 Obteniendo eficiencia para TODOS los miembros del proyecto:', projectId);
@@ -215,15 +286,16 @@ export class UserRepository {
               nombre: true
             }
           },
-          // Estados disponibles
+          // Estados disponibles (TODOS, no solo los básicos)
           estados: {
+            include: {
+              color: true,
+              tareas: {
+                where: { proyectoId: projectId }
+              }
+            },
             orderBy: {
               posicion: 'asc'
-            },
-            select: {
-              id: true,
-              nombre: true,
-              posicion: true
             }
           },
           // Etiquetas del proyecto
@@ -316,6 +388,8 @@ export class UserRepository {
       const usuariosEficiencia = await this.getEficienciaPorMiembro(projectId);
       // Obtener evolución del proyecto
       const evolucionProyecto = await this.getEvolucionProyecto(projectId);
+      // Obtener distribución dinámica por estado
+      const distribucionDinamica = await this.getDistribucionPorEstadoDinamica(projectId);
 
       // Estructurar datos para exportación
       const exportData = {
@@ -325,6 +399,7 @@ export class UserRepository {
           usuario: `${miembro.usuario.nombre} ${miembro.usuario.apellido}`
         })),
         estadisticas: {
+          distribucionDinamicaPorEstado: distribucionDinamica,
           eficienciaPorUsuario: usuariosEficiencia,
           evolucionProyecto: evolucionProyecto,
           progresoGeneral: {
@@ -338,17 +413,28 @@ export class UserRepository {
             totalTareas: proyecto.tareas.length
           },
           tareasPorEstado: proyecto.estados.map(estado => ({
-            cantidad: proyecto.tareas.filter(t => t.estadoId === estado.id).length,
-            estado: estado.nombre
+            cantidad: estado.tareas.length,
+            estado: estado.nombre,
+            color: estado.color?.codigo || null
           })),
           tareasPorPrioridad: await this.getTareasPorPrioridad(projectId)
         },
-        estados: proyecto.estados,
+        estados: proyecto.estados.map(estado => ({
+          id: estado.id,
+          nombre: estado.nombre,
+          posicion: estado.posicion,
+          color: estado.color ? {
+            codigo: estado.color.codigo,
+            nombre: estado.color.nombre
+          } : null,
+          totalTareas: estado.tareas.length
+        })),
         etiquetas: proyecto.etiquetas,
         metadata: {
           exportDate: new Date().toISOString(),
-          formatVersion: '1.0',
-          projectId: proyecto.id
+          formatVersion: '2.0', // Incrementado por cambios dinámicos
+          projectId: proyecto.id,
+          totalEstados: proyecto.estados.length
         },
         proyecto: {
           creadoPor: `${proyecto.creadoPor.nombre} ${proyecto.creadoPor.apellido}`,
@@ -425,6 +511,8 @@ export class UserRepository {
         throw new Error('Proyecto no encontrado');
       }
 
+      // Obtener todos los estados con distribución
+      const distribucionDinamica = await this.getDistribucionPorEstadoDinamica(projectId);
       // Obtener eficiencia de miembros
       const usuariosEficiencia = await this.getEficienciaPorMiembro(projectId);
       // Obtener evolución del proyecto
@@ -440,6 +528,7 @@ export class UserRepository {
       ).length;
 
       return {
+        distribucionEstados: distribucionDinamica,
         exportDate: new Date().toISOString(),
         proyecto: {
           descripcion: proyecto.descripcion,
@@ -876,5 +965,11 @@ export class UserRepository {
     }
     
     return nombre; // Retornar original si no coincide
+  }
+
+  // ✅ NUEVO: Método para verificar si un estado está en revisión
+  private isTaskInReview(estadoNombre: string): boolean {
+    const normalized = estadoNombre.toLowerCase().trim();
+    return normalized.includes('revisión') || normalized.includes('revision') || normalized.includes('review');
   }
 }

@@ -22,6 +22,26 @@ interface DistribucionEstadoDinamica {
   nombre: string;
   cantidad: number;
   color?: string;
+  posicion: number;
+}
+
+// NUEVA INTERFACE para eficiencia de usuarios mejorada
+interface UsuarioEficienciaMejorada {
+  nombreCompleto: string;
+  tareasCompletadas: number;
+  totalTareas: number;
+  tareasPendientes: number;
+  tareasEnProgreso: number;
+  eficiencia: number;
+}
+
+// NUEVA INTERFACE para evolución dinámica COMPLETA
+interface EvolucionDinamicaCompleta {
+  estados: string[];
+  datosPorEstado: {
+    [estado: string]: number[];
+  };
+  labels: string[];
 }
 
 export class DashboardController {
@@ -161,7 +181,7 @@ export class DashboardController {
   }
 
   /**
-   * Obtener dashboard de un proyecto específico - ACTUALIZADO CON ESTADOS DINÁMICOS
+   * Obtener dashboard de un proyecto específico - ACTUALIZADO CON EVOLUCIÓN COMPLETA
    */
   public async getProjectDashboard(
     req: Request,
@@ -187,7 +207,7 @@ export class DashboardController {
         return;
       }
 
-      console.log('🔄 Obteniendo dashboard DINÁMICO para proyecto:', projectId);
+      console.log('🔄 Obteniendo dashboard DINÁMICO COMPLETO para proyecto:', projectId);
       
       // Obtener todos los estados del proyecto con sus colores y tareas
       const estados = await this.userRepository.getEstadosDelProyecto(projectId);
@@ -221,7 +241,8 @@ export class DashboardController {
         id: estado.id,
         nombre: estado.nombre,
         cantidad: estado.tareas?.length || 0,
-        color: estado.color?.codigo || null
+        color: estado.color?.codigo || null,
+        posicion: estado.posicion
       }));
 
       // Calcular estadísticas principales basadas en la distribución completa
@@ -243,18 +264,21 @@ export class DashboardController {
       // Obtener otros datos del proyecto
       const [
         tareasPorPrioridad, 
-        usuariosEficiencia, 
-        evolucionProyecto
+        usuariosEficienciaMejorada,
+        evolucionDinamicaCompleta  // ✅ NUEVO: Obtener evolución dinámica COMPLETA
       ] = await Promise.all([
         this.getTareasPorPrioridad(projectId),
-        this.userRepository.getEficienciaPorMiembro(projectId),
-        this.userRepository.getEvolucionProyecto(projectId)
+        this.userRepository.getEficienciaPorMiembroMejorada(projectId),
+        this.userRepository.getEvolucionDinamicaCompleta(projectId)  // ✅ NUEVO: Usar método actualizado
       ]);
 
       // ✅ CORREGIDO: Usar valores de forma segura sin 'any'
       const proyecto = proyectoEspecifico as ProyectoEspecifico;
 
-      // Estructurar la respuesta para el dashboard del proyecto CON DATOS DINÁMICOS
+      // ✅ NUEVO: Preparar datos para la evolución en formato compatible
+      const evolucionFormatoFrontend = this.prepararEvolucionParaFrontend(evolucionDinamicaCompleta);
+
+      // Estructurar la respuesta para el dashboard del proyecto CON DATOS DINÁMICOS COMPLETOS
       const projectDashboard = {
         // ✅ NUEVO: Incluir todos los estados disponibles
         estadosDisponibles: estados.map(e => ({
@@ -265,8 +289,10 @@ export class DashboardController {
         })),
         // ✅ NUEVO: Distribución completa por estado (todas las columnas)
         distribucionPorEstadoCompleta: distribucionPorEstadoCompleta,
-        // ✅ NUEVO: Incluir evolución real del proyecto
-        evolucionProyecto: evolucionProyecto,
+        // ✅ NUEVO: Incluir evolución dinámica COMPLETA del proyecto (TODAS las columnas)
+        evolucionDinamicaCompleta: evolucionDinamicaCompleta,
+        // ✅ Mantener compatibilidad con formato anterior para el frontend
+        evolucionProyecto: evolucionFormatoFrontend,
         proyecto: {
           createdAt: proyectoEspecifico.createdAt,
           descripcion: proyectoEspecifico.descripcion,
@@ -288,12 +314,16 @@ export class DashboardController {
         })),
         tareasPorPrioridad,
         tendenciaUltimaSemana: this.generateTrendData(tareasCompletadas),
-        // ✅ NUEVO: Incluir eficiencia de todos los miembros
-        usuariosEficiencia: usuariosEficiencia
+        // ✅ NUEVO: Incluir eficiencia mejorada de todos los miembros
+        usuariosEficiencia: usuariosEficienciaMejorada
       };
 
-      console.log(`✅ Dashboard dinámico generado: ${distribucionPorEstadoCompleta.length} estados encontrados`);
-      console.log('📊 Distribución por estado:', distribucionPorEstadoCompleta);
+      console.log(`✅ Dashboard dinámico completo generado: ${distribucionPorEstadoCompleta.length} estados encontrados`);
+      console.log('📊 Evolución dinámica completa:', {
+        totalEstados: evolucionDinamicaCompleta.estados.length,
+        meses: evolucionDinamicaCompleta.labels.length,
+        estados: evolucionDinamicaCompleta.estados
+      });
 
       res.json({
         data: projectDashboard,
@@ -556,5 +586,73 @@ export class DashboardController {
            normalized.includes('revision') || 
            normalized.includes('review') ||
            normalized.includes('revisando');
+  }
+
+  /**
+   * ✅ NUEVO MÉTODO: Preparar datos de evolución para el frontend (formato compatible)
+   */
+  private prepararEvolucionParaFrontend(evolucionDinamica: EvolucionDinamicaCompleta): {
+    completadas: number[];
+    enProgreso: number[];
+    labels: string[];
+    pendientes: number[];
+  } {
+    try {
+      // Si no hay datos, retornar estructura vacía
+      if (!evolucionDinamica || evolucionDinamica.estados.length === 0) {
+        return {
+          completadas: [],
+          enProgreso: [],
+          labels: [],
+          pendientes: []
+        };
+      }
+
+      const { estados, datosPorEstado, labels } = evolucionDinamica;
+      
+      // Inicializar arrays para los 3 grupos principales
+      const completadas: number[] = Array(labels.length).fill(0);
+      const enProgreso: number[] = Array(labels.length).fill(0);
+      const pendientes: number[] = Array(labels.length).fill(0);
+
+      // Agrupar estados según su tipo
+      estados.forEach((estadoNombre) => {
+        const datosEstado = datosPorEstado[estadoNombre] || Array(labels.length).fill(0);
+        
+        if (this.isEstadoCompletado(estadoNombre)) {
+          datosEstado.forEach((valor, i) => {
+            completadas[i] += valor;
+          });
+        } else if (this.isEstadoEnProgreso(estadoNombre)) {
+          datosEstado.forEach((valor, i) => {
+            enProgreso[i] += valor;
+          });
+        } else if (this.isEstadoPendiente(estadoNombre)) {
+          datosEstado.forEach((valor, i) => {
+            pendientes[i] += valor;
+          });
+        } else {
+          // Si no se clasifica, agregar a pendientes por defecto
+          datosEstado.forEach((valor, i) => {
+            pendientes[i] += valor;
+          });
+        }
+      });
+
+      return {
+        completadas,
+        enProgreso,
+        labels,
+        pendientes
+      };
+    } catch (error) {
+      console.error('Error preparando evolución para frontend:', error);
+      return {
+        completadas: [],
+        enProgreso: [],
+        labels: [],
+        pendientes: []
+      };
+    }
   }
 }

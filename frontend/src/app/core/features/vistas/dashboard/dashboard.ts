@@ -8,7 +8,7 @@ import { ChartConfiguration, ChartData, ChartType } from 'chart.js';
 
 // Components
 import { Sidebar } from '../../../shared/ui/sidebar/sidebar';
-import { DashboardService, ProjectDashboardMetrics } from '../service/dashboard.service';
+import { DashboardService, ProjectDashboardMetrics, UsuarioEficiencia, EvolucionProyecto } from '../service/dashboard.service';
 import { ProyectoGuard } from '../../../../guards/proyecto.guard';
 import { AuthService } from '../../../services/auth-service';
 
@@ -23,14 +23,7 @@ interface ChartConfig {
   category: 'basic' | 'advanced' | 'analytics';
 }
 
-// INTERFAZ EXTENDIDA para usuarios eficiencia
-interface UsuarioEficiencia {
-  nombreCompleto: string;
-  tareasCompletadas: number;
-  totalTareas: number;
-}
-
-// INTERFAZ PARA ESTADOS DINÁMICOS
+// INTERFAZ PARA ESTADOS DINÁMICOS (ahora definida localmente)
 interface EstadoDashboard {
   id: number;
   nombre: string;
@@ -38,10 +31,33 @@ interface EstadoDashboard {
   color?: string;
 }
 
-interface ProjectDashboardMetricsWithEficiencia extends ProjectDashboardMetrics {
-  usuariosEficiencia?: UsuarioEficiencia[];
+// INTERFAZ PARA USUARIOS EFICIENCIA (CON TODOS LOS ESTADOS)
+interface UsuarioEficienciaLocal {
+  nombreCompleto: string;
+  tareasCompletadas: number;
+  totalTareas: number;
+  tareasPendientes: number;
+  tareasEnProgreso: number;
+  tareasEnRevision?: number;
+  tareasBloqueadas?: number;
+  tareasCanceladas?: number;
+  tareasOtrosEstados?: { [estado: string]: number };
+  eficiencia: number;
+  porcentajeTotal?: number;
+}
+
+// INTERFAZ PARA EXTENDER LAS MÉTRICAS
+interface ProjectDashboardMetricsExtended extends ProjectDashboardMetrics {
+  usuariosEficiencia?: UsuarioEficienciaLocal[];
   estadosDisponibles?: EstadoDashboard[];
   distribucionPorEstadoCompleta?: EstadoDashboard[];
+  evolucionDinamicaCompleta?: {
+    estados: string[];
+    datosPorEstado: {
+      [estado: string]: number[];
+    };
+    labels: string[];
+  };
 }
 
 @Component({
@@ -63,6 +79,7 @@ export class Dashboard implements OnInit, OnDestroy {
   // Datos del proyecto y métricas
   proyectoId: string = '';
   metrics: ProjectDashboardMetrics | null = null;
+  metricsExtended: ProjectDashboardMetricsExtended | null = null;
   cargando: boolean = true;
   error: string = '';
 
@@ -91,7 +108,7 @@ export class Dashboard implements OnInit, OnDestroy {
       id: 'area',
       name: 'Evolución del Proyecto',
       type: 'line',
-      description: 'Área apilada - Progreso general histórico',
+      description: 'Área apilada - Progreso general histórico REAL',
       enabled: true,
       icon: 'trending_up',
       category: 'analytics'
@@ -100,7 +117,7 @@ export class Dashboard implements OnInit, OnDestroy {
       id: 'doughnut',
       name: 'Eficiencia por Usuario',
       type: 'doughnut',
-      description: 'Eficiencia por usuario',
+      description: 'Eficiencia basada en todas las tareas del usuario',
       enabled: true,
       icon: 'people',
       category: 'advanced'
@@ -198,7 +215,6 @@ export class Dashboard implements OnInit, OnDestroy {
           },
           padding: 10,
           callback: function(value, index, ticks) {
-            // Acortar nombres largos para mejor visualización
             const label = this.getLabelForValue(value as number);
             return label.length > 12 ? label.substring(0, 12) + '...' : label;
           }
@@ -230,7 +246,6 @@ export class Dashboard implements OnInit, OnDestroy {
       bar: {
         borderRadius: 12,
         borderSkipped: false,
-        backgroundColor: 'rgba(150, 150, 150, 0.9)',
         borderWidth: 2,
         borderColor: 'rgba(255, 255, 255, 0.3)'
       }
@@ -242,7 +257,7 @@ export class Dashboard implements OnInit, OnDestroy {
   };
 
   public barChartData: ChartData<'bar'> = {
-    labels: [' Pendientes', ' En Progreso', ' Completadas'],
+    labels: ['Pendientes', 'En Progreso', 'Completadas'],
     datasets: [
       {
         data: [0, 0, 0],
@@ -301,7 +316,7 @@ export class Dashboard implements OnInit, OnDestroy {
       },
       title: {
         display: true,
-        text: ' Distribución por Prioridad',
+        text: 'Distribución por Prioridad',
         color: 'rgba(150, 150, 150, 0.9)',
         font: {
           size: 18,
@@ -343,7 +358,7 @@ export class Dashboard implements OnInit, OnDestroy {
   };
 
   public pieChartData: ChartData<'pie', number[], string | string[]> = {
-    labels: [' Alta Prioridad', ' Media Prioridad', ' Baja Prioridad'],
+    labels: ['Alta Prioridad', 'Media Prioridad', 'Baja Prioridad'],
     datasets: [
       {
         data: [0, 0, 0],
@@ -373,7 +388,7 @@ export class Dashboard implements OnInit, OnDestroy {
     ]
   };
 
-  // 3. GRÁFICO DE ÁREA APILADO - Evolución General del Proyecto
+  // 3. GRÁFICO DE ÁREA APILADO - Evolución del Proyecto por Estado (DATOS 100% REALES)
   public areaChartOptions: ChartConfiguration<'line'>['options'] = {
     responsive: true,
     maintainAspectRatio: false,
@@ -394,7 +409,7 @@ export class Dashboard implements OnInit, OnDestroy {
       },
       title: {
         display: true,
-        text: 'Evolución General del Proyecto',
+        text: 'Evolución Histórica del Proyecto',
         color: 'rgba(150, 150, 150, 0.9)',
         font: {
           size: 18,
@@ -484,62 +499,10 @@ export class Dashboard implements OnInit, OnDestroy {
 
   public areaChartData: ChartData<'line'> = {
     labels: [],
-    datasets: [
-      {
-        label: ' Completadas',
-        data: [],
-        borderColor: 'rgba(34, 197, 94, 1)',
-        backgroundColor: 'rgba(34, 197, 94, 0.4)',
-        fill: true,
-        tension: 0.4,
-        borderWidth: 3,
-        pointBackgroundColor: 'rgba(34, 197, 94, 1)',
-        pointBorderColor: 'rgba(255, 255, 255, 0.9)',
-        pointBorderWidth: 2,
-        pointHoverBackgroundColor: 'rgba(255, 255, 255, 1)',
-        pointHoverBorderColor: 'rgba(34, 197, 94, 1)',
-        pointHoverBorderWidth: 3,
-        pointRadius: 6,
-        pointHoverRadius: 10
-      },
-      {
-        label: ' En Progreso',
-        data: [],
-        borderColor: 'rgba(59, 130, 246, 1)',
-        backgroundColor: 'rgba(59, 130, 246, 0.4)',
-        fill: true,
-        tension: 0.4,
-        borderWidth: 3,
-        pointBackgroundColor: 'rgba(59, 130, 246, 1)',
-        pointBorderColor: 'rgba(255, 255, 255, 0.9)',
-        pointBorderWidth: 2,
-        pointHoverBackgroundColor: 'rgba(255, 255, 255, 1)',
-        pointHoverBorderColor: 'rgba(59, 130, 246, 1)',
-        pointHoverBorderWidth: 3,
-        pointRadius: 6,
-        pointHoverRadius: 10
-      },
-      {
-        label: ' Pendientes',
-        data: [],
-        borderColor: 'rgba(107, 114, 128, 1)',
-        backgroundColor: 'rgba(107, 114, 128, 0.4)',
-        fill: true,
-        tension: 0.4,
-        borderWidth: 3,
-        pointBackgroundColor: 'rgba(107, 114, 128, 1)',
-        pointBorderColor: 'rgba(255, 255, 255, 0.9)',
-        pointBorderWidth: 2,
-        pointHoverBackgroundColor: 'rgba(255, 255, 255, 1)',
-        pointHoverBorderColor: 'rgba(107, 114, 128, 1)',
-        pointHoverBorderWidth: 3,
-        pointRadius: 6,
-        pointHoverRadius: 10
-      }
-    ]
+    datasets: []
   };
 
-  // 4. GRÁFICO DE ANILLO - Eficiencia por Usuario
+  // 4. GRÁFICO DE ANILLO - Eficiencia por Usuario (CON TODAS LAS TAREAS - DESGLOSE COMPLETO)
   public doughnutChartOptions: ChartConfiguration<'doughnut'>['options'] = {
     responsive: true,
     maintainAspectRatio: false,
@@ -563,7 +526,7 @@ export class Dashboard implements OnInit, OnDestroy {
       },
       title: {
         display: true,
-        text: ' Eficiencia por Usuario',
+        text: 'Eficiencia por Usuario (Desglose Completo)',
         color: 'rgba(150, 150, 150, 0.9)',
         font: {
           size: 18,
@@ -584,8 +547,41 @@ export class Dashboard implements OnInit, OnDestroy {
         padding: 12,
         boxPadding: 6,
         callbacks: {
-          label: function(context) {
-            return `Eficiencia: ${context.parsed}%`;
+          label: (context) => {
+            const index = context.dataIndex;
+            const label = this.doughnutChartData.labels?.[index] || '';
+            
+            // Si tenemos datos de eficiencia procesados, mostrar información detallada
+            if (this.metricsExtended?.usuariosEficiencia && index < this.metricsExtended.usuariosEficiencia.length) {
+              const usuario = this.metricsExtended.usuariosEficiencia[index];
+              
+              // Construir tooltip detallado
+              let tooltipText = `${usuario.nombreCompleto}\n`;
+              tooltipText += `Eficiencia: ${usuario.eficiencia}%\n`;
+              tooltipText += `Total tareas: ${usuario.totalTareas}\n`;
+              tooltipText += `✓ Completadas: ${usuario.tareasCompletadas || 0}\n`;
+              tooltipText += `→ En Progreso: ${usuario.tareasEnProgreso || 0}\n`;
+              tooltipText += `● Pendientes: ${usuario.tareasPendientes || 0}\n`;
+              
+              if (usuario.tareasEnRevision) tooltipText += `👁 En Revisión: ${usuario.tareasEnRevision}\n`;
+              if (usuario.tareasBloqueadas) tooltipText += `⛔ Bloqueadas: ${usuario.tareasBloqueadas}\n`;
+              if (usuario.tareasCanceladas) tooltipText += `✕ Canceladas: ${usuario.tareasCanceladas}\n`;
+              
+              // Otros estados
+              if (usuario.tareasOtrosEstados) {
+                const otrosTotal = Object.values(usuario.tareasOtrosEstados).reduce((sum, val) => sum + val, 0);
+                if (otrosTotal > 0) {
+                  tooltipText += `⋯ Otros estados: ${otrosTotal}\n`;
+                  Object.entries(usuario.tareasOtrosEstados).forEach(([estado, cantidad]) => {
+                    if (cantidad > 0) tooltipText += `  - ${estado}: ${cantidad}\n`;
+                  });
+                }
+              }
+              
+              return tooltipText.split('\n');
+            }
+            
+            return `${label}: ${context.parsed}%`;
           }
         }
       }
@@ -726,14 +722,19 @@ export class Dashboard implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
-  // MÉTODO AUXILIAR TYPE-SAFE para verificar usuariosEficiencia
-  private tieneUsuariosEficiencia(metrics: ProjectDashboardMetrics | null): metrics is ProjectDashboardMetricsWithEficiencia {
-    return !!metrics && !!(metrics as ProjectDashboardMetricsWithEficiencia).usuariosEficiencia;
+  // MÉTODO AUXILIAR para verificar usuariosEficiencia
+  private tieneUsuariosEficiencia(metrics: ProjectDashboardMetrics | null): boolean {
+    return !!metrics && !!(metrics as any).usuariosEficiencia;
   }
 
   // MÉTODO AUXILIAR para verificar distribución completa
-  private tieneDistribucionCompleta(metrics: ProjectDashboardMetrics | null): metrics is ProjectDashboardMetricsWithEficiencia {
-    return !!metrics && !!(metrics as ProjectDashboardMetricsWithEficiencia).distribucionPorEstadoCompleta;
+  private tieneDistribucionCompleta(metrics: ProjectDashboardMetrics | null): boolean {
+    return !!metrics && !!(metrics as any).distribucionPorEstadoCompleta;
+  }
+
+  // MÉTODO AUXILIAR para verificar evolución dinámica completa
+  private tieneEvolucionDinamicaCompleta(metrics: ProjectDashboardMetricsExtended | null): boolean {
+    return !!metrics && !!metrics.evolucionDinamicaCompleta;
   }
 
   // ========== MÉTODOS DE EXPORTACIÓN HTML ULTRA PREMIUM ==========
@@ -815,12 +816,12 @@ export class Dashboard implements OnInit, OnDestroy {
     const fechaGeneracion = new Date().toLocaleString('es-ES');
     const usuario = this.getNombreUsuario();
 
-    // Obtener datos EXACTOS del dashboard para la evolución temporal
-    const datosEvolucionExacta = this.obtenerEvolucionExacta();
+    // Obtener datos REALES del dashboard para la evolución temporal
+    const datosEvolucionReal = this.obtenerEvolucionReal();
 
     // Obtener datos de distribución dinámica
     const distribucionDinamica = this.tieneDistribucionCompleta(this.metrics) 
-      ? this.metrics.distribucionPorEstadoCompleta 
+      ? (this.metrics as any).distribucionPorEstadoCompleta 
       : null;
 
     return `<!DOCTYPE html>
@@ -1570,18 +1571,21 @@ export class Dashboard implements OnInit, OnDestroy {
     </div>
 
     <script>
-        // Configuración de gráficos con Chart.js - Datos EXACTOS del dashboard
+        // Configuración de gráficos con Chart.js - Datos 100% REALES del dashboard
         function initCharts() {
-            // Datos para los gráficos - Replicación exacta del dashboard
-            const barData = ${JSON.stringify(this.barChartData.datasets[0].data)};
+            // Datos REALES del gráfico de barras
             const barLabels = ${JSON.stringify(this.barChartData.labels)};
+            const barData = ${JSON.stringify(this.barChartData.datasets[0].data)};
             const barColors = ${JSON.stringify(this.barChartData.datasets[0].backgroundColor)};
             const barBorderColors = ${JSON.stringify(this.barChartData.datasets[0].borderColor)};
             
+            // Datos REALES del gráfico circular
             const pieData = ${JSON.stringify(this.pieChartData.datasets[0].data)};
-            const areaData = ${JSON.stringify(datosEvolucionExacta)};
             
-            // Gráfico de Barras DINÁMICO - Muestra TODAS las columnas
+            // Datos REALES de evolución
+            const evolucionData = ${JSON.stringify(datosEvolucionReal)};
+            
+            // Gráfico de Barras DINÁMICO - Datos REALES
             new Chart(document.getElementById('barChart'), {
                 type: 'bar',
                 data: {
@@ -1637,7 +1641,7 @@ export class Dashboard implements OnInit, OnDestroy {
                 }
             });
             
-            // Gráfico Circular - Réplica exacta
+            // Gráfico Circular - Datos REALES
             new Chart(document.getElementById('pieChart'), {
                 type: 'pie',
                 data: {
@@ -1680,55 +1684,70 @@ export class Dashboard implements OnInit, OnDestroy {
                 }
             });
             
-            // Gráfico de Área - Réplica EXACTA del dashboard
+            // Gráfico de Área - Datos 100% REALES de evolución
+            const areaDatasets = evolucionData.estados ? evolucionData.estados.map(estado => ({
+                label: estado.nombre,
+                data: estado.datos,
+                borderColor: estado.color || getColorByEstado(estado.nombre, 1),
+                backgroundColor: estado.color ? estado.color.replace('1)', '0.4)') : getColorByEstado(estado.nombre, 0.4),
+                fill: true,
+                tension: 0.4,
+                borderWidth: 3,
+                pointBackgroundColor: estado.color || getColorByEstado(estado.nombre, 1),
+                pointBorderColor: 'rgba(255, 255, 255, 0.9)',
+                pointBorderWidth: 2,
+                pointRadius: 6,
+                pointHoverRadius: 10
+            })) : [
+                {
+                    label: 'Completadas',
+                    data: evolucionData.completadas || [0],
+                    borderColor: 'rgba(34, 197, 94, 1)',
+                    backgroundColor: 'rgba(34, 197, 94, 0.4)',
+                    fill: true,
+                    tension: 0.4,
+                    borderWidth: 3,
+                    pointBackgroundColor: 'rgba(34, 197, 94, 1)',
+                    pointBorderColor: 'rgba(255, 255, 255, 0.9)',
+                    pointBorderWidth: 2,
+                    pointRadius: 6,
+                    pointHoverRadius: 10
+                },
+                {
+                    label: 'En Progreso',
+                    data: evolucionData.enProgreso || [0],
+                    borderColor: 'rgba(59, 130, 246, 1)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.4)',
+                    fill: true,
+                    tension: 0.4,
+                    borderWidth: 3,
+                    pointBackgroundColor: 'rgba(59, 130, 246, 1)',
+                    pointBorderColor: 'rgba(255, 255, 255, 0.9)',
+                    pointBorderWidth: 2,
+                    pointRadius: 6,
+                    pointHoverRadius: 10
+                },
+                {
+                    label: 'Pendientes',
+                    data: evolucionData.pendientes || [0],
+                    borderColor: 'rgba(107, 114, 128, 1)',
+                    backgroundColor: 'rgba(107, 114, 128, 0.4)',
+                    fill: true,
+                    tension: 0.4,
+                    borderWidth: 3,
+                    pointBackgroundColor: 'rgba(107, 114, 128, 1)',
+                    pointBorderColor: 'rgba(255, 255, 255, 0.9)',
+                    pointBorderWidth: 2,
+                    pointRadius: 6,
+                    pointHoverRadius: 10
+                }
+            ];
+            
             new Chart(document.getElementById('areaChart'), {
                 type: 'line',
                 data: {
-                    labels: areaData.labels,
-                    datasets: [
-                        {
-                            label: 'Completadas',
-                            data: areaData.completadas,
-                            borderColor: 'rgba(34, 197, 94, 1)',
-                            backgroundColor: 'rgba(34, 197, 94, 0.4)',
-                            fill: true,
-                            tension: 0.4,
-                            borderWidth: 3,
-                            pointBackgroundColor: 'rgba(34, 197, 94, 1)',
-                            pointBorderColor: 'rgba(255, 255, 255, 0.9)',
-                            pointBorderWidth: 2,
-                            pointRadius: 6,
-                            pointHoverRadius: 10
-                        },
-                        {
-                            label: 'En Progreso',
-                            data: areaData.enProgreso,
-                            borderColor: 'rgba(59, 130, 246, 1)',
-                            backgroundColor: 'rgba(59, 130, 246, 0.4)',
-                            fill: true,
-                            tension: 0.4,
-                            borderWidth: 3,
-                            pointBackgroundColor: 'rgba(59, 130, 246, 1)',
-                            pointBorderColor: 'rgba(255, 255, 255, 0.9)',
-                            pointBorderWidth: 2,
-                            pointRadius: 6,
-                            pointHoverRadius: 10
-                        },
-                        {
-                            label: 'Pendientes',
-                            data: areaData.pendientes,
-                            borderColor: 'rgba(107, 114, 128, 1)',
-                            backgroundColor: 'rgba(107, 114, 128, 0.4)',
-                            fill: true,
-                            tension: 0.4,
-                            borderWidth: 3,
-                            pointBackgroundColor: 'rgba(107, 114, 128, 1)',
-                            pointBorderColor: 'rgba(255, 255, 255, 0.9)',
-                            pointBorderWidth: 2,
-                            pointRadius: 6,
-                            pointHoverRadius: 10
-                        }
-                    ]
+                    labels: evolucionData.labels || ['Sin datos'],
+                    datasets: areaDatasets
                 },
                 options: {
                     responsive: true,
@@ -1778,6 +1797,24 @@ export class Dashboard implements OnInit, OnDestroy {
                     }
                 }
             });
+        }
+
+        // Función auxiliar para obtener colores por estado
+        function getColorByEstado(estadoNombre, alpha = 1) {
+            const estado = estadoNombre.toLowerCase();
+            if (estado.includes('pendiente') || estado.includes('to do')) {
+                return \`rgba(239, 68, 68, \${alpha})\`;
+            } else if (estado.includes('progreso') || estado.includes('doing')) {
+                return \`rgba(245, 158, 11, \${alpha})\`;
+            } else if (estado.includes('complet') || estado.includes('done')) {
+                return \`rgba(34, 197, 94, \${alpha})\`;
+            } else if (estado.includes('revisión') || estado.includes('review')) {
+                return \`rgba(59, 130, 246, \${alpha})\`;
+            } else if (estado.includes('bloqueado')) {
+                return \`rgba(107, 114, 128, \${alpha})\`;
+            } else {
+                return \`rgba(147, 51, 234, \${alpha})\`;
+            }
         }
 
         // Efectos interactivos mejorados
@@ -1847,60 +1884,96 @@ export class Dashboard implements OnInit, OnDestroy {
 </html>`;
   }
 
-  private obtenerEvolucionExacta(): { 
-    labels: string[]; 
-    completadas: number[]; 
-    enProgreso: number[]; 
-    pendientes: number[] 
-  } {
-    // Usar los datos EXACTOS del dashboard
-    if (this.metrics?.evolucionProyecto) {
+  private obtenerEvolucionReal(): any {
+    // Obtener datos REALES de evolución del proyecto
+    if (this.tieneEvolucionDinamicaCompleta(this.metricsExtended)) {
+      const evolucionDinamica = this.metricsExtended!.evolucionDinamicaCompleta!;
+      
+      // Convertir formato dinámico a formato para HTML
+      const estadosDisponibles = this.getEstadosDisponibles();
+      
       return {
-        labels: this.metrics.evolucionProyecto.labels,
-        completadas: this.metrics.evolucionProyecto.completadas,
-        enProgreso: this.metrics.evolucionProyecto.enProgreso,
-        pendientes: this.metrics.evolucionProyecto.pendientes
+        labels: evolucionDinamica.labels,
+        estados: evolucionDinamica.estados.map((estadoNombre: string) => {
+          const estadoInfo = estadosDisponibles.find(e => e.nombre === estadoNombre);
+          const color = estadoInfo?.color || this.getColorByEstado(estadoNombre, 1);
+          
+          return {
+            nombre: estadoNombre,
+            datos: evolucionDinamica.datosPorEstado[estadoNombre] || Array(evolucionDinamica.labels.length).fill(0),
+            color: color
+          };
+        })
+      };
+    } else if (this.metrics?.evolucionProyecto) {
+      // Convertir formato antiguo a nuevo formato
+      const evolucion = this.metrics.evolucionProyecto;
+      return {
+        labels: evolucion.labels,
+        estados: [
+          {
+            nombre: 'Completadas',
+            datos: evolucion.completadas,
+            color: 'rgba(34, 197, 94, 1)'
+          },
+          {
+            nombre: 'En Progreso',
+            datos: evolucion.enProgreso,
+            color: 'rgba(59, 130, 246, 1)'
+          },
+          {
+            nombre: 'Pendientes',
+            datos: evolucion.pendientes,
+            color: 'rgba(239, 68, 68, 1)'
+          }
+        ]
       };
     }
 
-    // Si no hay datos de evolución, usar los datos actuales del área chart
+    // Si no hay datos de evolución
     return {
-      labels: this.areaChartData.labels as string[],
-      completadas: this.areaChartData.datasets[0].data as number[],
-      enProgreso: this.areaChartData.datasets[1].data as number[],
-      pendientes: this.areaChartData.datasets[2].data as number[]
+      labels: ['Sin datos históricos'],
+      completadas: [0],
+      enProgreso: [0],
+      pendientes: [0]
     };
   }
 
-  private generarTablaEstadosPremium(): string {
-    if (!this.metrics?.tareasPorEstado || this.metrics.tareasPorEstado.length === 0) {
+  private generarTablaEstadosPremiumDinamica(): string {
+    const estados = this.getEstadosDisponibles();
+    
+    if (estados.length === 0) {
       return '<div class="table-row" style="text-align: center; padding: 40px; color: var(--gray-500); font-style: italic; grid-template-columns: 1fr;">No hay datos disponibles para mostrar</div>';
     }
 
-    const total = this.metrics.stats.totalTareas || 1;
+    const total = this.metrics?.stats?.totalTareas || 1;
     
-    return this.metrics.tareasPorEstado.map((estado: any) => {
+    return estados.map((estado: EstadoDashboard) => {
       const porcentaje = ((estado.cantidad / total) * 100).toFixed(1);
       const anchoBarra = Math.max(5, (estado.cantidad / total) * 100);
       
-      let color = 'var(--gradient-primary)';
+      const color = estado.color || this.getColorByEstado(estado.nombre, 1);
+      
+      // Determinar ícono según el estado
       let icon = 'circle';
-      if (estado.estado.toLowerCase().includes('complet')) {
-        color = 'var(--gradient-success)';
+      const estadoNombre = estado.nombre.toLowerCase();
+      if (estadoNombre.includes('complet') || estadoNombre.includes('finalizado') || estadoNombre.includes('hecho')) {
         icon = 'check_circle';
-      } else if (estado.estado.toLowerCase().includes('progreso')) {
-        color = 'var(--gradient-warning)';
+      } else if (estadoNombre.includes('progreso') || estadoNombre.includes('haciendo')) {
         icon = 'autorenew';
-      } else if (estado.estado.toLowerCase().includes('pendiente')) {
-        color = 'var(--gradient-danger)';
+      } else if (estadoNombre.includes('pendiente') || estadoNombre.includes('espera')) {
         icon = 'schedule';
+      } else if (estadoNombre.includes('revisión') || estadoNombre.includes('review')) {
+        icon = 'visibility';
+      } else if (estadoNombre.includes('bloqueado') || estadoNombre.includes('blocked')) {
+        icon = 'block';
       }
       
       return `
         <div class="table-row">
             <div style="display: flex; align-items: center; gap: 12px;">
-                <span class="material-icons" style="font-size: 1.5rem; background: ${color}; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">${icon}</span>
-                <span style="font-weight: 600; color: var(--gray-900);">${this.escapeHtml(estado.estado)}</span>
+                <span class="material-icons" style="font-size: 1.5rem; color: ${color};">${icon}</span>
+                <span style="font-weight: 600; color: var(--gray-900);">${this.escapeHtml(estado.nombre)}</span>
             </div>
             <div style="font-weight: 700; color: var(--gray-900); text-align: center;">${estado.cantidad}</div>
             <div class="progress-bar-container">
@@ -1914,64 +1987,18 @@ export class Dashboard implements OnInit, OnDestroy {
     }).join('');
   }
 
-  private generarTablaEstadosPremiumDinamica(): string {
-    if (this.tieneDistribucionCompleta(this.metrics) && this.metrics.distribucionPorEstadoCompleta && this.metrics.distribucionPorEstadoCompleta.length > 0) {
-      const total = this.metrics.stats.totalTareas || 1;
-      
-      return this.metrics.distribucionPorEstadoCompleta.map((estado: EstadoDashboard) => {
-        const porcentaje = ((estado.cantidad / total) * 100).toFixed(1);
-        const anchoBarra = Math.max(5, (estado.cantidad / total) * 100);
-        
-        // Determinar color según el estado o usar color proporcionado
-        let color = this.getColorByEstado(estado.nombre, 1);
-        if (estado.color) {
-          color = estado.color;
-        }
-        
-        // Determinar ícono según el estado
-        let icon = 'circle';
-        const estadoNombre = estado.nombre.toLowerCase();
-        if (estadoNombre.includes('complet') || estadoNombre.includes('finalizado') || estadoNombre.includes('hecho')) {
-          icon = 'check_circle';
-        } else if (estadoNombre.includes('progreso') || estadoNombre.includes('haciendo')) {
-          icon = 'autorenew';
-        } else if (estadoNombre.includes('pendiente') || estadoNombre.includes('espera')) {
-          icon = 'schedule';
-        } else if (estadoNombre.includes('revisión') || estadoNombre.includes('review')) {
-          icon = 'visibility';
-        } else if (estadoNombre.includes('bloqueado') || estadoNombre.includes('blocked')) {
-          icon = 'block';
-        }
-        
-        return `
-          <div class="table-row">
-              <div style="display: flex; align-items: center; gap: 12px;">
-                  <span class="material-icons" style="font-size: 1.5rem; color: ${color};">${icon}</span>
-                  <span style="font-weight: 600; color: var(--gray-900);">${this.escapeHtml(estado.nombre)}</span>
-              </div>
-              <div style="font-weight: 700; color: var(--gray-900); text-align: center;">${estado.cantidad}</div>
-              <div class="progress-bar-container">
-                  <div class="progress-bar">
-                      <div class="progress-fill" style="width: ${anchoBarra}%; background: ${color};"></div>
-                  </div>
-                  <span style="font-weight: 700; color: var(--gray-900); min-width: 50px;">${porcentaje}%</span>
-              </div>
-          </div>
-        `;
-      }).join('');
-    } else {
-      return this.generarTablaEstadosPremium();
-    }
-  }
-
   private generarTablaEficienciaPremium(): string {
-    if (!this.tieneUsuariosEficiencia(this.metrics) || !this.metrics.usuariosEficiencia || this.metrics.usuariosEficiencia.length === 0) {
+    if (!this.tieneUsuariosEficiencia(this.metrics) || !(this.metrics as any).usuariosEficiencia || (this.metrics as any).usuariosEficiencia.length === 0) {
       return '<div class="table-row" style="text-align: center; padding: 40px; color: var(--gray-500); font-style: italic; grid-template-columns: 1fr;">No hay datos de eficiencia disponibles</div>';
     }
 
-    return this.metrics.usuariosEficiencia.slice(0, 6).map((usuario: UsuarioEficiencia) => {
-      const eficiencia = usuario.totalTareas > 0 ? 
-        Math.round((usuario.tareasCompletadas / usuario.totalTareas) * 100) : 0;
+    const usuariosEficiencia = (this.metrics as any).usuariosEficiencia as UsuarioEficienciaLocal[];
+    
+    return usuariosEficiencia.slice(0, 6).map((usuario: UsuarioEficienciaLocal) => {
+      // Calcular eficiencia: tareas completadas / total tareas * 100
+      const eficiencia = usuario.totalTareas > 0 
+        ? Math.round((usuario.tareasCompletadas / usuario.totalTareas) * 100)
+        : 0;
       
       let color = 'var(--gradient-danger)';
       let icon = 'person';
@@ -2100,44 +2127,41 @@ export class Dashboard implements OnInit, OnDestroy {
     }
   }
 
-  // ========== MÉTODOS PARA MANEJO DINÁMICO DE ESTADOS ==========
-
-  // MÉTODO ACTUALIZADO: actualizarGraficos() - Maneja estados dinámicos
+  // ========== MÉTODO ACTUALIZADO: actualizarGraficos() - CON TODAS LAS TAREAS ==========
   actualizarGraficos(): void {
     if (!this.metrics) return;
 
-    // 1. GRÁFICO DE BARRAS DINÁMICO - Usa todos los estados disponibles
-    if (this.tieneDistribucionCompleta(this.metrics) && this.metrics.distribucionPorEstadoCompleta && this.metrics.distribucionPorEstadoCompleta.length > 0) {
-      const estados = this.metrics.distribucionPorEstadoCompleta;
+    // 1. GRÁFICO DE BARRAS DINÁMICO - Usa todos los estados REALES disponibles
+    const estadosDisponibles = this.getEstadosDisponibles();
+    
+    if (estadosDisponibles.length > 0) {
+      // Actualizar etiquetas y datos dinámicamente con colores reales
+      this.barChartData.labels = estadosDisponibles.map(e => e.nombre);
       
-      // Actualizar etiquetas y datos dinámicamente
-      this.barChartData.labels = estados.map(e => e.nombre);
-      
-      // Generar colores dinámicamente
-      const backgroundColors = estados.map(estado => {
+      const backgroundColors = estadosDisponibles.map(estado => {
         if (estado.color) {
           return this.hexToRgba(estado.color, 0.9);
         }
         return this.getColorByEstado(estado.nombre, 0.9);
       });
 
-      const borderColors = estados.map(estado => {
+      const borderColors = estadosDisponibles.map(estado => {
         if (estado.color) {
           return estado.color;
         }
         return this.getColorByEstado(estado.nombre, 1);
       });
 
-      const hoverColors = estados.map(estado => {
+      const hoverColors = estadosDisponibles.map(estado => {
         if (estado.color) {
           return this.hexToRgba(estado.color, 1);
         }
         return this.getColorByEstado(estado.nombre, 1);
       });
 
-      // Actualizar dataset completo
+      // Actualizar dataset completo con datos reales
       this.barChartData.datasets[0] = {
-        data: estados.map(e => e.cantidad),
+        data: estadosDisponibles.map(e => e.cantidad),
         label: 'Cantidad de Tareas',
         backgroundColor: backgroundColors,
         borderColor: borderColors,
@@ -2147,13 +2171,13 @@ export class Dashboard implements OnInit, OnDestroy {
         barPercentage: 0.6,
         categoryPercentage: 0.8,
         hoverBackgroundColor: hoverColors,
-        hoverBorderColor: estados.map(() => 'rgba(255, 255, 255, 0.8)'),
+        hoverBorderColor: estadosDisponibles.map(() => 'rgba(255, 255, 255, 0.8)'),
         hoverBorderWidth: 4
       };
 
-      // Actualizar título para indicar que es dinámico (CORREGIDO)
+      // Actualizar título para indicar que es dinámico
       if (this.barChartOptions && this.barChartOptions.plugins && this.barChartOptions.plugins.title) {
-        this.barChartOptions.plugins.title.text = `Distribución de Tareas (${estados.length} Estados)`;
+        this.barChartOptions.plugins.title.text = `Distribución de Tareas (${estadosDisponibles.length} Estados)`;
       }
     } else {
       // Fallback a los 3 estados básicos si no hay datos dinámicos
@@ -2163,13 +2187,13 @@ export class Dashboard implements OnInit, OnDestroy {
         this.metrics.stats.tareasCompletadas
       ];
       
-      // Restaurar título original (CORREGIDO)
+      // Restaurar título original
       if (this.barChartOptions && this.barChartOptions.plugins && this.barChartOptions.plugins.title) {
         this.barChartOptions.plugins.title.text = 'Distribución de Tareas por Estado';
       }
     }
 
-    // 2. GRÁFICO CIRCULAR - Distribución por Prioridad (sin cambios)
+    // 2. GRÁFICO CIRCULAR - Distribución por Prioridad (datos reales)
     if (this.metrics.tareasPorPrioridad && this.metrics.tareasPorPrioridad.length > 0) {
       const prioridadesMap = new Map<string, number>();
       
@@ -2190,46 +2214,191 @@ export class Dashboard implements OnInit, OnDestroy {
       this.pieChartData.datasets[0].data = [0, 0, 0];
     }
 
-    // 3. GRÁFICO DE ÁREA APILADO - Evolución General del Proyecto (DATOS REALES)
-    if (this.metrics.evolucionProyecto) {
-      this.areaChartData.labels = this.metrics.evolucionProyecto.labels;
-      this.areaChartData.datasets[0].data = this.metrics.evolucionProyecto.completadas;
-      this.areaChartData.datasets[1].data = this.metrics.evolucionProyecto.enProgreso;
-      this.areaChartData.datasets[2].data = this.metrics.evolucionProyecto.pendientes;
-    } else {
-      const datosEvolucion = this.generarEvolucionProyecto();
-      this.areaChartData.labels = datosEvolucion.labels;
-      this.areaChartData.datasets[0].data = datosEvolucion.completadas;
-      this.areaChartData.datasets[1].data = datosEvolucion.enProgreso;
-      this.areaChartData.datasets[2].data = datosEvolucion.pendientes;
-    }
-
-    // 4. GRÁFICO DE ANILLO - Eficiencia por Usuario
-    if (this.tieneUsuariosEficiencia(this.metrics) && this.metrics.usuariosEficiencia!.length > 0) {
-      const eficienciaUsuarios = this.metrics.usuariosEficiencia!.map((usuario: UsuarioEficiencia) => {
-        let eficiencia = 0;
-        if (usuario.totalTareas > 0) {
-          eficiencia = Math.round((usuario.tareasCompletadas / usuario.totalTareas) * 100);
+    // 3. GRÁFICO DE ÁREA APILADO - Evolución del Proyecto por Estado (DATOS 100% REALES)
+    if (this.tieneEvolucionDinamicaCompleta(this.metricsExtended)) {
+      // Usar datos REALES detallados de evolución con TODAS las columnas
+      const evolucionDetallada = this.metricsExtended!.evolucionDinamicaCompleta!;
+      
+      // Crear dataset para CADA estado del proyecto
+      const datasetsDinamicos = evolucionDetallada.estados.map((estadoNombre: string, index: number) => {
+        // Obtener el estado correspondiente para obtener su color
+        const estadoInfo = estadosDisponibles.find(e => e.nombre === estadoNombre);
+        const datosEstado = evolucionDetallada.datosPorEstado[estadoNombre] || Array(evolucionDetallada.labels.length).fill(0);
+        
+        // Usar color real del estado o generar uno basado en el nombre
+        let color;
+        if (estadoInfo?.color) {
+          color = estadoInfo.color;
+        } else {
+          // Si no tiene color, usar color basado en el nombre del estado
+          color = this.getColorByEstado(estadoNombre, 1);
         }
         
+        const colorFondo = this.hexToRgba(color, 0.4);
+        
         return {
-          usuario: usuario.nombreCompleto,
-          eficiencia: Math.max(0, Math.min(100, eficiencia))
+          label: ` ${estadoNombre}`,
+          data: datosEstado,
+          borderColor: color,
+          backgroundColor: colorFondo,
+          fill: true,
+          tension: 0.4,
+          borderWidth: 3,
+          pointBackgroundColor: color,
+          pointBorderColor: 'rgba(255, 255, 255, 0.9)',
+          pointBorderWidth: 2,
+          pointHoverBackgroundColor: 'rgba(255, 255, 255, 1)',
+          pointHoverBorderColor: color,
+          pointHoverBorderWidth: 3,
+          pointRadius: 6,
+          pointHoverRadius: 10
         };
       });
 
-      this.doughnutChartData.labels = eficienciaUsuarios.map((item: { usuario: string; eficiencia: number }) => item.usuario);
-      this.doughnutChartData.datasets[0].data = eficienciaUsuarios.map((item: { usuario: string; eficiencia: number }) => item.eficiencia);
+      this.areaChartData = {
+        labels: evolucionDetallada.labels,
+        datasets: datasetsDinamicos
+      };
+      
+      // Actualizar título para indicar que muestra TODAS las columnas
+      if (this.areaChartOptions && this.areaChartOptions.plugins && this.areaChartOptions.plugins.title) {
+        this.areaChartOptions.plugins.title.text = `Evolución del Proyecto (${evolucionDetallada.estados.length} Estados)`;
+      }
+    } else if (this.metrics?.evolucionProyecto) {
+      // Usar formato antiguo de evolución (compatibilidad)
+      const evolucion = this.metrics.evolucionProyecto;
+      
+      this.areaChartData = {
+        labels: evolucion.labels,
+        datasets: [
+          {
+            label: 'Completadas',
+            data: evolucion.completadas,
+            borderColor: 'rgba(34, 197, 94, 1)',
+            backgroundColor: 'rgba(34, 197, 94, 0.4)',
+            fill: true,
+            tension: 0.4,
+            borderWidth: 3,
+            pointBackgroundColor: 'rgba(34, 197, 94, 1)',
+            pointBorderColor: 'rgba(255, 255, 255, 0.9)',
+            pointBorderWidth: 2,
+            pointRadius: 6,
+            pointHoverRadius: 10
+          },
+          {
+            label: 'En Progreso',
+            data: evolucion.enProgreso,
+            borderColor: 'rgba(59, 130, 246, 1)',
+            backgroundColor: 'rgba(59, 130, 246, 0.4)',
+            fill: true,
+            tension: 0.4,
+            borderWidth: 3,
+            pointBackgroundColor: 'rgba(59, 130, 246, 1)',
+            pointBorderColor: 'rgba(255, 255, 255, 0.9)',
+            pointBorderWidth: 2,
+            pointRadius: 6,
+            pointHoverRadius: 10
+          },
+          {
+            label: 'Pendientes',
+            data: evolucion.pendientes,
+            borderColor: 'rgba(107, 114, 128, 1)',
+            backgroundColor: 'rgba(107, 114, 128, 0.4)',
+            fill: true,
+            tension: 0.4,
+            borderWidth: 3,
+            pointBackgroundColor: 'rgba(107, 114, 128, 1)',
+            pointBorderColor: 'rgba(255, 255, 255, 0.9)',
+            pointBorderWidth: 2,
+            pointRadius: 6,
+            pointHoverRadius: 10
+          }
+        ]
+      };
     } else {
-      const usuarioActual = this.authService.getCurrentUser();
-      const nombreUsuario = usuarioActual ? `${usuarioActual.nombre} ${usuarioActual.apellido}` : 'Usuario';
+      // Si no hay datos de evolución, mostrar mensaje en lugar de datos falsos
+      this.areaChartData = {
+        labels: ['Sin datos históricos'],
+        datasets: [{
+          label: 'Datos no disponibles',
+          data: [0],
+          borderColor: 'rgba(156, 163, 175, 1)',
+          backgroundColor: 'rgba(156, 163, 175, 0.4)',
+          fill: true,
+          tension: 0.4,
+          borderWidth: 3
+        }]
+      };
       
-      const eficienciaBase = this.metrics.stats.porcentajeCompletado || 0;
-      
-      this.doughnutChartData.labels = [nombreUsuario];
-      this.doughnutChartData.datasets[0].data = [eficienciaBase];
+      if (this.areaChartOptions && this.areaChartOptions.plugins && this.areaChartOptions.plugins.title) {
+        this.areaChartOptions.plugins.title.text = 'Evolución del Proyecto (Datos no disponibles)';
+      }
     }
 
+    // 4. GRÁFICO DE ANILLO - Eficiencia por Usuario (CON TODAS LAS TAREAS - DESGLOSE COMPLETO)
+// 4. GRÁFICO DE ANILLO - Eficiencia por Usuario (CON TODAS LAS TAREAS - DESGLOSE COMPLETO)
+if (this.tieneUsuariosEficiencia(this.metrics) && (this.metrics as any).usuariosEficiencia!.length > 0) {
+  const usuariosEficiencia = (this.metrics as any).usuariosEficiencia! as UsuarioEficienciaLocal[];
+  
+  // Calcular el total de tareas del proyecto
+  const totalTareasProyecto = this.metrics?.stats?.totalTareas || 0;
+  
+  // MODIFICACIÓN: Formatear etiquetas con el formato "Usuario (X/Y)"
+  this.doughnutChartData.labels = usuariosEficiencia.map((usuario: UsuarioEficienciaLocal) => {
+    // Usamos el total de tareas del usuario (que ya incluye todas sus tareas)
+    const tareasUsuario = usuario.totalTareas || 0;
+    
+    // Formato: "Nombre (tareasUsuario/totalTareasProyecto)"
+    return `${usuario.nombreCompleto} (${tareasUsuario}/${totalTareasProyecto})`;
+  });
+  
+  // Los datos del gráfico serán las tareas de cada usuario
+  this.doughnutChartData.datasets[0].data = usuariosEficiencia.map((usuario: UsuarioEficienciaLocal) => 
+    usuario.totalTareas || 0
+  );
+  
+  // También necesitamos actualizar el tooltip para mostrar más detalles
+  if (this.doughnutChartOptions?.plugins?.tooltip?.callbacks) {
+    this.doughnutChartOptions.plugins.tooltip.callbacks.label = (context) => {
+      const index = context.dataIndex;
+      const usuario = usuariosEficiencia[index];
+      
+      if (!usuario) return '';
+      
+      let tooltipText = [];
+      tooltipText.push(`${usuario.nombreCompleto}`);
+      tooltipText.push(`Total tareas asignadas: ${usuario.totalTareas} de ${totalTareasProyecto}`);
+      
+      // Calcular porcentaje de participación en el proyecto
+    
+      
+      // Calcular eficiencia real (completadas/total del usuario)
+
+      
+      // Detalles por estado
+    
+      
+      if (usuario.tareasEnRevision) tooltipText.push(`👁 En Revisión: ${usuario.tareasEnRevision}`);
+      if (usuario.tareasBloqueadas) tooltipText.push(`⛔ Bloqueadas: ${usuario.tareasBloqueadas}`);
+      if (usuario.tareasCanceladas) tooltipText.push(`✕ Canceladas: ${usuario.tareasCanceladas}`);
+      
+      return tooltipText;
+    };
+  }
+  
+  // Actualizar título
+  if (this.doughnutChartOptions && this.doughnutChartOptions.plugins && this.doughnutChartOptions.plugins.title) {
+    this.doughnutChartOptions.plugins.title.text = `Distribución de Tareas por Usuario (Total: ${totalTareasProyecto} tareas)`;
+  }
+} else {
+  // Si no hay datos de eficiencia, mostrar mensaje
+  this.doughnutChartData.labels = ['Sin datos de usuarios'];
+  this.doughnutChartData.datasets[0].data = [100];
+  
+  if (this.doughnutChartOptions && this.doughnutChartOptions.plugins && this.doughnutChartOptions.plugins.title) {
+    this.doughnutChartOptions.plugins.title.text = 'Distribución por Usuario (Sin datos)';
+  }
+}
     setTimeout(() => {
       this.cdr.detectChanges();
     }, 50);
@@ -2311,53 +2480,40 @@ export class Dashboard implements OnInit, OnDestroy {
     return Math.abs(hash) % 10;
   }
 
-  // MÉTODO PARA GENERAR EVOLUCIÓN DEL PROYECTO (SOLO COMO FALLBACK)
-  private generarEvolucionProyecto(): { 
-    labels: string[]; 
-    completadas: number[]; 
-    enProgreso: number[]; 
-    pendientes: number[] 
-  } {
-    if (!this.metrics) {
-      return { 
-        labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'], 
-        completadas: Array(12).fill(0), 
-        enProgreso: Array(12).fill(0), 
-        pendientes: Array(12).fill(0) 
-      };
+  // MÉTODO para obtener todos los estados disponibles
+  private getEstadosDisponibles(): EstadoDashboard[] {
+    if (this.tieneDistribucionCompleta(this.metrics)) {
+      return (this.metrics as any).distribucionPorEstadoCompleta;
+    } else if (this.metrics?.tareasPorEstado) {
+      return this.metrics.tareasPorEstado.map((estado: any) => ({
+        id: 0,
+        nombre: estado.estado,
+        cantidad: estado.cantidad,
+        color: this.getColorByEstado(estado.estado, 1)
+      }));
+    } else {
+      // Estados por defecto si no hay datos disponibles
+      return [
+        { 
+          id: 1, 
+          nombre: 'Pendientes', 
+          cantidad: this.metrics?.stats.tareasPendientes || 0,
+          color: 'rgba(239, 68, 68, 1)'
+        },
+        { 
+          id: 2, 
+          nombre: 'En Progreso', 
+          cantidad: this.metrics?.stats.tareasEnProgreso || 0,
+          color: 'rgba(245, 158, 11, 1)'
+        },
+        { 
+          id: 3, 
+          nombre: 'Completadas', 
+          cantidad: this.metrics?.stats.tareasCompletadas || 0,
+          color: 'rgba(34, 197, 94, 1)'
+        }
+      ];
     }
-
-    const totalTareas = this.metrics.stats.totalTareas;
-    const completadasActual = this.metrics.stats.tareasCompletadas;
-    const enProgresoActual = this.metrics.stats.tareasEnProgreso;
-    const pendientesActual = this.metrics.stats.tareasPendientes;
-
-    const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-    const completadas: number[] = Array(12).fill(0);
-    const enProgreso: number[] = Array(12).fill(0);
-    const pendientes: number[] = Array(12).fill(0);
-
-    const mesActual = new Date().getMonth();
-    
-    for (let i = 0; i <= mesActual && i < 12; i++) {
-      const factor = i / Math.max(1, mesActual);
-      completadas[i] = Math.round(completadasActual * factor * 0.8);
-      enProgreso[i] = Math.round(enProgresoActual * (0.3 + factor * 0.7));
-      pendientes[i] = Math.max(0, totalTareas - completadas[i] - enProgreso[i]);
-    }
-
-    if (mesActual < 12) {
-      completadas[mesActual] = completadasActual;
-      enProgreso[mesActual] = enProgresoActual;
-      pendientes[mesActual] = pendientesActual;
-    }
-
-    return {
-      labels: meses,
-      completadas,
-      enProgreso,
-      pendientes
-    };
   }
 
   // ========== MÉTODOS PARA GESTIÓN DE GRÁFICOS ==========
@@ -2401,6 +2557,8 @@ export class Dashboard implements OnInit, OnDestroy {
       next: (response) => {
         if (response?.success) {
           this.metrics = response.data;
+          // Asignar también a la versión extendida
+          this.metricsExtended = response.data as ProjectDashboardMetricsExtended;
           this.lastUpdate = new Date();
           this.actualizarGraficos();
         } else {
@@ -2526,27 +2684,13 @@ export class Dashboard implements OnInit, OnDestroy {
     this.cargarMetricas();
   }
 
-  // NUEVO: Método para obtener la distribución actual de estados
+  // MÉTODO para obtener la distribución actual de estados
   getDistribucionActual(): EstadoDashboard[] {
-    if (this.tieneDistribucionCompleta(this.metrics) && this.metrics.distribucionPorEstadoCompleta) {
-      return this.metrics.distribucionPorEstadoCompleta;
-    } else if (this.metrics?.tareasPorEstado) {
-      return this.metrics.tareasPorEstado.map((estado: any) => ({
-        id: 0,
-        nombre: estado.estado,
-        cantidad: estado.cantidad
-      }));
-    }
-    return [];
+    return this.getEstadosDisponibles();
   }
 
-  // NUEVO: Método para obtener el número total de estados
+  // MÉTODO para obtener el número total de estados
   getTotalEstados(): number {
-    if (this.tieneDistribucionCompleta(this.metrics) && this.metrics.distribucionPorEstadoCompleta) {
-      return this.metrics.distribucionPorEstadoCompleta.length;
-    } else if (this.metrics?.tareasPorEstado) {
-      return this.metrics.tareasPorEstado.length;
-    }
-    return 3; // Por defecto: Pendientes, En Progreso, Completadas
+    return this.getEstadosDisponibles().length;
   }
 }

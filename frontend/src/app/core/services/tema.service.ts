@@ -179,6 +179,8 @@ export class TemaService {
         --bg-login: #f8fafc;
         --bg-login-card: #ffffff;
         --bg-login-input: #ffffff;
+        --bg-proyectos-compartidos: #ffffff;
+        --bg-proyectos-stats: #ffffff;
         
         --text-primary: #000000;
         --text-secondary: #374151;
@@ -201,6 +203,10 @@ export class TemaService {
         --text-login: #000000;
         --text-login-label: #000000;
         --text-login-link: #374151;
+        --text-proyectos-titulo: #000000;
+        --text-proyectos-subtitulo: #374151;
+        --text-proyectos-card: #000000;
+        --text-proyectos-estadisticas: #000000;
         
         --border-primary: #e5e7eb;
         --border-secondary: #f3f4f6;
@@ -217,6 +223,9 @@ export class TemaService {
         --border-login: #e5e7eb;
         --border-login-card: #d1fae5;
         --border-login-input: #d1d5db;
+        --border-proyectos: #e5e7eb;
+        --border-proyectos-card: #e5e7eb;
+        --border-proyectos-header: #e5e7eb;
         
         --accent-green: #059669;
         --accent-green-hover: #047857;
@@ -238,6 +247,7 @@ export class TemaService {
         --shadow-header: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
         --shadow-kanban: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
         --shadow-login: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        --shadow-proyectos: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         
         /* Gradientes para modo claro */
         --gradient-bg: linear-gradient(to bottom right, #f8fafc, #ffffff, #f1f5f9);
@@ -255,6 +265,445 @@ export class TemaService {
         --gradient-members-card: linear-gradient(to bottom right, #ffffff, #f8fafc);
         --gradient-kanban-column: linear-gradient(to bottom, #ffffff, #f8fafc);
         --gradient-login-card: linear-gradient(to bottom, #ffffff, #f8fafc);
+        --gradient-proyectos-card: linear-gradient(to bottom right, #ffffff, #f8fafc);
+        --gradient-proyectos-stats: linear-gradient(to bottom, #ffffff, #f8fafc);
+      }
+
+      /* ===== PÁGINA DE PROYECTOS COMPARTIDOS - MODO CLARO ===== */
+
+      /* Fondo principal de proyectos compartidos */
+      [data-theme="light"] .min-h-screen.bg-gradient-to-br.from-slate-900.via-slate-800.to-slate-900 {
+        background: var(--gradient-bg) !important;
+        color: var(--text-proyectos-titulo) !important;
+      }
+
+      [data-theme="light"] .min-h-screen.bg-gradient-to-br.from-slate-900.via-slate-800.to-slate-900.text-white {
+        color: var(--text-proyectos-titulo) !important;
+      }
+
+      /* Header de proyectos compartidos */
+      [data-theme="light"] header.bg-slate-800\\/50 {
+        background-color: var(--bg-header) !important;
+        border-bottom-color: var(--border-proyectos-header) !important;
+        backdrop-filter: blur(8px);
+        box-shadow: var(--shadow-header);
+      }
+
+      [data-theme="light"] header.bg-slate-800\\/50.border-b.border-slate-700 {
+        border-bottom-color: var(--border-proyectos-header) !important;
+      }
+
+      /* Títulos del header */
+      [data-theme="light"] header .text-2xl.font-bold.text-white {
+        color: var(--text-proyectos-titulo) !important;
+        font-weight: 700 !important;
+      }
+
+      [data-theme="light"] header .text-slate-400 {
+        color: var(--text-proyectos-subtitulo) !important;
+      }
+
+      /* Barra de búsqueda en proyectos compartidos */
+      [data-theme="light"] header input[type="text"] {
+        background-color: var(--bg-input) !important;
+        border-color: var(--border-input) !important;
+        color: var(--text-primary) !important;
+      }
+
+      [data-theme="light"] header input[type="text"]::placeholder {
+        color: var(--text-placeholder) !important;
+      }
+
+      [data-theme="light"] header input[type="text"]:focus {
+        border-color: var(--accent-purple) !important;
+        box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.2) !important;
+      }
+
+      [data-theme="light"] header .text-slate-500 {
+        color: var(--text-placeholder) !important;
+      }
+
+      /* Select de filtro por rol */
+      [data-theme="light"] header select {
+        background-color: var(--bg-input) !important;
+        border-color: var(--border-input) !important;
+        color: var(--text-primary) !important;
+      }
+
+      [data-theme="light"] header select:focus {
+        border-color: var(--accent-purple) !important;
+        box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.2) !important;
+      }
+
+      [data-theme="light"] header .text-slate-400 {
+        color: var(--text-secondary) !important;
+      }
+
+      /* ===== ESTADÍSTICAS DE PROYECTOS COMPARTIDOS ===== */
+
+      /* Tarjetas de estadísticas */
+      [data-theme="light"] .bg-slate-800\\/50.backdrop-blur-sm {
+        background-color: var(--bg-proyectos-stats) !important;
+        border-color: var(--border-proyectos-card) !important;
+        backdrop-filter: blur(8px);
+        box-shadow: var(--shadow-proyectos);
+      }
+
+      [data-theme="light"] .bg-slate-800\\/50.rounded-xl {
+        background-color: var(--bg-proyectos-stats) !important;
+        border-color: var(--border-proyectos-card) !important;
+      }
+
+      [data-theme="light"] .bg-slate-800\\/50.border.border-slate-700 {
+        border-color: var(--border-proyectos-card) !important;
+      }
+
+      /* Textos en estadísticas */
+      [data-theme="light"] .text-slate-400.text-sm {
+        color: var(--text-proyectos-subtitulo) !important;
+      }
+
+      [data-theme="light"] .text-2xl.font-bold.text-white {
+        color: var(--text-proyectos-estadisticas) !important;
+      }
+
+      /* Iconos en estadísticas */
+      [data-theme="light"] .bg-purple-500\\/20 {
+        background-color: rgba(124, 58, 237, 0.1) !important;
+      }
+
+      [data-theme="light"] .bg-red-500\\/20 {
+        background-color: rgba(220, 38, 38, 0.1) !important;
+      }
+
+      [data-theme="light"] .bg-blue-500\\/20 {
+        background-color: rgba(37, 99, 235, 0.1) !important;
+      }
+
+      [data-theme="light"] .text-purple-400 {
+        color: var(--accent-purple) !important;
+      }
+
+      [data-theme="light"] .text-red-400 {
+        color: var(--accent-red) !important;
+      }
+
+      [data-theme="light"] .text-blue-400 {
+        color: var(--accent-blue) !important;
+      }
+
+      /* ===== TARJETAS DE PROYECTOS COMPARTIDOS ===== */
+
+      /* Tarjetas principales de proyectos */
+      [data-theme="light"] .bg-gradient-to-br.from-slate-800.to-slate-800\\/80 {
+        background: var(--gradient-proyectos-card) !important;
+        border-color: var(--border-proyectos-card) !important;
+        color: var(--text-proyectos-card) !important;
+        box-shadow: var(--shadow-card);
+      }
+
+      [data-theme="light"] .bg-gradient-to-br.from-slate-800.to-slate-800\\/80:hover {
+        border-color: var(--accent-purple) !important;
+        box-shadow: 0 8px 25px var(--shadow-hover) !important;
+      }
+
+      [data-theme="light"] .bg-gradient-to-br.from-slate-800.to-slate-800\\/80.rounded-2xl {
+        border-radius: 1rem !important;
+      }
+
+      [data-theme="light"] .bg-gradient-to-br.from-slate-800.to-slate-800\\/80.border.border-slate-700 {
+        border-color: var(--border-proyectos-card) !important;
+      }
+
+      /* Efecto de brillo al hover */
+      [data-theme="light"] .bg-gradient-to-r.from-purple-500\\/5.to-transparent {
+        background: linear-gradient(to right, rgba(124, 58, 237, 0.05), transparent) !important;
+      }
+
+      /* Títulos de tarjetas */
+      [data-theme="light"] .text-lg.font-bold.text-white {
+        color: var(--text-proyectos-card) !important;
+        font-weight: 700 !important;
+      }
+
+      [data-theme="light"] .group-hover\\:text-purple-300:hover {
+        color: var(--accent-purple) !important;
+      }
+
+      /* Descripciones */
+      [data-theme="light"] .text-slate-400.text-sm {
+        color: var(--text-proyectos-subtitulo) !important;
+      }
+
+      /* Indicador de proyecto compartido */
+      [data-theme="light"] .w-2.h-2.bg-purple-500 {
+        background-color: var(--accent-purple) !important;
+      }
+
+      /* ===== BADGES DE ROL ===== */
+
+      /* Badge Administrador */
+      [data-theme="light"] .bg-red-500\\/20.text-red-400 {
+        background-color: rgba(220, 38, 38, 0.1) !important;
+        color: var(--accent-red) !important;
+        border-color: rgba(220, 38, 38, 0.3) !important;
+      }
+
+      [data-theme="light"] .border-red-500\\/30 {
+        border-color: rgba(220, 38, 38, 0.3) !important;
+      }
+
+      [data-theme="light"] .bg-red-400 {
+        background-color: var(--accent-red) !important;
+      }
+
+      /* Badge Editor */
+      [data-theme="light"] .bg-green-500\\/20.text-green-400 {
+        background-color: rgba(5, 150, 105, 0.1) !important;
+        color: var(--accent-green) !important;
+        border-color: rgba(5, 150, 105, 0.3) !important;
+      }
+
+      [data-theme="light"] .border-green-500\\/30 {
+        border-color: rgba(5, 150, 105, 0.3) !important;
+      }
+
+      [data-theme="light"] .bg-green-400 {
+        background-color: var(--accent-green) !important;
+      }
+
+      /* Badge Visualizador */
+      [data-theme="light"] .bg-blue-500\\/20.text-blue-400 {
+        background-color: rgba(37, 99, 235, 0.1) !important;
+        color: var(--accent-blue) !important;
+        border-color: rgba(37, 99, 235, 0.3) !important;
+      }
+
+      [data-theme="light"] .border-blue-500\\/30 {
+        border-color: rgba(37, 99, 235, 0.3) !important;
+      }
+
+      [data-theme="light"] .bg-blue-400 {
+        background-color: var(--accent-blue) !important;
+      }
+
+      /* ===== INFORMACIÓN DE PROYECTOS ===== */
+
+      /* Textos de información */
+      [data-theme="light"] .text-slate-400 {
+        color: var(--text-proyectos-subtitulo) !important;
+      }
+
+      [data-theme="light"] .text-white.font-medium {
+        color: var(--text-proyectos-card) !important;
+        font-weight: 500 !important;
+      }
+
+      [data-theme="light"] .text-slate-300 {
+        color: var(--text-secondary) !important;
+      }
+
+      [data-theme="light"] .text-purple-400.font-medium {
+        color: var(--accent-purple) !important;
+        font-weight: 500 !important;
+      }
+
+      /* Footer de tarjetas */
+      [data-theme="light"] .border-t.border-slate-700 {
+        border-top-color: var(--border-proyectos-card) !important;
+      }
+
+      /* Indicador de estado activo */
+      [data-theme="light"] .text-purple-400.text-sm {
+        color: var(--accent-purple) !important;
+      }
+
+      [data-theme="light"] .bg-purple-400 {
+        background-color: var(--accent-purple) !important;
+      }
+
+      [data-theme="light"] .bg-purple-500 {
+        background-color: var(--accent-purple) !important;
+      }
+
+      /* Botones de acción */
+      [data-theme="light"] .text-slate-400.hover\\:text-white:hover {
+        color: var(--text-proyectos-card) !important;
+      }
+
+      [data-theme="light"] .hover\\:bg-slate-700\\/50:hover {
+        background-color: var(--bg-sidebar-hover) !important;
+      }
+
+      /* Botón principal de abrir proyecto */
+      [data-theme="light"] .bg-gradient-to-r.from-purple-500.to-purple-600 {
+        background: var(--gradient-button-purple) !important;
+        color: white !important;
+      }
+
+      [data-theme="light"] .bg-gradient-to-r.from-purple-500.to-purple-600:hover {
+        background: linear-gradient(to right, var(--accent-purple-hover), #7c3aed) !important;
+      }
+
+      [data-theme="light"] .hover\\:from-purple-600.hover\\:to-purple-700:hover {
+        background: linear-gradient(to right, var(--accent-purple-hover), #7c3aed) !important;
+      }
+
+      /* ===== ESTADO VACÍO DE PROYECTOS COMPARTIDOS ===== */
+
+      /* Contenedor de estado vacío */
+      [data-theme="light"] .bg-slate-800\\/50.backdrop-blur-sm.rounded-xl {
+        background-color: var(--bg-proyectos-stats) !important;
+        border-color: var(--border-proyectos-card) !important;
+      }
+
+      [data-theme="light"] .bg-slate-800\\/50.border.border-slate-700 {
+        border-color: var(--border-proyectos-card) !important;
+      }
+
+      /* Icono de estado vacío */
+      [data-theme="light"] .bg-gradient-to-br.from-slate-800.to-slate-700 {
+        background: var(--gradient-proyectos-card) !important;
+      }
+
+      [data-theme="light"] .text-purple-500 {
+        color: var(--accent-purple) !important;
+      }
+
+      /* Títulos de estado vacío */
+      [data-theme="light"] .text-2xl.font-bold.text-white {
+        color: var(--text-proyectos-titulo) !important;
+      }
+
+      [data-theme="light"] .text-slate-400 {
+        color: var(--text-proyectos-subtitulo) !important;
+      }
+
+      /* Lista de información en estado vacío */
+      [data-theme="light"] .text-purple-500 {
+        color: var(--accent-purple) !important;
+      }
+
+      /* ===== MODAL DE DETALLES DE PROYECTOS COMPARTIDOS ===== */
+
+      /* Overlay del modal */
+      [data-theme="light"] .bg-black\\/60.backdrop-blur-sm {
+        background-color: rgba(0, 0, 0, 0.6) !important;
+      }
+
+      /* Modal principal */
+      [data-theme="light"] .bg-gradient-to-br.from-slate-800.to-slate-900 {
+        background: var(--gradient-modal) !important;
+        border-color: var(--border-proyectos-card) !important;
+        color: var(--text-proyectos-card) !important;
+      }
+
+      /* Header del modal */
+      [data-theme="light"] .bg-gradient-to-r.from-purple-900\\/50.to-purple-800\\/30 {
+        background: linear-gradient(to right, rgba(124, 58, 237, 0.1), rgba(124, 58, 237, 0.05)) !important;
+        border-bottom-color: rgba(124, 58, 237, 0.2) !important;
+      }
+
+      [data-theme="light"] .border-b.border-purple-700\\/50 {
+        border-bottom-color: rgba(124, 58, 237, 0.2) !important;
+      }
+
+      /* Icono del header del modal */
+      [data-theme="light"] .bg-gradient-to-br.from-purple-500.to-purple-600 {
+        background: var(--gradient-button-purple) !important;
+      }
+
+      [data-theme="light"] .text-white {
+        color: var(--text-proyectos-card) !important;
+      }
+
+      [data-theme="light"] .text-purple-300 {
+        color: var(--accent-purple) !important;
+      }
+
+      /* Botón de cerrar modal */
+      [data-theme="light"] .bg-slate-700 {
+        background-color: var(--bg-secondary) !important;
+      }
+
+      [data-theme="light"] .bg-slate-700:hover {
+        background-color: var(--bg-sidebar-hover) !important;
+      }
+
+      [data-theme="light"] .text-slate-400 {
+        color: var(--text-secondary) !important;
+      }
+
+      [data-theme="light"] .text-slate-400:hover {
+        color: var(--text-proyectos-card) !important;
+      }
+
+      /* Contenido del modal */
+      [data-theme="light"] .text-slate-300 {
+        color: var(--text-secondary) !important;
+      }
+
+      [data-theme="light"] .bg-slate-700\\/30 {
+        background-color: var(--bg-secondary) !important;
+      }
+
+      [data-theme="light"] .border-slate-600 {
+        border-color: var(--border-proyectos-card) !important;
+      }
+
+      /* Grid de información en modal */
+      [data-theme="light"] .text-slate-400.text-sm {
+        color: var(--text-proyectos-subtitulo) !important;
+      }
+
+      [data-theme="light"] .text-purple-400.font-semibold {
+        color: var(--accent-purple) !important;
+      }
+
+      [data-theme="light"] .text-white.font-semibold {
+        color: var(--text-proyectos-card) !important;
+      }
+
+      /* Información adicional en modal */
+      [data-theme="light"] .text-md.font-medium.text-white {
+        color: var(--text-proyectos-card) !important;
+      }
+
+      /* Botones del modal */
+      [data-theme="light"] .bg-slate-700 {
+        background-color: var(--bg-secondary) !important;
+      }
+
+      [data-theme="light"] .bg-slate-700:hover {
+        background-color: var(--bg-sidebar-hover) !important;
+      }
+
+      [data-theme="light"] .border-slate-600 {
+        border-color: var(--border-proyectos-card) !important;
+      }
+
+      [data-theme="light"] .border-slate-600:hover {
+        border-color: var(--border-input) !important;
+      }
+
+      /* Botón abrir proyecto en modal */
+      [data-theme="light"] .bg-gradient-to-r.from-purple-500.to-purple-600 {
+        background: var(--gradient-button-purple) !important;
+      }
+
+      [data-theme="light"] .bg-gradient-to-r.from-purple-500.to-purple-600:hover {
+        background: linear-gradient(to right, var(--accent-purple-hover), #7c3aed) !important;
+      }
+
+      /* ===== TOAST MESSAGES EN PROYECTOS COMPARTIDOS ===== */
+
+      /* Contenedor de toast */
+      [data-theme="light"] .bg-gradient-to-r.from-purple-500.to-purple-600 {
+        background: var(--gradient-button-purple) !important;
+      }
+
+      [data-theme="light"] .border-purple-400\\/20 {
+        border-color: rgba(124, 58, 237, 0.2) !important;
       }
 
       /* ===== BOTONES DE TEMA - ESTILOS CLAROS ===== */

@@ -8,6 +8,27 @@ import { EditorJSOutputData } from "./interface.js";
 export class BlocksController {
   constructor(private bloquesService: BlocksService) {}
 
+  public fetchImageUrl = (req: Request, res: Response) => {
+    try {
+      const { url } = req.body as {url: string}; // EditorJS envía la URL en el body
+
+      if (!url) {
+        return res.status(400).json({ message: 'URL no proporcionada', success: 0 });
+      }
+      
+      return res.status(200).json({
+        file: {
+          url: url,
+        },
+        success: 1
+      });
+
+    } catch (error) {
+      console.error('Error fetching image url:', error);
+      return res.status(500).json({ message: 'Error procesando URL', success: 0 });
+    }
+  }
+
   public fetchUrlData = async (req: Request, res: Response) => {
     const url = req.query.url as string;
 
@@ -96,6 +117,31 @@ export class BlocksController {
     } catch (error) {
       console.error('Error al obtener bloques:', error);
       res.status(500).json({ message: 'Error interno del servidor' });
+    }
+  }
+
+  public uploadImage = (req: Request, res: Response) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: 'No se subió ningún archivo', success: 0 });
+      }
+
+      // Construimos la URL pública (Ajusta 'http://localhost:3000' a tu dominio en producción)
+      // Asumimos que sirves la carpeta 'uploads' estáticamente
+      const baseUrl = 'http://localhost:9001'; // O usa process.env.API_URL
+      const fileUrl = `${baseUrl}/uploads/${req.file.filename}`;
+
+      return res.status(200).json({
+        file: {
+          url: fileUrl,
+          // Opcional: puedes devolver width, height, etc.
+        },
+        success: 1
+      });
+
+    } catch (error) {
+      console.error('Error subiendo imagen:', error);
+      return res.status(500).json({ message: 'Error interno', success: 0 });
     }
   }
 

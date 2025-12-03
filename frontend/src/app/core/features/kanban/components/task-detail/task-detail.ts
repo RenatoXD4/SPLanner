@@ -25,6 +25,7 @@ import { Comentarios } from "../comentarios/comentarios";
 export class TaskDetail implements AfterViewInit, OnDestroy, OnChanges {
   
   private apiUrl = `${environment.apiUrl}/blocks/fetchUrl`;
+  private imageApiUrl = `${environment.apiUrl}/blocks`
   private editor!: EditorJS | undefined;
   @Input() task: TaskUI | null = null;
   @Input() isHidden: boolean = true;
@@ -151,6 +152,7 @@ export class TaskDetail implements AfterViewInit, OnDestroy, OnChanges {
     const Undo = (await import('editorjs-undo')).default;
     const DragDrop = (await import('editorjs-drag-drop')).default;
     const LinkTool = (await import('@editorjs/link')).default;
+    const ImageTool = (await import('@editorjs/image')).default;
     const aiServiceInstance = this.aiService;
 
     this.editor = new EditorJS({
@@ -184,6 +186,21 @@ export class TaskDetail implements AfterViewInit, OnDestroy, OnChanges {
             endpoint: this.apiUrl, 
           }
         },
+        image: {
+        class: ImageTool,
+        config: {
+          endpoints: {
+            // Tu endpoint del backend
+            byFile: `${this.imageApiUrl}/uploads/image`, 
+      
+      // 🟢 CORRECCIÓN: Debe ser 'fetchImageUrl' para coincidir con tu backend
+             byUrl: `${this.imageApiUrl}/uploads/fetchImageUrl`,
+          },
+          field: 'image', // Nombre del campo que espera Multer (coincide con upload.single('image'))
+          types: 'image/*',
+          buttonContent: 'Seleccionar imagen'
+        }
+       },
         aiPrompt: {
           class: AiPromptTool,
           config: {
@@ -217,6 +234,8 @@ export class TaskDetail implements AfterViewInit, OnDestroy, OnChanges {
             // Traducciones específicas de las herramientas (como Header)
           toolNames: {
             "Text": "Texto",
+            "Image": "Imagen",
+            "Link": "Enlace",
           },
           tools: {
               header: {
@@ -228,6 +247,20 @@ export class TaskDetail implements AfterViewInit, OnDestroy, OnChanges {
               "Ordered": "Lista ordenada",
               "Unordered": "Lista desordenada",
               "Checklist": "Lista de tareas",
+              },
+              image: {
+                "Caption": "Pie de foto",
+                "With border": "Con borde",          
+                "Stretch image": "Ancho completo",   
+                "With background": "Con fondo"       
+              },
+              linkTool: {
+                "Couldn't fetch the link data": "No se pudieron cargar los datos del enlace",
+                "Couldn't get this link data, try the other one": "Error al cargar el enlace, intenta con otro",
+                "Wrong response format from the server": "Formato de respuesta incorrecto del servidor"
+              },
+              link: {
+                "Add a link": "Pega o escribe un enlace..."
               },
           }
         }

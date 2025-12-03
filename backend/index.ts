@@ -4,14 +4,16 @@ import express, { NextFunction, Request, Response } from "express";
 
 config();
 
+import path from "path";
+
 import aiRouter from "./src/modules/ai-text-editor/ai.routes.js";
 import blocksRouter from "./src/modules/blocks/blocks.routes.js";
 import commentsRouter from "./src/modules/comentarios/comentario.routes.js";
 import routerDashboard from "./src/modules/dashboard/dashboard.routes.js";
 import { KanbanRepository } from "./src/modules/kanban/kanban.repository.js";
 import routerKanbantask from "./src/modules/kanban/kanban.routes.js";
-import routerMiembro from "./src/modules/miembro/miembro.routes.js";
-import routerProject from "./src/modules/projects/projects.routes.js"; 
+import routerMiembro from "./src/modules/miembro/miembro.routes.js"; 
+import routerProject from "./src/modules/projects/projects.routes.js";
 import routerUser from "./src/modules/usuario/user.routes.js";
 
 const app = express();
@@ -56,6 +58,7 @@ app.use(`/${api}`, routerDashboard);
 app.use(`/${api}/blocks`, blocksRouter)
 app.use(`/${api}/ai`, aiRouter)
 app.use(`/${api}/comments`, commentsRouter)
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 // Ruta raíz
 app.get("/", (req: Request, res: Response) => {
